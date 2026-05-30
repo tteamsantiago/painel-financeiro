@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Painel Financeiro — Demo</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f9fafb;display:flex;min-height:100vh;}
@@ -518,6 +519,15 @@ tbody tr:hover td{background:#f9fafb;}
 
 <script>
 // ══════════════════════════════════════════════
+// SUPABASE
+// ══════════════════════════════════════════════
+const { createClient } = supabase;
+const sb = createClient(
+  'https://fhuromvcoujzmikxxjnv.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZodXJvbXZjb3Vqem1pa3h4am52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxMjM5MTgsImV4cCI6MjA5NTY5OTkxOH0.yiKrzsiIsoekNlG0r6Qwn8YrDB1q2josRBVrJfiP4uc'
+);
+
+// ══════════════════════════════════════════════
 // DADOS
 // ══════════════════════════════════════════════
 const CAT_SAIDA  = [{n:'Custo de Equipe',c:'#6366f1'},{n:'Imposto',c:'#ef4444'},{n:'Cursos e Mentorias',c:'#f59e0b'},{n:'Equipamento Audiovisual',c:'#8b5cf6'},{n:'Ferramentas Digitais',c:'#3b82f6'},{n:'Anúncios',c:'#10b981'}];
@@ -774,17 +784,25 @@ function abrirModalNovoLanc(){
   );
 }
 
-function salvarNovoLanc(){
+async function salvarNovoLanc(){
   const desc=document.getElementById('nl-desc').value.trim();
   const valor=parseFloat(document.getElementById('nl-valor').value);
   if(!desc){toast('Informe a descrição','erro');return;}
   if(!valor||valor<=0){toast('Informe um valor válido','erro');return;}
   const dataRaw=document.getElementById('nl-data').value;
-  const [y,m,dd]=dataRaw.split('-');
-  LANCS.unshift({id:nextId++,tipo:document.getElementById('nl-tipo').value,desc,
-    cat:document.getElementById('nl-cat').value,data:`${dd}/${m}/${y}`,
-    mes:document.getElementById('nl-mes').value,valor});
-  fecharModal(); filtrarLanc(); toast('Lançamento adicionado!','sucesso');
+  const mes=document.getElementById('nl-mes').value;
+  const {error}=await sb.from('lancamentos').insert({
+    tipo:document.getElementById('nl-tipo').value,
+    descricao:desc,
+    categoria:document.getElementById('nl-cat').value,
+    data:dataRaw,
+    mes,
+    valor
+  });
+  if(error){toast('Erro ao salvar','erro');return;}
+  fecharModal();
+  await carregarLancamentos();
+  toast('Lançamento adicionado!','sucesso');
 }
 
 function editarLanc(id){
@@ -807,18 +825,22 @@ function editarLanc(id){
   );
 }
 
-function salvarEdicaoLanc(id){
-  const l=LANCS.find(x=>x.id===id);
+async function salvarEdicaoLanc(id){
   const desc=document.getElementById('el-desc').value.trim();
   const valor=parseFloat(document.getElementById('el-valor').value);
   if(!desc||!valor){toast('Preencha todos os campos','erro');return;}
   const dataRaw=document.getElementById('el-data').value;
-  const [y,m,dd]=dataRaw.split('-');
-  l.tipo=document.getElementById('el-tipo').value;
-  l.desc=desc; l.valor=valor;
-  l.cat=document.getElementById('el-cat').value;
-  l.data=`${dd}/${m}/${y}`;
-  fecharModal(); filtrarLanc(); toast('Lançamento atualizado!','sucesso');
+  const {error}=await sb.from('lancamentos').update({
+    tipo:document.getElementById('el-tipo').value,
+    descricao:desc,
+    valor,
+    categoria:document.getElementById('el-cat').value,
+    data:dataRaw
+  }).eq('id',id);
+  if(error){toast('Erro ao atualizar','erro');return;}
+  fecharModal();
+  await carregarLancamentos();
+  toast('Lançamento atualizado!','sucesso');
 }
 
 function excluirLanc(id){
@@ -828,9 +850,12 @@ function excluirLanc(id){
      <button class="btn bd" onclick="confirmarExclusao(${id})">Excluir</button>`
   );
 }
-function confirmarExclusao(id){
-  LANCS=LANCS.filter(x=>x.id!==id);
-  fecharModal(); filtrarLanc(); toast('Lançamento excluído');
+async function confirmarExclusao(id){
+  const {error}=await sb.from('lancamentos').delete().eq('id',id);
+  if(error){toast('Erro ao excluir','erro');return;}
+  fecharModal();
+  await carregarLancamentos();
+  toast('Lançamento excluído');
 }
 
 // ══════════════════════════════════════════════
@@ -1037,9 +1062,21 @@ function editarConta(banco,tipo){
 // ══════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════
-window.addEventListener('DOMContentLoaded',()=>{
+async function carregarLancamentos(){
+  const {data,error}=await sb.from('lancamentos').select('*').order('data',{ascending:false});
+  if(error){toast('Erro ao carregar lançamentos','erro');return;}
+  LANCS=data.map(l=>({
+    id:l.id,tipo:l.tipo,desc:l.descricao,cat:l.categoria,
+    data:l.data.split('-').reverse().join('/'),mes:l.mes,valor:parseFloat(l.valor)
+  }));
+  filtrarLanc();
+  renderDashLanc('2026-04');
+  atualizarKPIs('2026-04');
+}
+
+window.addEventListener('DOMContentLoaded',async ()=>{
   initCharts();
-  renderTabelaLanc(LANCS.filter(l=>l.mes==='2026-04'));
+  await carregarLancamentos();
 });
 </script>
 </body>
