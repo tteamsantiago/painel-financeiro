@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Painel Financeiro — Demo</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f9fafb;display:flex;min-height:100vh;}
+
+/* ── Sidebar ── */
+aside{width:240px;min-height:100vh;background:#111827;color:#fff;display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh;}
+.sb-header{padding:20px 16px;border-bottom:1px solid #374151;display:flex;align-items:center;gap:10px;}
+.sb-logo{width:32px;height:32px;background:#4f46e5;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;}
+.sb-title{font-size:13px;font-weight:700;}
+.sb-sub{font-size:11px;color:#9ca3af;margin-top:1px;}
+nav{flex:1;padding:12px;overflow-y:auto;}
+.nl{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:13px;font-weight:500;color:#9ca3af;cursor:pointer;margin-bottom:2px;transition:background .15s,color .15s;user-select:none;}
+.nl:hover{background:#1f2937;color:#fff;}
+.nl.active{background:#4f46e5;color:#fff;}
+.nl svg{width:17px;height:17px;flex-shrink:0;}
+.sb-footer{padding:12px;border-top:1px solid #374151;}
+.btn-sair{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:13px;font-weight:500;color:#9ca3af;background:none;border:none;cursor:pointer;width:100%;transition:background .15s,color .15s;}
+.btn-sair:hover{background:#1f2937;color:#fff;}
+
+/* ── Main ── */
+main{flex:1;overflow:auto;}
+.page{display:none;padding:28px;}
+.page.active{display:block;}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
+.ph h2{font-size:22px;font-weight:700;color:#111827;}
+.ph p{font-size:13px;color:#6b7280;margin-top:2px;}
+
+/* ── Controles ── */
+select,input[type=text],input[type=email],input[type=password],input[type=number],input[type=date]{
+  border:1px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-size:13px;background:#fff;
+  box-shadow:0 1px 2px rgba(0,0,0,.04);outline:none;font-family:inherit;}
+select:focus,input:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.12);}
+textarea{border:1px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-size:13px;background:#fff;outline:none;font-family:inherit;resize:vertical;}
+textarea:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.12);}
+
+/* ── KPIs ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;}
+@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+.kpi{background:#fff;border-radius:12px;padding:20px;border-left:4px solid;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.kpi.verde{border-color:#10b981;background:#f0fdf4;} .kpi.verde .kv{color:#065f46;}
+.kpi.vermelho{border-color:#ef4444;background:#fef2f2;} .kpi.vermelho .kv{color:#991b1b;}
+.kpi.azul{border-color:#3b82f6;background:#eff6ff;} .kpi.azul .kv{color:#1e40af;}
+.kpi.amarelo{border-color:#f59e0b;background:#fffbeb;} .kpi.amarelo .kv{color:#92400e;}
+.kl{font-size:12px;font-weight:500;color:#6b7280;margin-bottom:6px;}
+.kv{font-size:22px;font-weight:700;}
+.kvar{font-size:11px;margin-top:6px;}
+.up{color:#059669;} .dn{color:#dc2626;}
+
+/* ── Barra ── */
+.prog-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:20px;}
+.prog-hdr{display:flex;justify-content:space-between;font-size:13px;color:#6b7280;margin-bottom:8px;}
+.prog-track{background:#f3f4f6;border-radius:999px;height:12px;overflow:hidden;}
+.prog-fill{height:12px;border-radius:999px;transition:width .5s;}
+.prog-scale{display:flex;justify-content:space-between;font-size:11px;color:#9ca3af;margin-top:4px;}
+
+/* ── Cards ── */
+.card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.card h3{font-size:14px;font-weight:600;color:#374151;margin-bottom:16px;}
+.g3{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+@media(max-width:900px){.g3,.g2{grid-template-columns:1fr;}}
+
+/* ── Pizza ── */
+.pz-wrap{display:flex;flex-direction:column;gap:12px;}
+.pz-canvas{position:relative;height:200px;}
+.leg-item{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:6px;}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.leg-nome{flex:1;color:#4b5563;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.leg-pct{color:#9ca3af;flex-shrink:0;}
+.leg-val{font-weight:600;color:#374151;flex-shrink:0;width:96px;text-align:right;}
+
+/* ── Tabelas ── */
+.tw{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{text-align:left;padding:10px 12px;font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #f3f4f6;}
+tbody td{padding:11px 12px;border-bottom:1px solid #f9fafb;color:#374151;vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:#f9fafb;}
+.ve{color:#059669;font-weight:700;} .vs{color:#dc2626;font-weight:700;}
+
+/* ── Badges ── */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:500;}
+.badge.entrada{background:#d1fae5;color:#065f46;}
+.badge.saida{background:#fee2e2;color:#991b1b;}
+.badge.verde{background:#d1fae5;color:#065f46;}
+.badge.amarelo{background:#fef3c7;color:#92400e;}
+.badge.azul{background:#dbeafe;color:#1e40af;}
+.badge.cinza{background:#f3f4f6;color:#6b7280;}
+.badge.roxo{background:#ede9fe;color:#5b21b6;}
+
+/* ── Botões ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:background .15s;font-family:inherit;}
+.bp{background:#4f46e5;color:#fff;} .bp:hover{background:#4338ca;}
+.bs{background:#f3f4f6;color:#374151;} .bs:hover{background:#e5e7eb;}
+.bd{background:#fef2f2;color:#dc2626;} .bd:hover{background:#fee2e2;}
+.bg{background:#f0fdf4;color:#065f46;} .bg:hover{background:#dcfce7;}
+
+/* ── Filtros ── */
+.filtros{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;}
+
+/* ── Upload ── */
+.upload-area{border:2px dashed #e5e7eb;border-radius:12px;padding:40px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;}
+.upload-area:hover{border-color:#6366f1;background:#f5f3ff;}
+.upload-icon{font-size:36px;margin-bottom:10px;}
+.upload-area h4{font-size:14px;font-weight:600;color:#374151;margin-bottom:4px;}
+.upload-area p{font-size:12px;color:#9ca3af;}
+
+/* ── Form ── */
+.fg{margin-bottom:16px;}
+.fl{display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;}
+.fi{width:100%;}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.fs{border-bottom:1px solid #f3f4f6;padding-bottom:18px;margin-bottom:18px;}
+.fs:last-child{border-bottom:none;padding-bottom:0;margin-bottom:0;}
+.fst{font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;}
+
+/* ── Cat cor ── */
+.cc{width:12px;height:12px;border-radius:50%;display:inline-block;}
+
+/* ── Modal ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);margin:16px;}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid #f3f4f6;}
+.modal-hdr h4{font-size:16px;font-weight:700;color:#111827;}
+.modal-close{background:none;border:none;cursor:pointer;font-size:20px;color:#9ca3af;padding:2px 6px;border-radius:6px;}
+.modal-close:hover{background:#f3f4f6;color:#374151;}
+.modal-body{padding:20px 24px;}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:16px 24px;border-top:1px solid #f3f4f6;}
+
+/* ── Import progress ── */
+.import-bar{background:#f3f4f6;border-radius:999px;height:8px;overflow:hidden;margin:12px 0;}
+.import-fill{height:8px;border-radius:999px;background:#4f46e5;width:0;transition:width .4s;}
+
+/* ── Toast ── */
+#toast{position:fixed;bottom:24px;right:24px;background:#111827;color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;z-index:200;opacity:0;transform:translateY(12px);transition:opacity .25s,transform .25s;pointer-events:none;max-width:300px;}
+#toast.show{opacity:1;transform:translateY(0);}
+#toast.sucesso{background:#065f46;}
+#toast.erro{background:#991b1b;}
+
+/* ── Misc ── */
+.empty{text-align:center;padding:40px;color:#9ca3af;font-size:13px;}
+.demo-footer{text-align:center;font-size:11px;color:#d1d5db;padding:8px 0 4px;}
+.mb16{margin-bottom:16px;}
+</style>
+</head>
+<body>
+
+<!-- ═══════ SIDEBAR ═══════ -->
+<aside>
+  <div class="sb-header">
+    <div class="sb-logo">$</div>
+    <div><div class="sb-title">Painel Financeiro</div><div class="sb-sub">Fechamento de Caixa</div></div>
+  </div>
+  <nav>
+    <div class="nl active" onclick="irPara('dashboard',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard
+    </div>
+    <div class="nl" onclick="irPara('lancamentos',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4 4 4M17 8v12m0 0 4-4m-4 4-4-4"/></svg>Lançamentos
+    </div>
+    <div class="nl" onclick="irPara('importar',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1M12 12V4m0 8-3-3m3 3 3-3"/></svg>Importar
+    </div>
+    <div class="nl" onclick="irPara('pendentes',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Pendentes
+    </div>
+    <div class="nl" onclick="irPara('fechamentos',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Fechamentos
+    </div>
+    <div class="nl" onclick="irPara('categorias',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h18"/></svg>Categorias
+    </div>
+    <div class="nl" onclick="irPara('configuracoes',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configurações
+    </div>
+  </nav>
+  <div class="sb-footer">
+    <button class="btn-sair" onclick="toast('Sessão encerrada. Até logo!','sucesso')">
+      <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sair
+    </button>
+  </div>
+</aside>
+
+<!-- ═══════ MAIN ═══════ -->
+<main>
+
+<!-- ── DASHBOARD ── -->
+<div class="page active" id="page-dashboard">
+  <div class="ph">
+    <div><h2>Dashboard</h2><p id="mes-label">Abril 2026</p></div>
+    <select id="mes-select" onchange="trocarMes(this.value)">
+      <option value="2026-12">Dezembro 2026</option>
+      <option value="2026-11">Novembro 2026</option>
+      <option value="2026-10">Outubro 2026</option>
+      <option value="2026-09">Setembro 2026</option>
+      <option value="2026-08">Agosto 2026</option>
+      <option value="2026-07">Julho 2026</option>
+      <option value="2026-06">Junho 2026</option>
+      <option value="2026-05">Maio 2026</option>
+      <option value="2026-04" selected>Abril 2026</option>
+      <option value="2026-03">Março 2026</option>
+      <option value="2026-02">Fevereiro 2026</option>
+      <option value="2026-01">Janeiro 2026</option>
+      <option value="2025-12">Dezembro 2025</option>
+      <option value="2025-11">Novembro 2025</option>
+    </select>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi verde"><div class="kl">Total de Entradas</div><div class="kv" id="kpi-e">—</div><div class="kvar" id="kpi-ev"></div></div>
+    <div class="kpi vermelho"><div class="kl">Total de Saídas</div><div class="kv" id="kpi-s">—</div><div class="kvar" id="kpi-sv"></div></div>
+    <div class="kpi azul"><div class="kl">Resultado Líquido</div><div class="kv" id="kpi-r">—</div></div>
+    <div class="kpi verde"><div class="kl">Margem de Resultado</div><div class="kv" id="kpi-m">—</div></div>
+  </div>
+  <div class="prog-card">
+    <div class="prog-hdr"><span>Saídas vs Entradas</span><span id="prog-pct">—</span></div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+    <div class="prog-scale"><span>R$ 0,00</span><span id="prog-max">—</span></div>
+  </div>
+  <div class="g3">
+    <div class="card"><h3>Entradas vs Saídas (últimos 6 meses)</h3><canvas id="chart-barras" height="120"></canvas></div>
+    <div class="card"><h3>Saídas por Categoria</h3>
+      <div class="pz-wrap"><div class="pz-canvas"><canvas id="chart-ps"></canvas></div><div id="leg-s"></div></div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card"><h3>Entradas por Categoria</h3>
+      <div class="pz-wrap"><div class="pz-canvas"><canvas id="chart-pe"></canvas></div><div id="leg-e"></div></div>
+    </div>
+    <div class="card"><h3>Últimos Lançamentos</h3><div id="dash-lanc"></div></div>
+  </div>
+  <div class="demo-footer">⚠ Dados fictícios — apenas para demonstração visual</div>
+</div>
+
+<!-- ── LANÇAMENTOS ── -->
+<div class="page" id="page-lancamentos">
+  <div class="ph">
+    <div><h2>Lançamentos</h2><p>Todos os registros financeiros</p></div>
+    <button class="btn bp" onclick="abrirModalNovoLanc()">+ Novo Lançamento</button>
+  </div>
+  <div class="filtros">
+    <input type="text" id="f-busca" placeholder="🔍 Buscar descrição..." style="min-width:200px;" oninput="filtrarLanc()">
+    <select id="f-tipo" onchange="filtrarLanc()">
+      <option value="">Todos os tipos</option>
+      <option value="entrada">Entradas</option>
+      <option value="saida">Saídas</option>
+    </select>
+    <select id="f-cat" onchange="filtrarLanc()">
+      <option value="">Todas as categorias</option>
+      <option>Mensalidade Presencial</option>
+      <option>Pagamento de Consultoria</option>
+      <option>Outros (entrada)</option>
+      <option>Custo de Equipe</option>
+      <option>Imposto</option>
+      <option>Cursos e Mentorias</option>
+      <option>Equipamento Audiovisual</option>
+      <option>Ferramentas Digitais</option>
+      <option>Anúncios</option>
+    </select>
+    <select id="f-mes" onchange="filtrarLanc()">
+      <option value="2026-12">Dezembro 2026</option>
+      <option value="2026-11">Novembro 2026</option>
+      <option value="2026-10">Outubro 2026</option>
+      <option value="2026-09">Setembro 2026</option>
+      <option value="2026-08">Agosto 2026</option>
+      <option value="2026-07">Julho 2026</option>
+      <option value="2026-06">Junho 2026</option>
+      <option value="2026-05">Maio 2026</option>
+      <option value="2026-04" selected>Abril 2026</option>
+      <option value="2026-03">Março 2026</option>
+      <option value="2026-02">Fevereiro 2026</option>
+      <option value="2026-01">Janeiro 2026</option>
+      <option value="2025-12">Dezembro 2025</option>
+      <option value="2025-11">Novembro 2025</option>
+    </select>
+  </div>
+  <div class="card">
+    <div class="tw"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th><th>Ações</th></tr></thead>
+      <tbody id="tbody-lanc"></tbody>
+    </table></div>
+  </div>
+  <div class="demo-footer" style="margin-top:16px;">⚠ Dados fictícios — apenas para demonstração visual</div>
+</div>
+
+<!-- ── IMPORTAR ── -->
+<div class="page" id="page-importar">
+  <div class="ph"><div><h2>Importar</h2><p>Importe extratos bancários em CSV ou OFX</p></div></div>
+  <div class="g2">
+    <div class="card">
+      <h3>Selecione o arquivo</h3>
+      <input type="file" id="file-input" accept=".csv,.ofx,.xlsx" style="display:none;" onchange="onFileSelected(this)">
+      <div class="upload-area" onclick="document.getElementById('file-input').click()">
+        <div class="upload-icon">📂</div>
+        <h4 id="upload-label">Clique para selecionar ou arraste aqui</h4>
+        <p>Formatos aceitos: .csv, .ofx, .xlsx</p>
+        <p style="margin-top:6px;font-size:11px;color:#d1d5db;">Tamanho máximo: 10 MB</p>
+      </div>
+      <div id="import-progress" style="display:none;">
+        <div class="import-bar"><div class="import-fill" id="import-fill"></div></div>
+        <p id="import-status" style="font-size:12px;color:#6b7280;text-align:center;"></p>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:10px;">
+        <select id="import-conta" style="flex:1;">
+          <option>Conta Corrente — Nubank</option>
+          <option>Conta Corrente — Itaú</option>
+          <option>Cartão Amex</option>
+          <option>Cartão Elo</option>
+        </select>
+        <button class="btn bp" onclick="simularImport()">Importar</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Histórico de importações</h3>
+      <div class="tw"><table id="tbl-import-hist">
+        <thead><tr><th>Data</th><th>Arquivo</th><th>Conta</th><th>Registros</th><th>Status</th></tr></thead>
+        <tbody id="tbody-import">
+          <tr><td>10/04/2026</td><td>extrato-abr.csv</td><td>Nubank</td><td>34</td><td><span class="badge verde">✓ Importado</span></td></tr>
+          <tr><td>08/03/2026</td><td>extrato-mar.csv</td><td>Nubank</td><td>29</td><td><span class="badge verde">✓ Importado</span></td></tr>
+          <tr><td>05/03/2026</td><td>fatura-amex-mar.ofx</td><td>Amex</td><td>18</td><td><span class="badge verde">✓ Importado</span></td></tr>
+          <tr><td>07/02/2026</td><td>extrato-fev.csv</td><td>Nubank</td><td>26</td><td><span class="badge verde">✓ Importado</span></td></tr>
+          <tr><td>03/01/2026</td><td>extrato-jan.csv</td><td>Itaú</td><td>31</td><td><span class="badge amarelo">⚠ Parcial</span></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+  <div class="demo-footer" style="margin-top:16px;">⚠ Dados fictícios — apenas para demonstração visual</div>
+</div>
+
+<!-- ── PENDENTES ── -->
+<div class="page" id="page-pendentes">
+  <div class="ph">
+    <div><h2>Pendentes</h2><p>Lançamentos aguardando categorização ou confirmação</p></div>
+    <button class="btn bs" onclick="resolverTodos()">Resolver todos</button>
+  </div>
+  <div class="card">
+    <div class="tw"><table>
+      <thead><tr><th>Data</th><th>Descrição</th><th>Valor</th><th>Origem</th><th>Situação</th><th>Ações</th></tr></thead>
+      <tbody id="tbody-pend">
+        <tr id="pend-1">
+          <td>22/04/2026</td><td>Transferência recebida — PIX</td>
+          <td class="ve">+ R$ 4.200,00</td><td><span class="badge cinza">Nubank</span></td>
+          <td><span class="badge amarelo">Sem categoria</span></td>
+          <td><button class="btn bp" style="padding:4px 10px;font-size:12px;" onclick="abrirCategorizar('pend-1','Transferência recebida — PIX')">Categorizar</button></td>
+        </tr>
+        <tr id="pend-2">
+          <td>20/04/2026</td><td>Compra online — Marketplace</td>
+          <td class="vs">− R$ 890,00</td><td><span class="badge cinza">Cartão Amex</span></td>
+          <td><span class="badge amarelo">Sem categoria</span></td>
+          <td><button class="btn bp" style="padding:4px 10px;font-size:12px;" onclick="abrirCategorizar('pend-2','Compra online — Marketplace')">Categorizar</button></td>
+        </tr>
+        <tr id="pend-3">
+          <td>18/04/2026</td><td>Depósito — origem desconhecida</td>
+          <td class="ve">+ R$ 1.500,00</td><td><span class="badge cinza">Itaú</span></td>
+          <td><span class="badge azul">Aguardando confirmação</span></td>
+          <td><button class="btn bs" style="padding:4px 10px;font-size:12px;" onclick="confirmarPendente('pend-3')">Confirmar</button></td>
+        </tr>
+        <tr id="pend-4">
+          <td>15/04/2026</td><td>Serviço contratado — Freelancer</td>
+          <td class="vs">− R$ 2.100,00</td><td><span class="badge cinza">Nubank</span></td>
+          <td><span class="badge amarelo">Sem categoria</span></td>
+          <td><button class="btn bp" style="padding:4px 10px;font-size:12px;" onclick="abrirCategorizar('pend-4','Serviço contratado — Freelancer')">Categorizar</button></td>
+        </tr>
+        <tr id="pend-5">
+          <td>12/04/2026</td><td>Estorno — Cliente cancelou</td>
+          <td class="vs">− R$ 650,00</td><td><span class="badge cinza">Nubank</span></td>
+          <td><span class="badge azul">Aguardando confirmação</span></td>
+          <td><button class="btn bs" style="padding:4px 10px;font-size:12px;" onclick="confirmarPendente('pend-5')">Confirmar</button></td>
+        </tr>
+      </tbody>
+    </table></div>
+  </div>
+  <div class="demo-footer" style="margin-top:16px;">⚠ Dados fictícios — apenas para demonstração visual</div>
+</div>
+
+<!-- ── FECHAMENTOS ── -->
+<div class="page" id="page-fechamentos">
+  <div class="ph">
+    <div><h2>Fechamentos</h2><p>Resumo mensal de caixa</p></div>
+    <button class="btn bp" onclick="abrirModalFechamento()">+ Novo Fechamento</button>
+  </div>
+  <div class="card">
+    <div class="tw"><table>
+      <thead><tr><th>Mês</th><th>Entradas</th><th>Saídas</th><th>Resultado</th><th>Margem</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Dezembro 2026</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge cinza">Aguardando</span></td><td>—</td></tr>
+        <tr><td><strong>Novembro 2026</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge cinza">Aguardando</span></td><td>—</td></tr>
+        <tr><td><strong>Outubro 2026</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge cinza">Aguardando</span></td><td>—</td></tr>
+        <tr><td><strong>Setembro 2026</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge cinza">Aguardando</span></td><td>—</td></tr>
+        <tr><td><strong>Agosto 2026</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge cinza">Aguardando</span></td><td>—</td></tr>
+        <tr><td><strong>Julho 2026</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge cinza">Aguardando</span></td><td>—</td></tr>
+        <tr><td><strong>Junho 2026</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge cinza">Aguardando</span></td><td>—</td></tr>
+        <tr><td><strong>Maio 2026</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge cinza">Aguardando</span></td><td>—</td></tr>
+        <tr><td><strong>Abril 2026</strong></td><td class="ve">R$ 68.300,00</td><td class="vs">R$ 41.200,00</td><td class="ve">R$ 27.100,00</td><td>39,7%</td><td><span class="badge azul">Em aberto</span></td>
+          <td style="display:flex;gap:6px;"><button class="btn bs" style="padding:4px 10px;font-size:12px;" onclick="verFechamento('Abril 2026','68300','41200')">Ver</button>
+          <button class="btn bp" style="padding:4px 10px;font-size:12px;" onclick="fecharMes('Abril 2026')">Fechar mês</button></td></tr>
+        <tr><td><strong>Março 2026</strong></td><td class="ve">R$ 61.400,00</td><td class="vs">R$ 38.900,00</td><td class="ve">R$ 22.500,00</td><td>36,6%</td><td><span class="badge verde">✓ Fechado</span></td>
+          <td><button class="btn bs" style="padding:4px 10px;font-size:12px;" onclick="verFechamento('Março 2026','61400','38900')">Ver</button></td></tr>
+        <tr><td><strong>Fevereiro 2026</strong></td><td class="ve">R$ 57.800,00</td><td class="vs">R$ 36.200,00</td><td class="ve">R$ 21.600,00</td><td>37,4%</td><td><span class="badge verde">✓ Fechado</span></td>
+          <td><button class="btn bs" style="padding:4px 10px;font-size:12px;" onclick="verFechamento('Fevereiro 2026','57800','36200')">Ver</button></td></tr>
+        <tr><td><strong>Janeiro 2026</strong></td><td class="ve">R$ 53.100,00</td><td class="vs">R$ 34.700,00</td><td class="ve">R$ 18.400,00</td><td>34,7%</td><td><span class="badge verde">✓ Fechado</span></td>
+          <td><button class="btn bs" style="padding:4px 10px;font-size:12px;" onclick="verFechamento('Janeiro 2026','53100','34700')">Ver</button></td></tr>
+        <tr><td><strong>Dezembro 2025</strong></td><td class="ve">R$ 62.500,00</td><td class="vs">R$ 39.800,00</td><td class="ve">R$ 22.700,00</td><td>36,3%</td><td><span class="badge verde">✓ Fechado</span></td>
+          <td><button class="btn bs" style="padding:4px 10px;font-size:12px;" onclick="verFechamento('Dezembro 2025','62500','39800')">Ver</button></td></tr>
+        <tr><td><strong>Novembro 2025</strong></td><td class="ve">R$ 48.200,00</td><td class="vs">R$ 31.400,00</td><td class="ve">R$ 16.800,00</td><td>34,9%</td><td><span class="badge verde">✓ Fechado</span></td>
+          <td><button class="btn bs" style="padding:4px 10px;font-size:12px;" onclick="verFechamento('Novembro 2025','48200','31400')">Ver</button></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+  <div class="demo-footer" style="margin-top:16px;">⚠ Dados fictícios — apenas para demonstração visual</div>
+</div>
+
+<!-- ── CATEGORIAS ── -->
+<div class="page" id="page-categorias">
+  <div class="ph">
+    <div><h2>Categorias</h2><p>Gerencie as categorias de lançamentos</p></div>
+    <button class="btn bp" onclick="abrirModalNovaCategoria()">+ Nova Categoria</button>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <h3>Categorias de Entrada</h3>
+      <div class="tw"><table>
+        <thead><tr><th>Cor</th><th>Nome</th><th>Lançamentos</th><th>Total (Abr)</th><th></th></tr></thead>
+        <tbody id="tbody-cat-e">
+          <tr><td><span class="cc" style="background:#10b981;"></span></td><td>Mensalidade Presencial</td><td>14</td><td class="ve">R$ 42.000,00</td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('Mensalidade Presencial','#10b981','entrada')">Editar</button></td></tr>
+          <tr><td><span class="cc" style="background:#6366f1;"></span></td><td>Pagamento de Consultoria</td><td>5</td><td class="ve">R$ 16.800,00</td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('Pagamento de Consultoria','#6366f1','entrada')">Editar</button></td></tr>
+          <tr><td><span class="cc" style="background:#94a3b8;"></span></td><td>Outros</td><td>2</td><td class="ve">R$ 2.300,00</td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('Outros','#94a3b8','entrada')">Editar</button></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h3>Categorias de Saída</h3>
+      <div class="tw"><table>
+        <thead><tr><th>Cor</th><th>Nome</th><th>Lançamentos</th><th>Total (Abr)</th><th></th></tr></thead>
+        <tbody id="tbody-cat-s">
+          <tr><td><span class="cc" style="background:#6366f1;"></span></td><td>Custo de Equipe</td><td>8</td><td class="vs">R$ 18.500,00</td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('Custo de Equipe','#6366f1','saida')">Editar</button></td></tr>
+          <tr><td><span class="cc" style="background:#ef4444;"></span></td><td>Imposto</td><td>4</td><td class="vs">R$ 9.200,00</td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('Imposto','#ef4444','saida')">Editar</button></td></tr>
+          <tr><td><span class="cc" style="background:#f59e0b;"></span></td><td>Cursos e Mentorias</td><td>3</td><td class="vs">R$ 5.800,00</td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('Cursos e Mentorias','#f59e0b','saida')">Editar</button></td></tr>
+          <tr><td><span class="cc" style="background:#8b5cf6;"></span></td><td>Equipamento Audiovisual</td><td>2</td><td class="vs">R$ 4.100,00</td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('Equipamento Audiovisual','#8b5cf6','saida')">Editar</button></td></tr>
+          <tr><td><span class="cc" style="background:#3b82f6;"></span></td><td>Ferramentas Digitais</td><td>7</td><td class="vs">R$ 2.900,00</td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('Ferramentas Digitais','#3b82f6','saida')">Editar</button></td></tr>
+          <tr><td><span class="cc" style="background:#10b981;"></span></td><td>Anúncios</td><td>6</td><td class="vs">R$ 500,00</td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('Anúncios','#10b981','saida')">Editar</button></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+  <div class="demo-footer" style="margin-top:16px;">⚠ Dados fictícios — apenas para demonstração visual</div>
+</div>
+
+<!-- ── CONFIGURAÇÕES ── -->
+<div class="page" id="page-configuracoes">
+  <div class="ph">
+    <div><h2>Configurações</h2><p>Preferências do painel</p></div>
+    <button class="btn bp" onclick="salvarConfig()">Salvar alterações</button>
+  </div>
+  <div style="max-width:640px;">
+    <div class="card mb16">
+      <div class="fs">
+        <div class="fst">Acesso</div>
+        <div class="fg"><label class="fl">E-mail de acesso</label><input type="email" class="fi" value="leadleveracademy@gmail.com"/></div>
+        <div class="fr">
+          <div class="fg"><label class="fl">Nova senha</label><input type="password" class="fi" placeholder="••••••••"/></div>
+          <div class="fg"><label class="fl">Confirmar senha</label><input type="password" class="fi" placeholder="••••••••"/></div>
+        </div>
+      </div>
+      <div class="fs">
+        <div class="fst">Empresa</div>
+        <div class="fg"><label class="fl">Nome do painel</label><input type="text" class="fi" value="Painel Financeiro"/></div>
+        <div class="fg"><label class="fl">Subtítulo</label><input type="text" class="fi" value="Fechamento de Caixa Mensal"/></div>
+      </div>
+      <div class="fs">
+        <div class="fst">Notificações</div>
+        <div class="fg"><label class="fl">E-mail para alertas</label><input type="email" class="fi" value="leadleveracademy@gmail.com"/></div>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;color:#374151;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" checked/> Alertar quando saídas ultrapassarem 80% das entradas</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" checked/> Lembrete de fechamento mensal</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox"/> Relatório semanal por e-mail</label>
+        </div>
+      </div>
+      <div>
+        <div class="fst">Contas bancárias</div>
+        <div class="tw" style="margin-top:12px;"><table>
+          <thead><tr><th>Banco</th><th>Tipo</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>Nubank</td><td>Conta Corrente</td><td><span class="badge verde">✓ Ativa</span></td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarConta('Nubank','Conta Corrente')">Editar</button></td></tr>
+            <tr><td>Itaú</td><td>Conta Corrente</td><td><span class="badge verde">✓ Ativa</span></td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarConta('Itaú','Conta Corrente')">Editar</button></td></tr>
+            <tr><td>Amex</td><td>Cartão de Crédito</td><td><span class="badge verde">✓ Ativa</span></td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarConta('Amex','Cartão de Crédito')">Editar</button></td></tr>
+            <tr><td>Elo</td><td>Cartão de Crédito</td><td><span class="badge amarelo">Pausada</span></td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarConta('Elo','Cartão de Crédito')">Editar</button></td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+  </div>
+  <div class="demo-footer">⚠ Dados fictícios — apenas para demonstração visual</div>
+</div>
+
+</main>
+
+<!-- ═══════ MODAL ═══════ -->
+<div class="modal-bg" id="modal-bg" onclick="fecharModal(event)">
+  <div class="modal" id="modal-box">
+    <div class="modal-hdr">
+      <h4 id="modal-title">Modal</h4>
+      <button class="modal-close" onclick="fecharModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<!-- ═══════ TOAST ═══════ -->
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// DADOS
+// ══════════════════════════════════════════════
+const CAT_SAIDA  = [{n:'Custo de Equipe',c:'#6366f1'},{n:'Imposto',c:'#ef4444'},{n:'Cursos e Mentorias',c:'#f59e0b'},{n:'Equipamento Audiovisual',c:'#8b5cf6'},{n:'Ferramentas Digitais',c:'#3b82f6'},{n:'Anúncios',c:'#10b981'}];
+const CAT_ENTRADA= [{n:'Mensalidade Presencial',c:'#10b981'},{n:'Pagamento de Consultoria',c:'#6366f1'},{n:'Outros',c:'#94a3b8'}];
+
+const DADOS = {
+  '2026-04':{e:68300,s:41200,
+    cs:[{n:'Custo de Equipe',v:18500,c:'#6366f1'},{n:'Imposto',v:9200,c:'#ef4444'},{n:'Cursos e Mentorias',v:5800,c:'#f59e0b'},{n:'Equipamento Audiovisual',v:4100,c:'#8b5cf6'},{n:'Ferramentas Digitais',v:2900,c:'#3b82f6'},{n:'Anúncios',v:700,c:'#10b981'}],
+    ce:[{n:'Mensalidade Presencial',v:42000,c:'#10b981'},{n:'Pagamento de Consultoria',v:16800,c:'#6366f1'},{n:'Outros',v:9500,c:'#94a3b8'}]},
+  '2026-03':{e:61400,s:38900,
+    cs:[{n:'Custo de Equipe',v:17200,c:'#6366f1'},{n:'Imposto',v:8400,c:'#ef4444'},{n:'Cursos e Mentorias',v:5600,c:'#f59e0b'},{n:'Equipamento Audiovisual',v:3200,c:'#8b5cf6'},{n:'Ferramentas Digitais',v:2900,c:'#3b82f6'},{n:'Anúncios',v:1600,c:'#10b981'}],
+    ce:[{n:'Mensalidade Presencial',v:38000,c:'#10b981'},{n:'Pagamento de Consultoria',v:14200,c:'#6366f1'},{n:'Outros',v:9200,c:'#94a3b8'}]},
+  '2026-02':{e:57800,s:36200,
+    cs:[{n:'Custo de Equipe',v:16800,c:'#6366f1'},{n:'Imposto',v:7600,c:'#ef4444'},{n:'Cursos e Mentorias',v:5200,c:'#f59e0b'},{n:'Equipamento Audiovisual',v:2800,c:'#8b5cf6'},{n:'Ferramentas Digitais',v:2500,c:'#3b82f6'},{n:'Anúncios',v:1300,c:'#10b981'}],
+    ce:[{n:'Mensalidade Presencial',v:36400,c:'#10b981'},{n:'Pagamento de Consultoria',v:13200,c:'#6366f1'},{n:'Outros',v:8200,c:'#94a3b8'}]},
+  '2026-01':{e:53100,s:34700,
+    cs:[{n:'Custo de Equipe',v:15900,c:'#6366f1'},{n:'Imposto',v:7200,c:'#ef4444'},{n:'Cursos e Mentorias',v:5000,c:'#f59e0b'},{n:'Equipamento Audiovisual',v:2400,c:'#8b5cf6'},{n:'Ferramentas Digitais',v:2500,c:'#3b82f6'},{n:'Anúncios',v:1700,c:'#10b981'}],
+    ce:[{n:'Mensalidade Presencial',v:33200,c:'#10b981'},{n:'Pagamento de Consultoria',v:12400,c:'#6366f1'},{n:'Outros',v:7500,c:'#94a3b8'}]},
+  '2025-12':{e:62500,s:39800,
+    cs:[{n:'Custo de Equipe',v:18000,c:'#6366f1'},{n:'Imposto',v:9000,c:'#ef4444'},{n:'Cursos e Mentorias',v:5800,c:'#f59e0b'},{n:'Equipamento Audiovisual',v:3200,c:'#8b5cf6'},{n:'Ferramentas Digitais',v:2500,c:'#3b82f6'},{n:'Anúncios',v:1300,c:'#10b981'}],
+    ce:[{n:'Mensalidade Presencial',v:39500,c:'#10b981'},{n:'Pagamento de Consultoria',v:15000,c:'#6366f1'},{n:'Outros',v:8000,c:'#94a3b8'}]},
+  '2025-11':{e:48200,s:31400,
+    cs:[{n:'Custo de Equipe',v:14500,c:'#6366f1'},{n:'Imposto',v:7000,c:'#ef4444'},{n:'Cursos e Mentorias',v:4800,c:'#f59e0b'},{n:'Equipamento Audiovisual',v:2100,c:'#8b5cf6'},{n:'Ferramentas Digitais',v:1800,c:'#3b82f6'},{n:'Anúncios',v:1200,c:'#10b981'}],
+    ce:[{n:'Mensalidade Presencial',v:30000,c:'#10b981'},{n:'Pagamento de Consultoria',v:11200,c:'#6366f1'},{n:'Outros',v:7000,c:'#94a3b8'}]},
+  '2026-05':{e:0,s:0,cs:[{n:'Custo de Equipe',v:0,c:'#6366f1'},{n:'Imposto',v:0,c:'#ef4444'},{n:'Cursos e Mentorias',v:0,c:'#f59e0b'},{n:'Equipamento Audiovisual',v:0,c:'#8b5cf6'},{n:'Ferramentas Digitais',v:0,c:'#3b82f6'},{n:'Anúncios',v:0,c:'#10b981'}],ce:[{n:'Mensalidade Presencial',v:0,c:'#10b981'},{n:'Pagamento de Consultoria',v:0,c:'#6366f1'},{n:'Outros',v:0,c:'#94a3b8'}]},
+  '2026-06':{e:0,s:0,cs:[{n:'Custo de Equipe',v:0,c:'#6366f1'},{n:'Imposto',v:0,c:'#ef4444'},{n:'Cursos e Mentorias',v:0,c:'#f59e0b'},{n:'Equipamento Audiovisual',v:0,c:'#8b5cf6'},{n:'Ferramentas Digitais',v:0,c:'#3b82f6'},{n:'Anúncios',v:0,c:'#10b981'}],ce:[{n:'Mensalidade Presencial',v:0,c:'#10b981'},{n:'Pagamento de Consultoria',v:0,c:'#6366f1'},{n:'Outros',v:0,c:'#94a3b8'}]},
+  '2026-07':{e:0,s:0,cs:[{n:'Custo de Equipe',v:0,c:'#6366f1'},{n:'Imposto',v:0,c:'#ef4444'},{n:'Cursos e Mentorias',v:0,c:'#f59e0b'},{n:'Equipamento Audiovisual',v:0,c:'#8b5cf6'},{n:'Ferramentas Digitais',v:0,c:'#3b82f6'},{n:'Anúncios',v:0,c:'#10b981'}],ce:[{n:'Mensalidade Presencial',v:0,c:'#10b981'},{n:'Pagamento de Consultoria',v:0,c:'#6366f1'},{n:'Outros',v:0,c:'#94a3b8'}]},
+  '2026-08':{e:0,s:0,cs:[{n:'Custo de Equipe',v:0,c:'#6366f1'},{n:'Imposto',v:0,c:'#ef4444'},{n:'Cursos e Mentorias',v:0,c:'#f59e0b'},{n:'Equipamento Audiovisual',v:0,c:'#8b5cf6'},{n:'Ferramentas Digitais',v:0,c:'#3b82f6'},{n:'Anúncios',v:0,c:'#10b981'}],ce:[{n:'Mensalidade Presencial',v:0,c:'#10b981'},{n:'Pagamento de Consultoria',v:0,c:'#6366f1'},{n:'Outros',v:0,c:'#94a3b8'}]},
+  '2026-09':{e:0,s:0,cs:[{n:'Custo de Equipe',v:0,c:'#6366f1'},{n:'Imposto',v:0,c:'#ef4444'},{n:'Cursos e Mentorias',v:0,c:'#f59e0b'},{n:'Equipamento Audiovisual',v:0,c:'#8b5cf6'},{n:'Ferramentas Digitais',v:0,c:'#3b82f6'},{n:'Anúncios',v:0,c:'#10b981'}],ce:[{n:'Mensalidade Presencial',v:0,c:'#10b981'},{n:'Pagamento de Consultoria',v:0,c:'#6366f1'},{n:'Outros',v:0,c:'#94a3b8'}]},
+  '2026-10':{e:0,s:0,cs:[{n:'Custo de Equipe',v:0,c:'#6366f1'},{n:'Imposto',v:0,c:'#ef4444'},{n:'Cursos e Mentorias',v:0,c:'#f59e0b'},{n:'Equipamento Audiovisual',v:0,c:'#8b5cf6'},{n:'Ferramentas Digitais',v:0,c:'#3b82f6'},{n:'Anúncios',v:0,c:'#10b981'}],ce:[{n:'Mensalidade Presencial',v:0,c:'#10b981'},{n:'Pagamento de Consultoria',v:0,c:'#6366f1'},{n:'Outros',v:0,c:'#94a3b8'}]},
+  '2026-11':{e:0,s:0,cs:[{n:'Custo de Equipe',v:0,c:'#6366f1'},{n:'Imposto',v:0,c:'#ef4444'},{n:'Cursos e Mentorias',v:0,c:'#f59e0b'},{n:'Equipamento Audiovisual',v:0,c:'#8b5cf6'},{n:'Ferramentas Digitais',v:0,c:'#3b82f6'},{n:'Anúncios',v:0,c:'#10b981'}],ce:[{n:'Mensalidade Presencial',v:0,c:'#10b981'},{n:'Pagamento de Consultoria',v:0,c:'#6366f1'},{n:'Outros',v:0,c:'#94a3b8'}]},
+  '2026-12':{e:0,s:0,cs:[{n:'Custo de Equipe',v:0,c:'#6366f1'},{n:'Imposto',v:0,c:'#ef4444'},{n:'Cursos e Mentorias',v:0,c:'#f59e0b'},{n:'Equipamento Audiovisual',v:0,c:'#8b5cf6'},{n:'Ferramentas Digitais',v:0,c:'#3b82f6'},{n:'Anúncios',v:0,c:'#10b981'}],ce:[{n:'Mensalidade Presencial',v:0,c:'#10b981'},{n:'Pagamento de Consultoria',v:0,c:'#6366f1'},{n:'Outros',v:0,c:'#94a3b8'}]},
+};
+
+const HIST=[{l:'Nov/25',e:48200,s:31400},{l:'Dez/25',e:62500,s:39800},{l:'Jan/26',e:53100,s:34700},{l:'Fev/26',e:57800,s:36200},{l:'Mar/26',e:61400,s:38900},{l:'Abr/26',e:68300,s:41200}];
+const MNOME={'2026-12':'Dezembro 2026','2026-11':'Novembro 2026','2026-10':'Outubro 2026','2026-09':'Setembro 2026','2026-08':'Agosto 2026','2026-07':'Julho 2026','2026-06':'Junho 2026','2026-05':'Maio 2026','2026-04':'Abril 2026','2026-03':'Março 2026','2026-02':'Fevereiro 2026','2026-01':'Janeiro 2026','2025-12':'Dezembro 2025','2025-11':'Novembro 2025'};
+const MANT={'2026-12':'2026-11','2026-11':'2026-10','2026-10':'2026-09','2026-09':'2026-08','2026-08':'2026-07','2026-07':'2026-06','2026-06':'2026-05','2026-05':'2026-04','2026-04':'2026-03','2026-03':'2026-02','2026-02':'2026-01','2026-01':'2025-12','2025-12':'2025-11','2025-11':null};
+
+let LANCS = [
+  {id:1,tipo:'entrada',desc:'Mensalidade — Turma Avançada',     cat:'Mensalidade Presencial',     data:'05/04/2026',mes:'2026-04',valor:8400},
+  {id:2,tipo:'saida',  desc:'Custo de equipe — Abril',          cat:'Custo de Equipe',            data:'05/04/2026',mes:'2026-04',valor:18500},
+  {id:3,tipo:'entrada',desc:'Consultoria estratégica — Cliente A',cat:'Pagamento de Consultoria', data:'08/04/2026',mes:'2026-04',valor:5600},
+  {id:4,tipo:'saida',  desc:'Meta Ads — Campanha Abril',        cat:'Anúncios',                   data:'10/04/2026',mes:'2026-04',valor:4800},
+  {id:5,tipo:'entrada',desc:'Mensalidade — Turma Iniciante',    cat:'Mensalidade Presencial',     data:'12/04/2026',mes:'2026-04',valor:6300},
+  {id:6,tipo:'saida',  desc:'Imposto DAS — Abril',              cat:'Imposto',                    data:'15/04/2026',mes:'2026-04',valor:1240},
+  {id:7,tipo:'entrada',desc:'Outros recebimentos — Abril',      cat:'Outros',                     data:'18/04/2026',mes:'2026-04',valor:3600},
+  {id:8,tipo:'saida',  desc:'Ferramentas digitais — pacote',    cat:'Ferramentas Digitais',       data:'20/04/2026',mes:'2026-04',valor:2100},
+  {id:9,tipo:'entrada',desc:'Mensalidade — Turma Avançada',     cat:'Mensalidade Presencial',     data:'03/03/2026',mes:'2026-03',valor:7800},
+  {id:10,tipo:'saida', desc:'Custo de equipe — Março',          cat:'Custo de Equipe',            data:'05/03/2026',mes:'2026-03',valor:17200},
+  {id:11,tipo:'entrada',desc:'Consultoria — Cliente B',         cat:'Pagamento de Consultoria',   data:'10/03/2026',mes:'2026-03',valor:4800},
+  {id:12,tipo:'saida', desc:'Google Ads — Campanha Março',      cat:'Anúncios',                   data:'12/03/2026',mes:'2026-03',valor:3900},
+  {id:13,tipo:'entrada',desc:'Mensalidade — Turma Básica',      cat:'Mensalidade Presencial',     data:'15/03/2026',mes:'2026-03',valor:5200},
+  {id:14,tipo:'saida', desc:'Equipamento — Câmera',             cat:'Equipamento Audiovisual',    data:'18/03/2026',mes:'2026-03',valor:1100},
+  {id:15,tipo:'entrada',desc:'Mensalidade — Turma Avançada',    cat:'Mensalidade Presencial',     data:'05/02/2026',mes:'2026-02',valor:7200},
+  {id:16,tipo:'saida', desc:'Custo de equipe — Fevereiro',      cat:'Custo de Equipe',            data:'05/02/2026',mes:'2026-02',valor:16800},
+  {id:17,tipo:'entrada',desc:'Consultoria — Cliente C',         cat:'Pagamento de Consultoria',   data:'11/02/2026',mes:'2026-02',valor:4400},
+  {id:18,tipo:'saida', desc:'Cursos equipe — Fev',              cat:'Cursos e Mentorias',         data:'14/02/2026',mes:'2026-02',valor:3600},
+  {id:19,tipo:'entrada',desc:'Mensalidade — Janeiro',           cat:'Mensalidade Presencial',     data:'05/01/2026',mes:'2026-01',valor:6800},
+  {id:20,tipo:'saida', desc:'Custo de equipe — Janeiro',        cat:'Custo de Equipe',            data:'05/01/2026',mes:'2026-01',valor:15900},
+];
+let nextId=21;
+
+const fmt=v=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v);
+
+// ══════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════
+let toastTimer;
+function toast(msg,tipo=''){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='show '+(tipo||'');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.className='',2800);
+}
+
+// ══════════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════════
+function abrirModal(titulo,corpo,rodape){
+  document.getElementById('modal-title').textContent=titulo;
+  document.getElementById('modal-body').innerHTML=corpo;
+  document.getElementById('modal-footer').innerHTML=rodape||'';
+  document.getElementById('modal-bg').classList.add('open');
+}
+function fecharModal(e){
+  if(e&&e.target!==document.getElementById('modal-bg'))return;
+  document.getElementById('modal-bg').classList.remove('open');
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('modal-bg').classList.remove('open');});
+
+// ══════════════════════════════════════════════
+// NAVEGAÇÃO
+// ══════════════════════════════════════════════
+function irPara(p,el){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nl').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  el.classList.add('active');
+  if(p==='dashboard'&&!chartBarras)initCharts();
+}
+
+// ══════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════
+let chartBarras,chartPS,chartPE;
+
+function initCharts(){
+  chartBarras=new Chart(document.getElementById('chart-barras').getContext('2d'),{
+    type:'bar',
+    data:{labels:HIST.map(d=>d.l),datasets:[
+      {label:'Entradas',data:HIST.map(d=>d.e),backgroundColor:'#10b981',borderRadius:4},
+      {label:'Saídas',data:HIST.map(d=>d.s),backgroundColor:'#ef4444',borderRadius:4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{labels:{font:{size:12}}}},
+      scales:{y:{ticks:{callback:v=>`R$${(v/1000).toFixed(0)}k`,font:{size:11}},grid:{color:'#f3f4f6'}},x:{ticks:{font:{size:11}},grid:{display:false}}}}
+  });
+  chartPS=mkPizza('chart-ps',DADOS['2026-04'].cs);
+  chartPE=mkPizza('chart-pe',DADOS['2026-04'].ce);
+  renderLeg('leg-s',DADOS['2026-04'].cs);
+  renderLeg('leg-e',DADOS['2026-04'].ce);
+  atualizarKPIs('2026-04');
+  renderDashLanc('2026-04');
+}
+
+function mkPizza(id,cats){
+  return new Chart(document.getElementById(id).getContext('2d'),{
+    type:'doughnut',
+    data:{labels:cats.map(c=>c.n),datasets:[{data:cats.map(c=>c.v),backgroundColor:cats.map(c=>c.c),borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${fmt(ctx.raw)}`}}}}
+  });
+}
+
+function renderLeg(id,cats){
+  const total=cats.reduce((s,c)=>s+c.v,0);
+  document.getElementById(id).innerHTML=cats.slice().sort((a,b)=>b.v-a.v).map(c=>`
+    <div class="leg-item">
+      <span class="leg-dot" style="background:${c.c}"></span>
+      <span class="leg-nome">${c.n}</span>
+      <span class="leg-pct">${((c.v/total)*100).toFixed(1)}%</span>
+      <span class="leg-val">${fmt(c.v)}</span>
+    </div>`).join('');
+}
+
+function atualizarKPIs(mes){
+  const d=DADOS[mes],ant=MANT[mes]?DADOS[MANT[mes]]:null;
+  const res=d.e-d.s,mrg=(res/d.e)*100,pct=(d.s/d.e)*100;
+  document.getElementById('mes-label').textContent=MNOME[mes];
+  document.getElementById('kpi-e').textContent=fmt(d.e);
+  document.getElementById('kpi-s').textContent=fmt(d.s);
+  document.getElementById('kpi-r').textContent=fmt(res);
+  document.getElementById('kpi-m').textContent=mrg.toFixed(1)+'%';
+  const vE=ant?((d.e-ant.e)/ant.e*100):null;
+  const vS=ant?((d.s-ant.s)/ant.s*100):null;
+  const eE=document.getElementById('kpi-ev'),eS=document.getElementById('kpi-sv');
+  eE.textContent=vE!=null?`${vE>0?'↑':'↓'} ${vE>0?'+':''}${vE.toFixed(1)}% vs mês anterior`:'';
+  eE.className='kvar '+(vE>=0?'up':'dn');
+  eS.textContent=vS!=null?`${vS>0?'↑':'↓'} ${vS>0?'+':''}${vS.toFixed(1)}% vs mês anterior`:'';
+  eS.className='kvar '+(vS>=0?'up':'dn');
+  document.getElementById('kpi-m').closest('.kpi').className='kpi '+(mrg>=20?'verde':mrg>=0?'amarelo':'vermelho');
+  document.getElementById('kpi-r').closest('.kpi').className='kpi '+(res>=0?'azul':'vermelho');
+  const f=document.getElementById('prog-fill');
+  f.style.width=Math.min(pct,100)+'%';
+  f.style.background=pct>90?'#ef4444':pct>70?'#f59e0b':'#10b981';
+  document.getElementById('prog-pct').textContent=pct.toFixed(1)+'% das entradas comprometidas';
+  document.getElementById('prog-max').textContent=fmt(d.e);
+}
+
+function renderDashLanc(mes){
+  const lancs=LANCS.filter(l=>l.mes===mes).slice(0,8);
+  document.getElementById('dash-lanc').innerHTML=lancs.length
+    ?lancs.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f3f4f6;">
+      <div style="display:flex;align-items:center;gap:9px;">
+        <span style="font-size:15px;">${l.tipo==='entrada'?'⬆':'⬇'}</span>
+        <div><div style="font-size:13px;font-weight:500;color:#374151;">${l.desc}</div>
+        <div style="font-size:11px;color:#9ca3af;margin-top:2px;">${l.data} <span style="background:#f3f4f6;color:#6b7280;padding:1px 6px;border-radius:4px;">${l.cat}</span></div></div>
+      </div>
+      <span class="${l.tipo==='entrada'?'ve':'vs'}">${l.tipo==='saida'?'- ':'+ '}${fmt(l.valor)}</span>
+    </div>`).join('')
+    :'<div class="empty">Sem lançamentos neste mês</div>';
+}
+
+function trocarMes(mes){
+  atualizarKPIs(mes);
+  const d=DADOS[mes];
+  [chartPS,chartPE].forEach((c,i)=>{
+    const cats=i===0?d.cs:d.ce;
+    c.data.datasets[0].data=cats.map(x=>x.v);
+    c.data.datasets[0].backgroundColor=cats.map(x=>x.c);
+    c.data.labels=cats.map(x=>x.n);
+    c.update();
+  });
+  renderLeg('leg-s',d.cs); renderLeg('leg-e',d.ce);
+  renderDashLanc(mes);
+}
+
+// ══════════════════════════════════════════════
+// LANÇAMENTOS
+// ══════════════════════════════════════════════
+function renderTabelaLanc(lista){
+  document.getElementById('tbody-lanc').innerHTML=lista.length
+    ?lista.map(l=>`<tr id="row-${l.id}">
+        <td>${l.data}</td><td>${l.desc}</td>
+        <td><span class="badge cinza">${l.cat}</span></td>
+        <td><span class="badge ${l.tipo}">${l.tipo==='entrada'?'Entrada':'Saída'}</span></td>
+        <td class="${l.tipo==='entrada'?'ve':'vs'}">${l.tipo==='saida'?'- ':'+ '}${fmt(l.valor)}</td>
+        <td style="display:flex;gap:6px;">
+          <button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarLanc(${l.id})">Editar</button>
+          <button class="btn bd" style="padding:3px 8px;font-size:11px;" onclick="excluirLanc(${l.id})">Excluir</button>
+        </td>
+      </tr>`).join('')
+    :'<tr><td colspan="6" class="empty">Nenhum lançamento encontrado</td></tr>';
+}
+
+function filtrarLanc(){
+  const busca=document.getElementById('f-busca').value.toLowerCase();
+  const tipo=document.getElementById('f-tipo').value;
+  const cat=document.getElementById('f-cat').value;
+  const mes=document.getElementById('f-mes').value;
+  renderTabelaLanc(LANCS.filter(l=>
+    (!busca||l.desc.toLowerCase().includes(busca))&&
+    (!tipo||l.tipo===tipo)&&
+    (!cat||l.cat===cat)&&
+    (!mes||l.mes===mes)
+  ));
+}
+
+function catOptions(sel=''){
+  return [...CAT_ENTRADA,...CAT_SAIDA].map(c=>`<option${sel===c.n?' selected':''}>${c.n}</option>`).join('');
+}
+
+function abrirModalNovoLanc(){
+  const hoje=new Date().toISOString().slice(0,10);
+  abrirModal('Novo Lançamento',`
+    <div class="fg"><label class="fl">Tipo</label>
+      <select id="nl-tipo" class="fi">
+        <option value="entrada">Entrada</option>
+        <option value="saida">Saída</option>
+      </select></div>
+    <div class="fg"><label class="fl">Descrição</label><input type="text" id="nl-desc" class="fi" placeholder="Ex: Mensalidade turma A"/></div>
+    <div class="fr">
+      <div class="fg"><label class="fl">Data</label><input type="date" id="nl-data" class="fi" value="${hoje}"/></div>
+      <div class="fg"><label class="fl">Valor (R$)</label><input type="number" id="nl-valor" class="fi" placeholder="0,00" min="0" step="0.01"/></div>
+    </div>
+    <div class="fg"><label class="fl">Categoria</label><select id="nl-cat" class="fi">${catOptions()}</select></div>
+    <div class="fg"><label class="fl">Mês de referência</label>
+      <select id="nl-mes" class="fi">
+        <option value="2026-04">Abril 2026</option><option value="2026-03">Março 2026</option>
+        <option value="2026-02">Fevereiro 2026</option><option value="2026-01">Janeiro 2026</option>
+        <option value="2025-12">Dezembro 2025</option><option value="2025-11">Novembro 2025</option>
+      </select></div>`,
+    `<button class="btn bs" onclick="fecharModal()">Cancelar</button>
+     <button class="btn bp" onclick="salvarNovoLanc()">Salvar</button>`
+  );
+}
+
+function salvarNovoLanc(){
+  const desc=document.getElementById('nl-desc').value.trim();
+  const valor=parseFloat(document.getElementById('nl-valor').value);
+  if(!desc){toast('Informe a descrição','erro');return;}
+  if(!valor||valor<=0){toast('Informe um valor válido','erro');return;}
+  const dataRaw=document.getElementById('nl-data').value;
+  const [y,m,dd]=dataRaw.split('-');
+  LANCS.unshift({id:nextId++,tipo:document.getElementById('nl-tipo').value,desc,
+    cat:document.getElementById('nl-cat').value,data:`${dd}/${m}/${y}`,
+    mes:document.getElementById('nl-mes').value,valor});
+  fecharModal(); filtrarLanc(); toast('Lançamento adicionado!','sucesso');
+}
+
+function editarLanc(id){
+  const l=LANCS.find(x=>x.id===id); if(!l)return;
+  const [dd,mm,yy]=l.data.split('/');
+  abrirModal('Editar Lançamento',`
+    <div class="fg"><label class="fl">Tipo</label>
+      <select id="el-tipo" class="fi">
+        <option value="entrada"${l.tipo==='entrada'?' selected':''}>Entrada</option>
+        <option value="saida"${l.tipo==='saida'?' selected':''}>Saída</option>
+      </select></div>
+    <div class="fg"><label class="fl">Descrição</label><input type="text" id="el-desc" class="fi" value="${l.desc}"/></div>
+    <div class="fr">
+      <div class="fg"><label class="fl">Data</label><input type="date" id="el-data" class="fi" value="${yy}-${mm}-${dd}"/></div>
+      <div class="fg"><label class="fl">Valor (R$)</label><input type="number" id="el-valor" class="fi" value="${l.valor}" min="0" step="0.01"/></div>
+    </div>
+    <div class="fg"><label class="fl">Categoria</label><select id="el-cat" class="fi">${catOptions(l.cat)}</select></div>`,
+    `<button class="btn bs" onclick="fecharModal()">Cancelar</button>
+     <button class="btn bp" onclick="salvarEdicaoLanc(${id})">Salvar</button>`
+  );
+}
+
+function salvarEdicaoLanc(id){
+  const l=LANCS.find(x=>x.id===id);
+  const desc=document.getElementById('el-desc').value.trim();
+  const valor=parseFloat(document.getElementById('el-valor').value);
+  if(!desc||!valor){toast('Preencha todos os campos','erro');return;}
+  const dataRaw=document.getElementById('el-data').value;
+  const [y,m,dd]=dataRaw.split('-');
+  l.tipo=document.getElementById('el-tipo').value;
+  l.desc=desc; l.valor=valor;
+  l.cat=document.getElementById('el-cat').value;
+  l.data=`${dd}/${m}/${y}`;
+  fecharModal(); filtrarLanc(); toast('Lançamento atualizado!','sucesso');
+}
+
+function excluirLanc(id){
+  abrirModal('Confirmar exclusão',
+    '<p style="font-size:14px;color:#374151;">Tem certeza que deseja excluir este lançamento? Esta ação não pode ser desfeita.</p>',
+    `<button class="btn bs" onclick="fecharModal()">Cancelar</button>
+     <button class="btn bd" onclick="confirmarExclusao(${id})">Excluir</button>`
+  );
+}
+function confirmarExclusao(id){
+  LANCS=LANCS.filter(x=>x.id!==id);
+  fecharModal(); filtrarLanc(); toast('Lançamento excluído');
+}
+
+// ══════════════════════════════════════════════
+// IMPORTAR
+// ══════════════════════════════════════════════
+function onFileSelected(input){
+  if(input.files&&input.files[0]){
+    document.getElementById('upload-label').textContent='📄 '+input.files[0].name;
+  }
+}
+
+function simularImport(){
+  const prog=document.getElementById('import-progress');
+  const fill=document.getElementById('import-fill');
+  const status=document.getElementById('import-status');
+  prog.style.display='block'; fill.style.width='0%';
+  status.textContent='Lendo arquivo...';
+  let p=0;
+  const iv=setInterval(()=>{
+    p+=Math.random()*18+5;
+    if(p>=100){p=100;clearInterval(iv);
+      status.textContent='✓ 34 registros importados com sucesso!';
+      const conta=document.getElementById('import-conta').value;
+      const hoje=new Date();
+      const d=`${String(hoje.getDate()).padStart(2,'0')}/${String(hoje.getMonth()+1).padStart(2,'0')}/${hoje.getFullYear()}`;
+      const arquivo=document.getElementById('file-input').files[0]?.name||'extrato.csv';
+      const tbody=document.getElementById('tbody-import');
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${d}</td><td>${arquivo}</td><td>${conta.split('—')[1]?.trim()||conta}</td><td>${Math.floor(Math.random()*20)+15}</td><td><span class="badge verde">✓ Importado</span></td>`;
+      tbody.insertBefore(tr,tbody.firstChild);
+      toast('Extrato importado com sucesso!','sucesso');
+    }
+    fill.style.width=p+'%';
+    if(p<40)status.textContent='Lendo arquivo...';
+    else if(p<70)status.textContent='Processando transações...';
+    else if(p<100)status.textContent='Categorizando lançamentos...';
+  },120);
+}
+
+// ══════════════════════════════════════════════
+// PENDENTES
+// ══════════════════════════════════════════════
+function abrirCategorizar(rowId,desc){
+  const opts=[...CAT_ENTRADA,...CAT_SAIDA].map(c=>`<option>${c.n}</option>`).join('');
+  const row=document.getElementById(rowId);
+  const valorTxt=row?row.cells[2].textContent.replace(/[^\d,]/g,'').replace(',','.'):0;
+  const valor=parseFloat(valorTxt)||0;
+  const isSaida=row?row.cells[2].textContent.includes('−'):false;
+  const tipo=isSaida?'saida':'entrada';
+  const dataTxt=row?row.cells[0].textContent:'01/04/2026';
+  abrirModal('Categorizar Lançamento',`
+    <p style="font-size:13px;color:#6b7280;margin-bottom:16px;"><strong>${desc}</strong></p>
+    <div class="fg"><label class="fl">Categoria</label>
+      <select id="cat-sel" class="fi">${opts}</select></div>
+    <div class="fg"><label class="fl">Mês de referência</label>
+      <select id="cat-mes" class="fi">
+        ${Object.entries(MNOME).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}
+      </select></div>`,
+    `<button class="btn bs" onclick="fecharModal()">Cancelar</button>
+     <button class="btn bp" onclick="aplicarCategoria('${rowId}','${desc}','${tipo}',${valor},'${dataTxt}')">Mover para Lançamentos</button>`
+  );
+}
+function aplicarCategoria(rowId,desc,tipo,valor,data){
+  const cat=document.getElementById('cat-sel').value;
+  const mes=document.getElementById('cat-mes').value;
+  LANCS.unshift({id:nextId++,tipo,desc,cat,data,mes,valor});
+  const row=document.getElementById(rowId);
+  if(row){row.style.opacity='0';row.style.transition='opacity .3s';
+    setTimeout(()=>{row.remove();},300);}
+  filtrarLanc();
+  fecharModal();
+  toast(`Lançamento movido para ${MNOME[mes]||mes}!`,'sucesso');
+}
+function confirmarPendente(rowId){
+  const row=document.getElementById(rowId);
+  if(row){row.style.opacity='0';row.style.transition='opacity .3s';
+    setTimeout(()=>{row.remove();toast('Lançamento confirmado!','sucesso');},300);}
+}
+function resolverTodos(){
+  document.querySelectorAll('#tbody-pend tr').forEach(r=>{r.style.opacity='0';r.style.transition='opacity .3s';});
+  setTimeout(()=>{document.getElementById('tbody-pend').innerHTML='<tr><td colspan="6" class="empty">Nenhum lançamento pendente 🎉</td></tr>';
+    toast('Todos os pendentes resolvidos!','sucesso');},350);
+}
+
+// ══════════════════════════════════════════════
+// FECHAMENTOS
+// ══════════════════════════════════════════════
+function verFechamento(nome,e,s){
+  const ei=parseInt(e),si=parseInt(s),res=ei-si,mrg=((res/ei)*100).toFixed(1);
+  abrirModal(`Fechamento — ${nome}`,`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div style="background:#f0fdf4;border-radius:10px;padding:14px;border-left:3px solid #10b981;">
+        <div style="font-size:11px;color:#6b7280;font-weight:600;">ENTRADAS</div>
+        <div style="font-size:20px;font-weight:700;color:#065f46;margin-top:4px;">${fmt(ei)}</div>
+      </div>
+      <div style="background:#fef2f2;border-radius:10px;padding:14px;border-left:3px solid #ef4444;">
+        <div style="font-size:11px;color:#6b7280;font-weight:600;">SAÍDAS</div>
+        <div style="font-size:20px;font-weight:700;color:#991b1b;margin-top:4px;">${fmt(si)}</div>
+      </div>
+      <div style="background:#eff6ff;border-radius:10px;padding:14px;border-left:3px solid #3b82f6;">
+        <div style="font-size:11px;color:#6b7280;font-weight:600;">RESULTADO</div>
+        <div style="font-size:20px;font-weight:700;color:#1e40af;margin-top:4px;">${fmt(res)}</div>
+      </div>
+      <div style="background:#f0fdf4;border-radius:10px;padding:14px;border-left:3px solid #10b981;">
+        <div style="font-size:11px;color:#6b7280;font-weight:600;">MARGEM</div>
+        <div style="font-size:20px;font-weight:700;color:#065f46;margin-top:4px;">${mrg}%</div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:#9ca3af;text-align:center;">Dados fictícios — apenas demonstração</p>`,
+    `<button class="btn bs" onclick="fecharModal()">Fechar</button>`
+  );
+}
+
+function abrirModalFechamento(){
+  abrirModal('Novo Fechamento',`
+    <div class="fg"><label class="fl">Mês de referência</label>
+      <select id="nf-mes" class="fi">
+        <option value="2026-05">Maio 2026</option><option value="2026-04">Abril 2026</option>
+        <option value="2026-03">Março 2026</option>
+      </select></div>
+    <div class="fg"><label class="fl">Observações</label>
+      <textarea id="nf-obs" class="fi" rows="3" placeholder="Observações sobre este fechamento..."></textarea></div>`,
+    `<button class="btn bs" onclick="fecharModal()">Cancelar</button>
+     <button class="btn bp" onclick="fecharModal();toast('Fechamento criado!','sucesso')">Criar fechamento</button>`
+  );
+}
+
+function fecharMes(nome){
+  abrirModal('Fechar mês',`
+    <p style="font-size:14px;color:#374151;margin-bottom:12px;">Deseja fechar o mês de <strong>${nome}</strong>?</p>
+    <p style="font-size:13px;color:#6b7280;">Após fechar, os lançamentos deste mês não poderão ser editados.</p>`,
+    `<button class="btn bs" onclick="fecharModal()">Cancelar</button>
+     <button class="btn bp" onclick="fecharModal();toast('${nome} fechado com sucesso!','sucesso')">Confirmar fechamento</button>`
+  );
+}
+
+// ══════════════════════════════════════════════
+// CATEGORIAS
+// ══════════════════════════════════════════════
+function abrirModalNovaCategoria(){
+  abrirModal('Nova Categoria',`
+    <div class="fg"><label class="fl">Nome</label><input type="text" id="nc-nome" class="fi" placeholder="Nome da categoria"/></div>
+    <div class="fr">
+      <div class="fg"><label class="fl">Tipo</label>
+        <select id="nc-tipo" class="fi"><option value="entrada">Entrada</option><option value="saida">Saída</option></select></div>
+      <div class="fg"><label class="fl">Cor</label><input type="color" id="nc-cor" class="fi" value="#6366f1" style="height:38px;padding:4px;cursor:pointer;"/></div>
+    </div>`,
+    `<button class="btn bs" onclick="fecharModal()">Cancelar</button>
+     <button class="btn bp" onclick="salvarNovaCategoria()">Salvar</button>`
+  );
+}
+
+function salvarNovaCategoria(){
+  const nome=document.getElementById('nc-nome').value.trim();
+  if(!nome){toast('Informe o nome','erro');return;}
+  const tipo=document.getElementById('nc-tipo').value;
+  const cor=document.getElementById('nc-cor').value;
+  const tbody=document.getElementById(tipo==='entrada'?'tbody-cat-e':'tbody-cat-s');
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td><span class="cc" style="background:${cor};"></span></td><td>${nome}</td><td>0</td>
+    <td class="${tipo==='entrada'?'ve':'vs'}">R$ 0,00</td>
+    <td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('${nome}','${cor}','${tipo}')">Editar</button></td>`;
+  tbody.appendChild(tr);
+  fecharModal(); toast(`Categoria "${nome}" criada!`,'sucesso');
+}
+
+function editarCategoria(nome,cor,tipo){
+  abrirModal('Editar Categoria',`
+    <div class="fg"><label class="fl">Nome</label><input type="text" id="ec-nome" class="fi" value="${nome}"/></div>
+    <div class="fr">
+      <div class="fg"><label class="fl">Tipo</label>
+        <select id="ec-tipo" class="fi"><option value="entrada"${tipo==='entrada'?' selected':''}>Entrada</option><option value="saida"${tipo==='saida'?' selected':''}>Saída</option></select></div>
+      <div class="fg"><label class="fl">Cor</label><input type="color" id="ec-cor" class="fi" value="${cor}" style="height:38px;padding:4px;cursor:pointer;"/></div>
+    </div>`,
+    `<button class="btn bs" onclick="fecharModal()">Cancelar</button>
+     <button class="btn bp" onclick="fecharModal();toast('Categoria atualizada!','sucesso')">Salvar</button>`
+  );
+}
+
+// ══════════════════════════════════════════════
+// CONFIGURAÇÕES
+// ══════════════════════════════════════════════
+function salvarConfig(){
+  toast('Configurações salvas com sucesso!','sucesso');
+}
+function editarConta(banco,tipo){
+  abrirModal(`Editar conta — ${banco}`,`
+    <div class="fg"><label class="fl">Banco</label><input type="text" id="cnt-banco" class="fi" value="${banco}"/></div>
+    <div class="fg"><label class="fl">Tipo</label>
+      <select id="cnt-tipo" class="fi">
+        <option${tipo==='Conta Corrente'?' selected':''}>Conta Corrente</option>
+        <option${tipo==='Cartão de Crédito'?' selected':''}>Cartão de Crédito</option>
+        <option>Conta Poupança</option>
+      </select></div>
+    <div class="fg"><label class="fl">Status</label>
+      <select id="cnt-status" class="fi">
+        <option>Ativa</option><option>Pausada</option>
+      </select></div>`,
+    `<button class="btn bs" onclick="fecharModal()">Cancelar</button>
+     <button class="btn bp" onclick="fecharModal();toast('Conta atualizada!','sucesso')">Salvar</button>`
+  );
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',()=>{
+  initCharts();
+  renderTabelaLanc(LANCS.filter(l=>l.mes==='2026-04'));
+});
+</script>
+</body>
+</html>
