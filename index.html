@@ -352,10 +352,10 @@ tbody tr:hover td{background:#f9fafb;}
         </div>
       </div>
       <div style="margin-bottom:12px;font-size:13px;color:#6b7280;">
-        Revise os lançamentos abaixo antes de salvar. Você pode editar a categoria de cada um.
+        Revise os lançamentos abaixo antes de salvar. Você pode editar a descrição, categoria ou excluir linhas.
       </div>
       <div class="tw"><table>
-        <thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor</th><th>Categoria</th></tr></thead>
+        <thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor</th><th>Categoria</th><th></th></tr></thead>
         <tbody id="tbody-preview"></tbody>
       </table></div>
     </div>
@@ -1035,10 +1035,27 @@ function mostrarPreview(lancs, nomeArquivo){
   document.getElementById('tbody-preview').innerHTML = lancs.map((l,i)=>`
     <tr>
       <td>${l.data}</td>
-      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.desc}</td>
+      <td><input type="text" value="${l.desc.replace(/"/g,'&quot;')}" style="font-size:12px;padding:4px 8px;width:100%;min-width:160px;" oninput="lancamentosDetectados[${i}].desc=this.value"/></td>
       <td><span class="badge ${l.tipo}">${l.tipo==='entrada'?'Entrada':'Saída'}</span></td>
       <td class="${l.tipo==='entrada'?'ve':'vs'}">${l.tipo==='saida'?'- ':'+ '}${fmt(l.valor)}</td>
       <td><select style="font-size:12px;padding:4px 8px;" onchange="lancamentosDetectados[${i}].cat=this.value">${catOptions2(l.cat)}</select></td>
+      <td><button onclick="removerLancamento(${i})" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:16px;padding:2px 6px;" title="Excluir">✕</button></td>
+    </tr>`).join('');
+}
+
+function removerLancamento(i){
+  lancamentosDetectados.splice(i,1);
+  const n=lancamentosDetectados.length;
+  if(n===0){cancelarImport();return;}
+  document.getElementById('preview-titulo').textContent=`${n} lançamento${n>1?'s':''} detectado${n>1?'s':''} — ${document.getElementById('preview-titulo').textContent.split('—')[1]||''}`.trim();
+  document.getElementById('tbody-preview').innerHTML=lancamentosDetectados.map((l,i)=>`
+    <tr>
+      <td>${l.data}</td>
+      <td><input type="text" value="${l.desc.replace(/"/g,'&quot;')}" style="font-size:12px;padding:4px 8px;width:100%;min-width:160px;" oninput="lancamentosDetectados[${i}].desc=this.value"/></td>
+      <td><span class="badge ${l.tipo}">${l.tipo==='entrada'?'Entrada':'Saída'}</span></td>
+      <td class="${l.tipo==='entrada'?'ve':'vs'}">${l.tipo==='saida'?'- ':'+ '}${fmt(l.valor)}</td>
+      <td><select style="font-size:12px;padding:4px 8px;" onchange="lancamentosDetectados[${i}].cat=this.value">${catOptions2(l.cat)}</select></td>
+      <td><button onclick="removerLancamento(${i})" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:16px;padding:2px 6px;" title="Excluir">✕</button></td>
     </tr>`).join('');
 }
 
