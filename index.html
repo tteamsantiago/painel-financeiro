@@ -292,46 +292,74 @@ tbody tr:hover td{background:#f9fafb;}
 
 <!-- ── IMPORTAR ── -->
 <div class="page" id="page-importar">
-  <div class="ph"><div><h2>Importar</h2><p>Importe extratos bancários em CSV ou OFX</p></div></div>
+  <div class="ph"><div><h2>Importar Extrato</h2><p>Importe extratos do Mercado Pago ou Infinity Pay em CSV</p></div></div>
+
+  <!-- Seletor de plataforma -->
+  <div style="display:flex;gap:12px;margin-bottom:20px;">
+    <div id="btn-mp" onclick="selecionarPlataforma('mercadopago')" style="flex:1;border:2px solid #4f46e5;border-radius:12px;padding:16px;cursor:pointer;text-align:center;background:#f5f3ff;">
+      <div style="font-size:24px;margin-bottom:6px;">💳</div>
+      <div style="font-weight:700;font-size:14px;color:#4f46e5;">Mercado Pago</div>
+      <div style="font-size:11px;color:#6b7280;margin-top:3px;">Exporte em: Atividade → Exportar → CSV</div>
+    </div>
+    <div id="btn-ip" onclick="selecionarPlataforma('infinitypay')" style="flex:1;border:2px solid #e5e7eb;border-radius:12px;padding:16px;cursor:pointer;text-align:center;background:#fff;">
+      <div style="font-size:24px;margin-bottom:6px;">⚡</div>
+      <div style="font-weight:700;font-size:14px;color:#374151;">Infinity Pay</div>
+      <div style="font-size:11px;color:#6b7280;margin-top:3px;">Exporte em: Relatórios → Exportar → CSV</div>
+    </div>
+  </div>
+
   <div class="g2">
     <div class="card">
-      <h3>Selecione o arquivo</h3>
-      <input type="file" id="file-input" accept=".csv,.ofx,.xlsx" style="display:none;" onchange="onFileSelected(this)">
-      <div class="upload-area" onclick="document.getElementById('file-input').click()">
+      <h3 id="import-titulo">Upload do extrato — Mercado Pago</h3>
+      <input type="file" id="file-input" accept=".csv" style="display:none;" onchange="processarCSV(this)">
+      <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
         <div class="upload-icon">📂</div>
-        <h4 id="upload-label">Clique para selecionar ou arraste aqui</h4>
-        <p>Formatos aceitos: .csv, .ofx, .xlsx</p>
+        <h4 id="upload-label">Clique para selecionar o CSV</h4>
+        <p>Formato aceito: .csv</p>
         <p style="margin-top:6px;font-size:11px;color:#d1d5db;">Tamanho máximo: 10 MB</p>
       </div>
-      <div id="import-progress" style="display:none;">
+      <div id="import-progress" style="display:none;margin-top:12px;">
         <div class="import-bar"><div class="import-fill" id="import-fill"></div></div>
         <p id="import-status" style="font-size:12px;color:#6b7280;text-align:center;"></p>
       </div>
-      <div style="margin-top:16px;display:flex;gap:10px;">
-        <select id="import-conta" style="flex:1;">
-          <option>Conta Corrente — Nubank</option>
-          <option>Conta Corrente — Itaú</option>
-          <option>Cartão Amex</option>
-          <option>Cartão Elo</option>
-        </select>
-        <button class="btn bp" onclick="simularImport()">Importar</button>
+      <!-- Instrução de exportação -->
+      <div id="instrucao-export" style="margin-top:14px;background:#f9fafb;border-radius:8px;padding:12px;font-size:12px;color:#6b7280;border:1px solid #f3f4f6;">
+        <strong style="color:#374151;">Como exportar do Mercado Pago:</strong><br/>
+        1. Abra o app ou site do Mercado Pago<br/>
+        2. Vá em <strong>Atividade</strong> → <strong>Ver tudo</strong><br/>
+        3. Clique em <strong>Exportar</strong> e escolha <strong>CSV</strong><br/>
+        4. Selecione o período desejado e baixe o arquivo
       </div>
     </div>
+
     <div class="card">
       <h3>Histórico de importações</h3>
-      <div class="tw"><table id="tbl-import-hist">
-        <thead><tr><th>Data</th><th>Arquivo</th><th>Conta</th><th>Registros</th><th>Status</th></tr></thead>
-        <tbody id="tbody-import">
-          <tr><td>10/04/2026</td><td>extrato-abr.csv</td><td>Nubank</td><td>34</td><td><span class="badge verde">✓ Importado</span></td></tr>
-          <tr><td>08/03/2026</td><td>extrato-mar.csv</td><td>Nubank</td><td>29</td><td><span class="badge verde">✓ Importado</span></td></tr>
-          <tr><td>05/03/2026</td><td>fatura-amex-mar.ofx</td><td>Amex</td><td>18</td><td><span class="badge verde">✓ Importado</span></td></tr>
-          <tr><td>07/02/2026</td><td>extrato-fev.csv</td><td>Nubank</td><td>26</td><td><span class="badge verde">✓ Importado</span></td></tr>
-          <tr><td>03/01/2026</td><td>extrato-jan.csv</td><td>Itaú</td><td>31</td><td><span class="badge amarelo">⚠ Parcial</span></td></tr>
-        </tbody>
+      <div class="tw"><table>
+        <thead><tr><th>Data</th><th>Arquivo</th><th>Plataforma</th><th>Registros</th><th>Status</th></tr></thead>
+        <tbody id="tbody-import"><tr><td colspan="5" class="empty">Nenhuma importação ainda</td></tr></tbody>
       </table></div>
     </div>
   </div>
-  <div class="demo-footer" style="margin-top:16px;">⚠ Dados fictícios — apenas para demonstração visual</div>
+
+  <!-- Preview dos lançamentos detectados -->
+  <div id="preview-import" style="display:none;margin-top:20px;">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3 id="preview-titulo">Lançamentos detectados</h3>
+        <div style="display:flex;gap:10px;">
+          <button class="btn bs" onclick="cancelarImport()">Cancelar</button>
+          <button class="btn bp" id="btn-confirmar-import" onclick="confirmarImport()">Salvar todos</button>
+        </div>
+      </div>
+      <div style="margin-bottom:12px;font-size:13px;color:#6b7280;">
+        Revise os lançamentos abaixo antes de salvar. Você pode editar a categoria de cada um.
+      </div>
+      <div class="tw"><table>
+        <thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor</th><th>Categoria</th></tr></thead>
+        <tbody id="tbody-preview"></tbody>
+      </table></div>
+    </div>
+  </div>
 </div>
 
 <!-- ── PENDENTES ── -->
@@ -861,38 +889,193 @@ async function confirmarExclusao(id){
 // ══════════════════════════════════════════════
 // IMPORTAR
 // ══════════════════════════════════════════════
-function onFileSelected(input){
-  if(input.files&&input.files[0]){
-    document.getElementById('upload-label').textContent='📄 '+input.files[0].name;
+let plataformaAtual = 'mercadopago';
+let lancamentosDetectados = [];
+
+function selecionarPlataforma(p){
+  plataformaAtual = p;
+  const btnMP = document.getElementById('btn-mp');
+  const btnIP = document.getElementById('btn-ip');
+  const titulo = document.getElementById('import-titulo');
+  const instrucao = document.getElementById('instrucao-export');
+  if(p === 'mercadopago'){
+    btnMP.style.borderColor='#4f46e5'; btnMP.style.background='#f5f3ff'; btnMP.querySelector('div:nth-child(2)').style.color='#4f46e5';
+    btnIP.style.borderColor='#e5e7eb'; btnIP.style.background='#fff'; btnIP.querySelector('div:nth-child(2)').style.color='#374151';
+    titulo.textContent='Upload do extrato — Mercado Pago';
+    instrucao.innerHTML='<strong style="color:#374151;">Como exportar do Mercado Pago:</strong><br/>1. Abra o app ou site do Mercado Pago<br/>2. Vá em <strong>Atividade</strong> → <strong>Ver tudo</strong><br/>3. Clique em <strong>Exportar</strong> e escolha <strong>CSV</strong><br/>4. Selecione o período e baixe o arquivo';
+  } else {
+    btnIP.style.borderColor='#4f46e5'; btnIP.style.background='#f5f3ff'; btnIP.querySelector('div:nth-child(2)').style.color='#4f46e5';
+    btnMP.style.borderColor='#e5e7eb'; btnMP.style.background='#fff'; btnMP.querySelector('div:nth-child(2)').style.color='#374151';
+    titulo.textContent='Upload do extrato — Infinity Pay';
+    instrucao.innerHTML='<strong style="color:#374151;">Como exportar do Infinity Pay:</strong><br/>1. Abra o app do Infinity Pay<br/>2. Vá em <strong>Relatórios</strong> → <strong>Extrato</strong><br/>3. Selecione o período desejado<br/>4. Toque em <strong>Exportar CSV</strong> e baixe o arquivo';
   }
+  document.getElementById('preview-import').style.display='none';
+  document.getElementById('file-input').value='';
+  document.getElementById('upload-label').textContent='Clique para selecionar o CSV';
 }
 
-function simularImport(){
+function processarCSV(input){
+  if(!input.files||!input.files[0])return;
+  const file = input.files[0];
+  document.getElementById('upload-label').textContent='📄 '+file.name;
   const prog=document.getElementById('import-progress');
   const fill=document.getElementById('import-fill');
   const status=document.getElementById('import-status');
-  prog.style.display='block'; fill.style.width='0%';
+  prog.style.display='block'; fill.style.width='20%';
   status.textContent='Lendo arquivo...';
-  let p=0;
-  const iv=setInterval(()=>{
-    p+=Math.random()*18+5;
-    if(p>=100){p=100;clearInterval(iv);
-      status.textContent='✓ 34 registros importados com sucesso!';
-      const conta=document.getElementById('import-conta').value;
-      const hoje=new Date();
-      const d=`${String(hoje.getDate()).padStart(2,'0')}/${String(hoje.getMonth()+1).padStart(2,'0')}/${hoje.getFullYear()}`;
-      const arquivo=document.getElementById('file-input').files[0]?.name||'extrato.csv';
-      const tbody=document.getElementById('tbody-import');
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${d}</td><td>${arquivo}</td><td>${conta.split('—')[1]?.trim()||conta}</td><td>${Math.floor(Math.random()*20)+15}</td><td><span class="badge verde">✓ Importado</span></td>`;
-      tbody.insertBefore(tr,tbody.firstChild);
-      toast('Extrato importado com sucesso!','sucesso');
+
+  const reader = new FileReader();
+  reader.onload = function(e){
+    fill.style.width='60%'; status.textContent='Processando transações...';
+    try {
+      const texto = e.target.result;
+      if(plataformaAtual === 'mercadopago'){
+        lancamentosDetectados = parseMercadoPago(texto);
+      } else {
+        lancamentosDetectados = parseInfinityPay(texto);
+      }
+      fill.style.width='100%';
+      if(lancamentosDetectados.length === 0){
+        status.textContent='⚠ Nenhuma transação encontrada. Verifique o formato do arquivo.';
+        toast('Nenhuma transação encontrada','erro'); return;
+      }
+      status.textContent=`✓ ${lancamentosDetectados.length} transações detectadas!`;
+      mostrarPreview(lancamentosDetectados, file.name);
+    } catch(err){
+      status.textContent='Erro ao processar o arquivo. Verifique se é um CSV válido.';
+      toast('Erro ao processar CSV','erro');
     }
-    fill.style.width=p+'%';
-    if(p<40)status.textContent='Lendo arquivo...';
-    else if(p<70)status.textContent='Processando transações...';
-    else if(p<100)status.textContent='Categorizando lançamentos...';
-  },120);
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function parseMercadoPago(texto){
+  const linhas = texto.split('\n').map(l=>l.trim()).filter(l=>l);
+  const resultado = [];
+  // Detecta separador
+  const sep = linhas[0]&&linhas[0].includes(';') ? ';' : ',';
+  // Encontra linha de cabeçalho
+  let headerIdx = linhas.findIndex(l => l.toLowerCase().includes('data') && (l.toLowerCase().includes('valor') || l.toLowerCase().includes('quantia')));
+  if(headerIdx < 0) headerIdx = 0;
+  const headers = linhas[headerIdx].split(sep).map(h=>h.replace(/"/g,'').trim().toLowerCase());
+
+  const iData   = headers.findIndex(h=>h.includes('data'));
+  const iDesc   = headers.findIndex(h=>h.includes('descri') || h.includes('detalhe') || h.includes('operação') || h.includes('operacao'));
+  const iValor  = headers.findIndex(h=>h.includes('valor') || h.includes('quantia') || h.includes('bruto'));
+  const iTipo   = headers.findIndex(h=>h.includes('tipo') || h.includes('status'));
+
+  for(let i=headerIdx+1;i<linhas.length;i++){
+    const cols = linhas[i].split(sep).map(c=>c.replace(/"/g,'').trim());
+    if(cols.length < 2) continue;
+    const dataRaw = iData>=0 ? cols[iData] : '';
+    const desc    = iDesc>=0 ? cols[iDesc] : cols[1]||'Transação';
+    const valorRaw= iValor>=0 ? cols[iValor] : cols[cols.length-1];
+    const valorNum= parseFloat(valorRaw.replace(/[R$\s.]/g,'').replace(',','.'));
+    if(isNaN(valorNum)||valorNum===0) continue;
+    const data    = normalizarData(dataRaw);
+    const mes     = data.slice(6)+'-'+data.slice(3,5);
+    const tipo    = valorNum >= 0 ? 'entrada' : 'saida';
+    resultado.push({data, desc: desc||'Transação Mercado Pago', tipo, valor: Math.abs(valorNum), mes, cat: tipo==='entrada'?'Mensalidade Presencial':'Custo de Equipe'});
+  }
+  return resultado;
+}
+
+function parseInfinityPay(texto){
+  const linhas = texto.split('\n').map(l=>l.trim()).filter(l=>l);
+  const resultado = [];
+  const sep = linhas[0]&&linhas[0].includes(';') ? ';' : ',';
+  let headerIdx = linhas.findIndex(l => l.toLowerCase().includes('data') && l.toLowerCase().includes('valor'));
+  if(headerIdx < 0) headerIdx = 0;
+  const headers = linhas[headerIdx].split(sep).map(h=>h.replace(/"/g,'').trim().toLowerCase());
+
+  const iData   = headers.findIndex(h=>h.includes('data'));
+  const iDesc   = headers.findIndex(h=>h.includes('descri') || h.includes('estabeleci') || h.includes('tipo'));
+  const iValor  = headers.findIndex(h=>h.includes('valor') || h.includes('bruto') || h.includes('liquido') || h.includes('líquido'));
+
+  for(let i=headerIdx+1;i<linhas.length;i++){
+    const cols = linhas[i].split(sep).map(c=>c.replace(/"/g,'').trim());
+    if(cols.length < 2) continue;
+    const dataRaw = iData>=0 ? cols[iData] : '';
+    const desc    = iDesc>=0 ? cols[iDesc] : 'Venda Infinity Pay';
+    const valorRaw= iValor>=0 ? cols[iValor] : cols[cols.length-1];
+    const valorNum= parseFloat(valorRaw.replace(/[R$\s.]/g,'').replace(',','.'));
+    if(isNaN(valorNum)||valorNum===0) continue;
+    const data    = normalizarData(dataRaw);
+    const mes     = data.slice(6)+'-'+data.slice(3,5);
+    const tipo    = valorNum >= 0 ? 'entrada' : 'saida';
+    resultado.push({data, desc: desc||'Venda Infinity Pay', tipo, valor: Math.abs(valorNum), mes, cat: tipo==='entrada'?'Pagamento de Consultoria':'Custo de Equipe'});
+  }
+  return resultado;
+}
+
+function normalizarData(raw){
+  if(!raw) return new Date().toLocaleDateString('pt-BR');
+  // yyyy-mm-dd
+  if(/^\d{4}-\d{2}-\d{2}/.test(raw)){
+    const [y,m,d]=raw.slice(0,10).split('-');
+    return `${d}/${m}/${y}`;
+  }
+  // dd/mm/yyyy
+  if(/^\d{2}\/\d{2}\/\d{4}/.test(raw)) return raw.slice(0,10);
+  // dd/mm/yy
+  if(/^\d{2}\/\d{2}\/\d{2}/.test(raw)){
+    const [d,m,y]=raw.split('/');
+    return `${d}/${m}/20${y}`;
+  }
+  return raw;
+}
+
+function catOptions2(sel){
+  return [...CAT_ENTRADA,...CAT_SAIDA].map(c=>`<option value="${c.n}"${sel===c.n?' selected':''}>${c.n}</option>`).join('');
+}
+
+function mostrarPreview(lancs, nomeArquivo){
+  document.getElementById('preview-import').style.display='block';
+  document.getElementById('preview-titulo').textContent=`${lancs.length} lançamentos detectados — ${nomeArquivo}`;
+  document.getElementById('tbody-preview').innerHTML = lancs.map((l,i)=>`
+    <tr>
+      <td>${l.data}</td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.desc}</td>
+      <td><span class="badge ${l.tipo}">${l.tipo==='entrada'?'Entrada':'Saída'}</span></td>
+      <td class="${l.tipo==='entrada'?'ve':'vs'}">${l.tipo==='saida'?'- ':'+ '}${fmt(l.valor)}</td>
+      <td><select style="font-size:12px;padding:4px 8px;" onchange="lancamentosDetectados[${i}].cat=this.value">${catOptions2(l.cat)}</select></td>
+    </tr>`).join('');
+}
+
+function cancelarImport(){
+  document.getElementById('preview-import').style.display='none';
+  document.getElementById('file-input').value='';
+  document.getElementById('upload-label').textContent='Clique para selecionar o CSV';
+  document.getElementById('import-progress').style.display='none';
+  lancamentosDetectados=[];
+}
+
+async function confirmarImport(){
+  const btn=document.getElementById('btn-confirmar-import');
+  btn.disabled=true; btn.textContent='Salvando...';
+  let ok=0;
+  for(const l of lancamentosDetectados){
+    const [dd,mm,yyyy]=l.data.split('/');
+    const dataISO=`${yyyy}-${mm}-${dd}`;
+    const {error}=await sb.from('lancamentos').insert({
+      tipo:l.tipo, descricao:l.desc, categoria:l.cat,
+      data:dataISO, mes:l.mes, valor:l.valor
+    });
+    if(!error) ok++;
+  }
+  // Registra histórico
+  const hoje=new Date();
+  const d=`${String(hoje.getDate()).padStart(2,'0')}/${String(hoje.getMonth()+1).padStart(2,'0')}/${hoje.getFullYear()}`;
+  const nomeArq=document.getElementById('file-input').files[0]?.name||'extrato.csv';
+  const tbody=document.getElementById('tbody-import');
+  if(tbody.querySelector('.empty')) tbody.innerHTML='';
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td>${d}</td><td>${nomeArq}</td><td>${plataformaAtual==='mercadopago'?'Mercado Pago':'Infinity Pay'}</td><td>${ok}</td><td><span class="badge verde">✓ Importado</span></td>`;
+  tbody.insertBefore(tr,tbody.firstChild);
+  btn.disabled=false; btn.textContent='Salvar todos';
+  cancelarImport();
+  await carregarLancamentos();
+  toast(`${ok} lançamentos importados com sucesso!`,'sucesso');
 }
 
 // ══════════════════════════════════════════════
