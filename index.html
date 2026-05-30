@@ -10,6 +10,10 @@
 // ══════════════════════════════════════════════
 function showApp(){
   document.getElementById('login-overlay').style.display='none';
+  carregarCategorias();
+  carregarFechamentos();
+  carregarPendentes();
+  carregarHistoricoImportacoes();
 }
 function showLogin(){
   document.getElementById('login-overlay').style.display='flex';
@@ -39,6 +43,148 @@ async function loginUser(){
 async function logoutUser(){
   await sb.auth.signOut();
   toast('Sessão encerrada. Até logo!','sucesso');
+}
+
+// ══════════════════════════════════════════════
+// CATEGORIAS — Supabase
+// ══════════════════════════════════════════════
+async function carregarCategorias(){
+  const {data,error}=await sb.from('categorias').select('*').order('nome');
+  if(error){toast('Erro ao carregar categorias','erro');return;}
+  CAT_ENTRADA=data.filter(c=>c.tipo==='entrada').map(c=>({n:c.nome,c:c.cor,id:c.id}));
+  CAT_SAIDA  =data.filter(c=>c.tipo==='saida'  ).map(c=>({n:c.nome,c:c.cor,id:c.id}));
+  renderizarCategorias();
+}
+function renderizarCategorias(){
+  const tbE=document.getElementById('tbody-cat-e');
+  const tbS=document.getElementById('tbody-cat-s');
+  if(!tbE||!tbS) return;
+  const row=(cat,tipo)=>{
+    const cnt=LANCS.filter(l=>l.cat===cat.n).length;
+    const tot=LANCS.filter(l=>l.cat===cat.n).reduce((a,b)=>a+b.valor,0);
+    return `<tr>
+      <td><span class="cc" style="background:${cat.c};"></span></td>
+      <td>${cat.n}</td><td>${cnt}</td>
+      <td class="${tipo==='entrada'?'ve':'vs'}">${fmt(tot)}</td>
+      <td>
+        <button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('${cat.n}','${cat.c}','${tipo}','${cat.id}')">Editar</button>
+        <button class="btn" style="padding:3px 8px;font-size:11px;color:#ef4444;border:1px solid #fca5a5;border-radius:6px;cursor:pointer;" onclick="excluirCategoria('${cat.id}','${cat.n}')">Excluir</button>
+      </td></tr>`;
+  };
+  tbE.innerHTML=CAT_ENTRADA.map(c=>row(c,'entrada')).join('')||'<tr><td colspan="5" class="empty">Nenhuma categoria de entrada</td></tr>';
+  tbS.innerHTML=CAT_SAIDA.map(c=>row(c,'saida')).join('')||'<tr><td colspan="5" class="empty">Nenhuma categoria de saída</td></tr>';
+}
+async function excluirCategoria(id,nome){
+  if(!confirm('Excluir categoria "'+nome+'"?')) return;
+  const {error}=await sb.from('categorias').delete().eq('id',id);
+  if(error){toast('Erro ao excluir categoria','erro');return;}
+  await carregarCategorias();
+  toast('Categoria excluída!','sucesso');
+}
+
+// ══════════════════════════════════════════════
+// FECHAMENTOS — Supabase
+// ══════════════════════════════════════════════
+async function carregarFechamentos(){
+  const tbody=document.getElementById('tbody-fech');
+  if(!tbody) return;
+  const {data,error}=await sb.from('fechamentos').select('*').order('mes',{ascending:false});
+  if(error){tbody.innerHTML='<tr><td colspan="7" class="empty">Erro ao carregar fechamentos</td></tr>';return;}
+  if(!data||!data.length){tbody.innerHTML='<tr><td colspan="7" class="empty">Nenhum fechamento registrado ainda</td></tr>';return;}
+  const MN={'01':'Janeiro','02':'Fevereiro','03':'Março','04':'Abril','05':'Maio','06':'Junho','07':'Julho','08':'Agosto','09':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro'};
+  tbody.innerHTML=data.map(f=>{
+    const [ano,m]=(f.mes||'').split('-');
+    const mesNome=`${MN[m]||m} ${ano}`;
+    const bCls=f.status==='fechado'?'verde':f.status==='revisao'?'amarelo':'cinza';
+    const bTxt=f.status==='fechado'?'Fechado':f.status==='revisao'?'Em revisão':'Aguardando';
+    const res=parseFloat(f.resultado)||0;
+    return `<tr>
+      <td><strong>${mesNome}</strong></td>
+      <td class="ve">${f.entradas?fmt(f.entradas):'—'}</td>
+      <td class="vs">${f.saidas?fmt(f.saidas):'—'}</td>
+      <td class="${res>=0?'ve':'vs'}">${res?fmt(res):'—'}</td>
+      <td>${f.margem?parseFloat(f.margem).toFixed(1)+'%':'—'}</td>
+      <td><span class="badge ${bCls}">${bTxt}</span></td>
+      <td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="excluirFechamento('${f.id}')">Excluir</button></td>
+    </tr>`;
+  }).join('');
+}
+async function salvarFechamento(){
+  const mes=document.getElementById('nf-mes').value;
+  const obs=document.getElementById('nf-obs')?document.getElementById('nf-obs').value:'';
+  const ent=LANCS.filter(l=>l.mes===mes&&l.tipo==='entrada').reduce((a,b)=>a+b.valor,0);
+  const sai=LANCS.filter(l=>l.mes===mes&&l.tipo==='saida'  ).reduce((a,b)=>a+b.valor,0);
+  const res=ent-sai;
+  const mar=ent>0?(res/ent*100):0;
+  const {error}=await sb.from('fechamentos').insert({
+    mes, entradas:ent, saidas:sai, resultado:res,
+    margem:parseFloat(mar.toFixed(2)), status:'aguardando', observacoes:obs
+  });
+  if(error){toast('Erro ao criar fechamento','erro');return;}
+  fecharModal();
+  await carregarFechamentos();
+  toast('Fechamento criado!','sucesso');
+}
+async function excluirFechamento(id){
+  if(!confirm('Excluir este fechamento?')) return;
+  const {error}=await sb.from('fechamentos').delete().eq('id',id);
+  if(error){toast('Erro ao excluir','erro');return;}
+  await carregarFechamentos();
+  toast('Fechamento excluído!','sucesso');
+}
+
+// ══════════════════════════════════════════════
+// PENDENTES — Supabase
+// ══════════════════════════════════════════════
+async function carregarPendentes(){
+  const tbody=document.getElementById('tbody-pend');
+  if(!tbody) return;
+  const {data,error}=await sb.from('pendentes').select('*').order('data',{ascending:false});
+  if(error){tbody.innerHTML='<tr><td colspan="6" class="empty">Erro ao carregar pendentes</td></tr>';return;}
+  const ativos=(data||[]).filter(p=>p.situacao!=='resolvido');
+  if(!ativos.length){tbody.innerHTML='<tr><td colspan="6" class="empty">Nenhum lançamento pendente 🎉</td></tr>';return;}
+  tbody.innerHTML=ativos.map(p=>{
+    const d=p.data.split('-').reverse().join('/');
+    const bCls=p.situacao==='aguardando_confirmacao'?'azul':'amarelo';
+    const bTxt=p.situacao==='aguardando_confirmacao'?'Aguardando confirmação':'Sem categoria';
+    const btnTxt=p.situacao==='aguardando_confirmacao'?'Confirmar':'Categorizar';
+    const btnCls=p.situacao==='aguardando_confirmacao'?'bs':'bp';
+    return `<tr id="pend-${p.id}">
+      <td>${d}</td><td>${p.descricao}</td>
+      <td class="${p.valor>=0?'ve':'vs'}">${p.valor>=0?'+ ':' - '}${fmt(Math.abs(p.valor))}</td>
+      <td><span class="badge cinza">${p.origem||'—'}</span></td>
+      <td><span class="badge ${bCls}">${bTxt}</span></td>
+      <td><button class="btn ${btnCls}" style="padding:4px 10px;font-size:12px;" onclick="resolverPendente('${p.id}')">${btnTxt}</button></td>
+    </tr>`;
+  }).join('');
+}
+async function resolverTodos(){
+  const {error}=await sb.from('pendentes').update({situacao:'resolvido'}).neq('situacao','resolvido');
+  if(error){toast('Erro ao resolver pendentes','erro');return;}
+  await carregarPendentes();
+  toast('Todos os pendentes resolvidos!','sucesso');
+}
+async function resolverPendente(id){
+  const {error}=await sb.from('pendentes').update({situacao:'resolvido'}).eq('id',id);
+  if(error){toast('Erro ao resolver pendente','erro');return;}
+  await carregarPendentes();
+  toast('Pendente resolvido!','sucesso');
+}
+
+// ══════════════════════════════════════════════
+// HISTÓRICO DE IMPORTAÇÕES — Supabase
+// ══════════════════════════════════════════════
+async function carregarHistoricoImportacoes(){
+  const tbody=document.getElementById('tbody-import');
+  if(!tbody) return;
+  const {data,error}=await sb.from('historico_importacoes').select('*').order('data_importacao',{ascending:false}).limit(20);
+  if(error) return;
+  if(!data||!data.length){tbody.innerHTML='<tr><td colspan="5" class="empty">Nenhuma importação ainda</td></tr>';return;}
+  tbody.innerHTML=data.map(h=>{
+    const d=new Date(h.data_importacao);
+    const dt=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+    return `<tr><td>${dt}</td><td>${h.nome_arquivo||'—'}</td><td>${h.plataforma||'—'}</td><td>${h.total_registros}</td><td><span class="badge verde">✓ Importado</span></td></tr>`;
+  }).join('');
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
@@ -47,6 +193,10 @@ async function logoutUser(){
 // ══════════════════════════════════════════════
 function showApp(){
   document.getElementById('login-overlay').style.display='none';
+  carregarCategorias();
+  carregarFechamentos();
+  carregarPendentes();
+  carregarHistoricoImportacoes();
 }
 function showLogin(){
   document.getElementById('login-overlay').style.display='flex';
@@ -76,6 +226,148 @@ async function loginUser(){
 async function logoutUser(){
   await sb.auth.signOut();
   toast('Sessão encerrada. Até logo!','sucesso');
+}
+
+// ══════════════════════════════════════════════
+// CATEGORIAS — Supabase
+// ══════════════════════════════════════════════
+async function carregarCategorias(){
+  const {data,error}=await sb.from('categorias').select('*').order('nome');
+  if(error){toast('Erro ao carregar categorias','erro');return;}
+  CAT_ENTRADA=data.filter(c=>c.tipo==='entrada').map(c=>({n:c.nome,c:c.cor,id:c.id}));
+  CAT_SAIDA  =data.filter(c=>c.tipo==='saida'  ).map(c=>({n:c.nome,c:c.cor,id:c.id}));
+  renderizarCategorias();
+}
+function renderizarCategorias(){
+  const tbE=document.getElementById('tbody-cat-e');
+  const tbS=document.getElementById('tbody-cat-s');
+  if(!tbE||!tbS) return;
+  const row=(cat,tipo)=>{
+    const cnt=LANCS.filter(l=>l.cat===cat.n).length;
+    const tot=LANCS.filter(l=>l.cat===cat.n).reduce((a,b)=>a+b.valor,0);
+    return `<tr>
+      <td><span class="cc" style="background:${cat.c};"></span></td>
+      <td>${cat.n}</td><td>${cnt}</td>
+      <td class="${tipo==='entrada'?'ve':'vs'}">${fmt(tot)}</td>
+      <td>
+        <button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('${cat.n}','${cat.c}','${tipo}','${cat.id}')">Editar</button>
+        <button class="btn" style="padding:3px 8px;font-size:11px;color:#ef4444;border:1px solid #fca5a5;border-radius:6px;cursor:pointer;" onclick="excluirCategoria('${cat.id}','${cat.n}')">Excluir</button>
+      </td></tr>`;
+  };
+  tbE.innerHTML=CAT_ENTRADA.map(c=>row(c,'entrada')).join('')||'<tr><td colspan="5" class="empty">Nenhuma categoria de entrada</td></tr>';
+  tbS.innerHTML=CAT_SAIDA.map(c=>row(c,'saida')).join('')||'<tr><td colspan="5" class="empty">Nenhuma categoria de saída</td></tr>';
+}
+async function excluirCategoria(id,nome){
+  if(!confirm('Excluir categoria "'+nome+'"?')) return;
+  const {error}=await sb.from('categorias').delete().eq('id',id);
+  if(error){toast('Erro ao excluir categoria','erro');return;}
+  await carregarCategorias();
+  toast('Categoria excluída!','sucesso');
+}
+
+// ══════════════════════════════════════════════
+// FECHAMENTOS — Supabase
+// ══════════════════════════════════════════════
+async function carregarFechamentos(){
+  const tbody=document.getElementById('tbody-fech');
+  if(!tbody) return;
+  const {data,error}=await sb.from('fechamentos').select('*').order('mes',{ascending:false});
+  if(error){tbody.innerHTML='<tr><td colspan="7" class="empty">Erro ao carregar fechamentos</td></tr>';return;}
+  if(!data||!data.length){tbody.innerHTML='<tr><td colspan="7" class="empty">Nenhum fechamento registrado ainda</td></tr>';return;}
+  const MN={'01':'Janeiro','02':'Fevereiro','03':'Março','04':'Abril','05':'Maio','06':'Junho','07':'Julho','08':'Agosto','09':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro'};
+  tbody.innerHTML=data.map(f=>{
+    const [ano,m]=(f.mes||'').split('-');
+    const mesNome=`${MN[m]||m} ${ano}`;
+    const bCls=f.status==='fechado'?'verde':f.status==='revisao'?'amarelo':'cinza';
+    const bTxt=f.status==='fechado'?'Fechado':f.status==='revisao'?'Em revisão':'Aguardando';
+    const res=parseFloat(f.resultado)||0;
+    return `<tr>
+      <td><strong>${mesNome}</strong></td>
+      <td class="ve">${f.entradas?fmt(f.entradas):'—'}</td>
+      <td class="vs">${f.saidas?fmt(f.saidas):'—'}</td>
+      <td class="${res>=0?'ve':'vs'}">${res?fmt(res):'—'}</td>
+      <td>${f.margem?parseFloat(f.margem).toFixed(1)+'%':'—'}</td>
+      <td><span class="badge ${bCls}">${bTxt}</span></td>
+      <td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="excluirFechamento('${f.id}')">Excluir</button></td>
+    </tr>`;
+  }).join('');
+}
+async function salvarFechamento(){
+  const mes=document.getElementById('nf-mes').value;
+  const obs=document.getElementById('nf-obs')?document.getElementById('nf-obs').value:'';
+  const ent=LANCS.filter(l=>l.mes===mes&&l.tipo==='entrada').reduce((a,b)=>a+b.valor,0);
+  const sai=LANCS.filter(l=>l.mes===mes&&l.tipo==='saida'  ).reduce((a,b)=>a+b.valor,0);
+  const res=ent-sai;
+  const mar=ent>0?(res/ent*100):0;
+  const {error}=await sb.from('fechamentos').insert({
+    mes, entradas:ent, saidas:sai, resultado:res,
+    margem:parseFloat(mar.toFixed(2)), status:'aguardando', observacoes:obs
+  });
+  if(error){toast('Erro ao criar fechamento','erro');return;}
+  fecharModal();
+  await carregarFechamentos();
+  toast('Fechamento criado!','sucesso');
+}
+async function excluirFechamento(id){
+  if(!confirm('Excluir este fechamento?')) return;
+  const {error}=await sb.from('fechamentos').delete().eq('id',id);
+  if(error){toast('Erro ao excluir','erro');return;}
+  await carregarFechamentos();
+  toast('Fechamento excluído!','sucesso');
+}
+
+// ══════════════════════════════════════════════
+// PENDENTES — Supabase
+// ══════════════════════════════════════════════
+async function carregarPendentes(){
+  const tbody=document.getElementById('tbody-pend');
+  if(!tbody) return;
+  const {data,error}=await sb.from('pendentes').select('*').order('data',{ascending:false});
+  if(error){tbody.innerHTML='<tr><td colspan="6" class="empty">Erro ao carregar pendentes</td></tr>';return;}
+  const ativos=(data||[]).filter(p=>p.situacao!=='resolvido');
+  if(!ativos.length){tbody.innerHTML='<tr><td colspan="6" class="empty">Nenhum lançamento pendente 🎉</td></tr>';return;}
+  tbody.innerHTML=ativos.map(p=>{
+    const d=p.data.split('-').reverse().join('/');
+    const bCls=p.situacao==='aguardando_confirmacao'?'azul':'amarelo';
+    const bTxt=p.situacao==='aguardando_confirmacao'?'Aguardando confirmação':'Sem categoria';
+    const btnTxt=p.situacao==='aguardando_confirmacao'?'Confirmar':'Categorizar';
+    const btnCls=p.situacao==='aguardando_confirmacao'?'bs':'bp';
+    return `<tr id="pend-${p.id}">
+      <td>${d}</td><td>${p.descricao}</td>
+      <td class="${p.valor>=0?'ve':'vs'}">${p.valor>=0?'+ ':' - '}${fmt(Math.abs(p.valor))}</td>
+      <td><span class="badge cinza">${p.origem||'—'}</span></td>
+      <td><span class="badge ${bCls}">${bTxt}</span></td>
+      <td><button class="btn ${btnCls}" style="padding:4px 10px;font-size:12px;" onclick="resolverPendente('${p.id}')">${btnTxt}</button></td>
+    </tr>`;
+  }).join('');
+}
+async function resolverTodos(){
+  const {error}=await sb.from('pendentes').update({situacao:'resolvido'}).neq('situacao','resolvido');
+  if(error){toast('Erro ao resolver pendentes','erro');return;}
+  await carregarPendentes();
+  toast('Todos os pendentes resolvidos!','sucesso');
+}
+async function resolverPendente(id){
+  const {error}=await sb.from('pendentes').update({situacao:'resolvido'}).eq('id',id);
+  if(error){toast('Erro ao resolver pendente','erro');return;}
+  await carregarPendentes();
+  toast('Pendente resolvido!','sucesso');
+}
+
+// ══════════════════════════════════════════════
+// HISTÓRICO DE IMPORTAÇÕES — Supabase
+// ══════════════════════════════════════════════
+async function carregarHistoricoImportacoes(){
+  const tbody=document.getElementById('tbody-import');
+  if(!tbody) return;
+  const {data,error}=await sb.from('historico_importacoes').select('*').order('data_importacao',{ascending:false}).limit(20);
+  if(error) return;
+  if(!data||!data.length){tbody.innerHTML='<tr><td colspan="5" class="empty">Nenhuma importação ainda</td></tr>';return;}
+  tbody.innerHTML=data.map(h=>{
+    const d=new Date(h.data_importacao);
+    const dt=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+    return `<tr><td>${dt}</td><td>${h.nome_arquivo||'—'}</td><td>${h.plataforma||'—'}</td><td>${h.total_registros}</td><td><span class="badge verde">✓ Importado</span></td></tr>`;
+  }).join('');
 }
 </script>
 <style>
@@ -479,38 +771,7 @@ tbody tr:hover td{background:#f9fafb;}
   <div class="card">
     <div class="tw"><table>
       <thead><tr><th>Data</th><th>Descrição</th><th>Valor</th><th>Origem</th><th>Situação</th><th>Ações</th></tr></thead>
-      <tbody id="tbody-pend">
-        <tr id="pend-1">
-          <td>22/04/2026</td><td>Transferência recebida — PIX</td>
-          <td class="ve">+ R$ 4.200,00</td><td><span class="badge cinza">Nubank</span></td>
-          <td><span class="badge amarelo">Sem categoria</span></td>
-          <td><button class="btn bp" style="padding:4px 10px;font-size:12px;" onclick="abrirCategorizar('pend-1','Transferência recebida — PIX')">Categorizar</button></td>
-        </tr>
-        <tr id="pend-2">
-          <td>20/04/2026</td><td>Compra online — Marketplace</td>
-          <td class="vs">− R$ 890,00</td><td><span class="badge cinza">Cartão Amex</span></td>
-          <td><span class="badge amarelo">Sem categoria</span></td>
-          <td><button class="btn bp" style="padding:4px 10px;font-size:12px;" onclick="abrirCategorizar('pend-2','Compra online — Marketplace')">Categorizar</button></td>
-        </tr>
-        <tr id="pend-3">
-          <td>18/04/2026</td><td>Depósito — origem desconhecida</td>
-          <td class="ve">+ R$ 1.500,00</td><td><span class="badge cinza">Itaú</span></td>
-          <td><span class="badge azul">Aguardando confirmação</span></td>
-          <td><button class="btn bs" style="padding:4px 10px;font-size:12px;" onclick="confirmarPendente('pend-3')">Confirmar</button></td>
-        </tr>
-        <tr id="pend-4">
-          <td>15/04/2026</td><td>Serviço contratado — Freelancer</td>
-          <td class="vs">− R$ 2.100,00</td><td><span class="badge cinza">Nubank</span></td>
-          <td><span class="badge amarelo">Sem categoria</span></td>
-          <td><button class="btn bp" style="padding:4px 10px;font-size:12px;" onclick="abrirCategorizar('pend-4','Serviço contratado — Freelancer')">Categorizar</button></td>
-        </tr>
-        <tr id="pend-5">
-          <td>12/04/2026</td><td>Estorno — Cliente cancelou</td>
-          <td class="vs">− R$ 650,00</td><td><span class="badge cinza">Nubank</span></td>
-          <td><span class="badge azul">Aguardando confirmação</span></td>
-          <td><button class="btn bs" style="padding:4px 10px;font-size:12px;" onclick="confirmarPendente('pend-5')">Confirmar</button></td>
-        </tr>
-      </tbody>
+      <tbody id="tbody-pend"><tr><td colspan="6" class="empty">Nenhum lançamento pendente</td></tr></tbody>
     </table></div>
   </div>
   <div class="demo-footer" style="margin-top:16px;">⚠ Dados fictícios — apenas para demonstração visual</div>
@@ -525,7 +786,7 @@ tbody tr:hover td{background:#f9fafb;}
   <div class="card">
     <div class="tw"><table>
       <thead><tr><th>Mês</th><th>Entradas</th><th>Saídas</th><th>Resultado</th><th>Margem</th><th>Status</th><th>Ações</th></tr></thead>
-      <tbody>
+      <tbody id="tbody-fech">
         <tr><td><strong>Dezembro 2026</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge cinza">Aguardando</span></td><td>—</td></tr>
         <tr><td><strong>Novembro 2026</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge cinza">Aguardando</span></td><td>—</td></tr>
         <tr><td><strong>Outubro 2026</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge cinza">Aguardando</span></td><td>—</td></tr>
@@ -666,8 +927,8 @@ const sb = createClient(
 // ══════════════════════════════════════════════
 // DADOS
 // ══════════════════════════════════════════════
-const CAT_SAIDA  = [{n:'Custo de Equipe',c:'#6366f1'},{n:'Imposto',c:'#ef4444'},{n:'Cursos e Mentorias',c:'#f59e0b'},{n:'Equipamento Audiovisual',c:'#8b5cf6'},{n:'Ferramentas Digitais',c:'#3b82f6'},{n:'Anúncios',c:'#10b981'}];
-const CAT_ENTRADA= [{n:'Mensalidade Presencial',c:'#10b981'},{n:'Pagamento de Consultoria',c:'#6366f1'},{n:'Outros',c:'#94a3b8'}];
+let CAT_SAIDA  = [];
+let CAT_ENTRADA= [];
 
 const DADOS = {
   '2026-04':{e:0,s:0,
@@ -1188,18 +1449,17 @@ async function confirmarImport(){
     });
     if(!error) ok++;
   }
-  // Registra histórico
-  const hoje=new Date();
-  const d=`${String(hoje.getDate()).padStart(2,'0')}/${String(hoje.getMonth()+1).padStart(2,'0')}/${hoje.getFullYear()}`;
+  // Registra histórico no Supabase
   const nomeArq=document.getElementById('file-input').files[0]?.name||'extrato.csv';
-  const tbody=document.getElementById('tbody-import');
-  if(tbody.querySelector('.empty')) tbody.innerHTML='';
-  const tr=document.createElement('tr');
-  tr.innerHTML=`<td>${d}</td><td>${nomeArq}</td><td>${plataformaAtual==='mercadopago'?'Mercado Pago':'Infinity Pay'}</td><td>${ok}</td><td><span class="badge verde">✓ Importado</span></td>`;
-  tbody.insertBefore(tr,tbody.firstChild);
+  await sb.from('historico_importacoes').insert({
+    nome_arquivo:nomeArq,
+    plataforma:plataformaAtual==='mercadopago'?'Mercado Pago':'Infinity Pay',
+    total_registros:ok, status:'sucesso'
+  });
   btn.disabled=false; btn.textContent='Salvar todos';
   cancelarImport();
   await carregarLancamentos();
+  await carregarHistoricoImportacoes();
   toast(`${ok} lançamentos importados com sucesso!`,'sucesso');
 }
 
@@ -1287,7 +1547,7 @@ function abrirModalFechamento(){
     <div class="fg"><label class="fl">Observações</label>
       <textarea id="nf-obs" class="fi" rows="3" placeholder="Observações sobre este fechamento..."></textarea></div>`,
     `<button class="btn bs" onclick="fecharModal()">Cancelar</button>
-     <button class="btn bp" onclick="fecharModal();toast('Fechamento criado!','sucesso')">Criar fechamento</button>`
+     <button class="btn bp" onclick="salvarFechamento()">Criar fechamento</button>`
   );
 }
 
@@ -1316,20 +1576,17 @@ function abrirModalNovaCategoria(){
   );
 }
 
-function salvarNovaCategoria(){
+async function salvarNovaCategoria(){
   const nome=document.getElementById('nc-nome').value.trim();
   if(!nome){toast('Informe o nome','erro');return;}
   const tipo=document.getElementById('nc-tipo').value;
   const cor=document.getElementById('nc-cor').value;
-  const tbody=document.getElementById(tipo==='entrada'?'tbody-cat-e':'tbody-cat-s');
-  const tr=document.createElement('tr');
-  tr.innerHTML=`<td><span class="cc" style="background:${cor};"></span></td><td>${nome}</td><td>0</td>
-    <td class="${tipo==='entrada'?'ve':'vs'}">R$ 0,00</td>
-    <td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('${nome}','${cor}','${tipo}')">Editar</button></td>`;
-  tbody.appendChild(tr);
-  fecharModal(); toast(`Categoria "${nome}" criada!`,'sucesso');
+    const {error}=await sb.from('categorias').insert({nome,tipo,cor});
+  if(error){toast('Erro ao salvar categoria','erro');return;}
+  fecharModal();
+  await carregarCategorias();
+  toast(`Categoria "${nome}" criada!`,'sucesso');
 }
-
 function editarCategoria(nome,cor,tipo){
   abrirModal('Editar Categoria',`
     <div class="fg"><label class="fl">Nome</label><input type="text" id="ec-nome" class="fi" value="${nome}"/></div>
@@ -1392,6 +1649,10 @@ window.addEventListener('DOMContentLoaded',()=>{
 // ══════════════════════════════════════════════
 function showApp(){
   document.getElementById('login-overlay').style.display='none';
+  carregarCategorias();
+  carregarFechamentos();
+  carregarPendentes();
+  carregarHistoricoImportacoes();
 }
 function showLogin(){
   document.getElementById('login-overlay').style.display='flex';
@@ -1421,6 +1682,148 @@ async function loginUser(){
 async function logoutUser(){
   await sb.auth.signOut();
   toast('Sessão encerrada. Até logo!','sucesso');
+}
+
+// ══════════════════════════════════════════════
+// CATEGORIAS — Supabase
+// ══════════════════════════════════════════════
+async function carregarCategorias(){
+  const {data,error}=await sb.from('categorias').select('*').order('nome');
+  if(error){toast('Erro ao carregar categorias','erro');return;}
+  CAT_ENTRADA=data.filter(c=>c.tipo==='entrada').map(c=>({n:c.nome,c:c.cor,id:c.id}));
+  CAT_SAIDA  =data.filter(c=>c.tipo==='saida'  ).map(c=>({n:c.nome,c:c.cor,id:c.id}));
+  renderizarCategorias();
+}
+function renderizarCategorias(){
+  const tbE=document.getElementById('tbody-cat-e');
+  const tbS=document.getElementById('tbody-cat-s');
+  if(!tbE||!tbS) return;
+  const row=(cat,tipo)=>{
+    const cnt=LANCS.filter(l=>l.cat===cat.n).length;
+    const tot=LANCS.filter(l=>l.cat===cat.n).reduce((a,b)=>a+b.valor,0);
+    return `<tr>
+      <td><span class="cc" style="background:${cat.c};"></span></td>
+      <td>${cat.n}</td><td>${cnt}</td>
+      <td class="${tipo==='entrada'?'ve':'vs'}">${fmt(tot)}</td>
+      <td>
+        <button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('${cat.n}','${cat.c}','${tipo}','${cat.id}')">Editar</button>
+        <button class="btn" style="padding:3px 8px;font-size:11px;color:#ef4444;border:1px solid #fca5a5;border-radius:6px;cursor:pointer;" onclick="excluirCategoria('${cat.id}','${cat.n}')">Excluir</button>
+      </td></tr>`;
+  };
+  tbE.innerHTML=CAT_ENTRADA.map(c=>row(c,'entrada')).join('')||'<tr><td colspan="5" class="empty">Nenhuma categoria de entrada</td></tr>';
+  tbS.innerHTML=CAT_SAIDA.map(c=>row(c,'saida')).join('')||'<tr><td colspan="5" class="empty">Nenhuma categoria de saída</td></tr>';
+}
+async function excluirCategoria(id,nome){
+  if(!confirm('Excluir categoria "'+nome+'"?')) return;
+  const {error}=await sb.from('categorias').delete().eq('id',id);
+  if(error){toast('Erro ao excluir categoria','erro');return;}
+  await carregarCategorias();
+  toast('Categoria excluída!','sucesso');
+}
+
+// ══════════════════════════════════════════════
+// FECHAMENTOS — Supabase
+// ══════════════════════════════════════════════
+async function carregarFechamentos(){
+  const tbody=document.getElementById('tbody-fech');
+  if(!tbody) return;
+  const {data,error}=await sb.from('fechamentos').select('*').order('mes',{ascending:false});
+  if(error){tbody.innerHTML='<tr><td colspan="7" class="empty">Erro ao carregar fechamentos</td></tr>';return;}
+  if(!data||!data.length){tbody.innerHTML='<tr><td colspan="7" class="empty">Nenhum fechamento registrado ainda</td></tr>';return;}
+  const MN={'01':'Janeiro','02':'Fevereiro','03':'Março','04':'Abril','05':'Maio','06':'Junho','07':'Julho','08':'Agosto','09':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro'};
+  tbody.innerHTML=data.map(f=>{
+    const [ano,m]=(f.mes||'').split('-');
+    const mesNome=`${MN[m]||m} ${ano}`;
+    const bCls=f.status==='fechado'?'verde':f.status==='revisao'?'amarelo':'cinza';
+    const bTxt=f.status==='fechado'?'Fechado':f.status==='revisao'?'Em revisão':'Aguardando';
+    const res=parseFloat(f.resultado)||0;
+    return `<tr>
+      <td><strong>${mesNome}</strong></td>
+      <td class="ve">${f.entradas?fmt(f.entradas):'—'}</td>
+      <td class="vs">${f.saidas?fmt(f.saidas):'—'}</td>
+      <td class="${res>=0?'ve':'vs'}">${res?fmt(res):'—'}</td>
+      <td>${f.margem?parseFloat(f.margem).toFixed(1)+'%':'—'}</td>
+      <td><span class="badge ${bCls}">${bTxt}</span></td>
+      <td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="excluirFechamento('${f.id}')">Excluir</button></td>
+    </tr>`;
+  }).join('');
+}
+async function salvarFechamento(){
+  const mes=document.getElementById('nf-mes').value;
+  const obs=document.getElementById('nf-obs')?document.getElementById('nf-obs').value:'';
+  const ent=LANCS.filter(l=>l.mes===mes&&l.tipo==='entrada').reduce((a,b)=>a+b.valor,0);
+  const sai=LANCS.filter(l=>l.mes===mes&&l.tipo==='saida'  ).reduce((a,b)=>a+b.valor,0);
+  const res=ent-sai;
+  const mar=ent>0?(res/ent*100):0;
+  const {error}=await sb.from('fechamentos').insert({
+    mes, entradas:ent, saidas:sai, resultado:res,
+    margem:parseFloat(mar.toFixed(2)), status:'aguardando', observacoes:obs
+  });
+  if(error){toast('Erro ao criar fechamento','erro');return;}
+  fecharModal();
+  await carregarFechamentos();
+  toast('Fechamento criado!','sucesso');
+}
+async function excluirFechamento(id){
+  if(!confirm('Excluir este fechamento?')) return;
+  const {error}=await sb.from('fechamentos').delete().eq('id',id);
+  if(error){toast('Erro ao excluir','erro');return;}
+  await carregarFechamentos();
+  toast('Fechamento excluído!','sucesso');
+}
+
+// ══════════════════════════════════════════════
+// PENDENTES — Supabase
+// ══════════════════════════════════════════════
+async function carregarPendentes(){
+  const tbody=document.getElementById('tbody-pend');
+  if(!tbody) return;
+  const {data,error}=await sb.from('pendentes').select('*').order('data',{ascending:false});
+  if(error){tbody.innerHTML='<tr><td colspan="6" class="empty">Erro ao carregar pendentes</td></tr>';return;}
+  const ativos=(data||[]).filter(p=>p.situacao!=='resolvido');
+  if(!ativos.length){tbody.innerHTML='<tr><td colspan="6" class="empty">Nenhum lançamento pendente 🎉</td></tr>';return;}
+  tbody.innerHTML=ativos.map(p=>{
+    const d=p.data.split('-').reverse().join('/');
+    const bCls=p.situacao==='aguardando_confirmacao'?'azul':'amarelo';
+    const bTxt=p.situacao==='aguardando_confirmacao'?'Aguardando confirmação':'Sem categoria';
+    const btnTxt=p.situacao==='aguardando_confirmacao'?'Confirmar':'Categorizar';
+    const btnCls=p.situacao==='aguardando_confirmacao'?'bs':'bp';
+    return `<tr id="pend-${p.id}">
+      <td>${d}</td><td>${p.descricao}</td>
+      <td class="${p.valor>=0?'ve':'vs'}">${p.valor>=0?'+ ':' - '}${fmt(Math.abs(p.valor))}</td>
+      <td><span class="badge cinza">${p.origem||'—'}</span></td>
+      <td><span class="badge ${bCls}">${bTxt}</span></td>
+      <td><button class="btn ${btnCls}" style="padding:4px 10px;font-size:12px;" onclick="resolverPendente('${p.id}')">${btnTxt}</button></td>
+    </tr>`;
+  }).join('');
+}
+async function resolverTodos(){
+  const {error}=await sb.from('pendentes').update({situacao:'resolvido'}).neq('situacao','resolvido');
+  if(error){toast('Erro ao resolver pendentes','erro');return;}
+  await carregarPendentes();
+  toast('Todos os pendentes resolvidos!','sucesso');
+}
+async function resolverPendente(id){
+  const {error}=await sb.from('pendentes').update({situacao:'resolvido'}).eq('id',id);
+  if(error){toast('Erro ao resolver pendente','erro');return;}
+  await carregarPendentes();
+  toast('Pendente resolvido!','sucesso');
+}
+
+// ══════════════════════════════════════════════
+// HISTÓRICO DE IMPORTAÇÕES — Supabase
+// ══════════════════════════════════════════════
+async function carregarHistoricoImportacoes(){
+  const tbody=document.getElementById('tbody-import');
+  if(!tbody) return;
+  const {data,error}=await sb.from('historico_importacoes').select('*').order('data_importacao',{ascending:false}).limit(20);
+  if(error) return;
+  if(!data||!data.length){tbody.innerHTML='<tr><td colspan="5" class="empty">Nenhuma importação ainda</td></tr>';return;}
+  tbody.innerHTML=data.map(h=>{
+    const d=new Date(h.data_importacao);
+    const dt=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+    return `<tr><td>${dt}</td><td>${h.nome_arquivo||'—'}</td><td>${h.plataforma||'—'}</td><td>${h.total_registros}</td><td><span class="badge verde">✓ Importado</span></td></tr>`;
+  }).join('');
 }
 </script>
 </body>
