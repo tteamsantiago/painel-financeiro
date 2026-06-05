@@ -23,8 +23,14 @@ async function initAuth(){
   if(session){showApp();await carregarLancamentos();}
   else{showLogin();}
   sb.auth.onAuthStateChange(async(event,session)=>{
-    if(session){showApp();await carregarLancamentos();}
-    else{showLogin();}
+    if(event==='PASSWORD_RECOVERY'){
+      showResetSenha();
+    } else if(session){
+      showApp();
+      await carregarLancamentos();
+    } else {
+      showLogin();
+    }
   });
 }
 async function loginUser(){
@@ -233,6 +239,45 @@ async function enviarRecuperacao(){
   } else {
     msg.style.color='#34d399';
     msg.textContent='✓ Link enviado! Verifique sua caixa de entrada.';
+  }
+}
+
+// ── Reset de senha (tela nova senha) ──
+function showResetSenha(){
+  document.getElementById('login-overlay').style.display='flex';
+  document.getElementById('login-view').style.display='none';
+  document.getElementById('recuperacao-view').style.display='none';
+  document.getElementById('nova-senha-view').style.display='block';
+}
+function toggleNovaSenha(){
+  const inp=document.getElementById('nova-senha');
+  const eye=document.getElementById('ns-eye');
+  const off=document.getElementById('ns-eye-off');
+  if(inp.type==='password'){inp.type='text';eye.style.display='none';off.style.display='';}
+  else{inp.type='password';eye.style.display='';off.style.display='none';}
+}
+async function confirmarNovaSenha(){
+  const senha=document.getElementById('nova-senha').value;
+  const conf=document.getElementById('confirmar-nova-senha').value;
+  const btn=document.getElementById('nova-senha-btn');
+  const msg=document.getElementById('nova-senha-msg');
+  msg.textContent='';
+  if(senha.length<6){msg.style.color='#f87171';msg.textContent='A senha deve ter pelo menos 6 caracteres.';return;}
+  if(senha!==conf){msg.style.color='#f87171';msg.textContent='As senhas não coincidem.';return;}
+  btn.disabled=true; btn.textContent='Salvando...';
+  const {error}=await sb.auth.updateUser({password:senha});
+  if(error){
+    msg.style.color='#f87171';
+    msg.textContent='Erro ao atualizar senha. Tente novamente.';
+    btn.disabled=false; btn.textContent='Salvar nova senha';
+  } else {
+    msg.style.color='#34d399';
+    msg.textContent='✓ Senha atualizada! Abrindo o painel...';
+    setTimeout(async()=>{
+      document.getElementById('nova-senha-view').style.display='none';
+      showApp();
+      await carregarLancamentos();
+    },1500);
   }
 }
 </script>
@@ -255,8 +300,14 @@ async function initAuth(){
   if(session){showApp();await carregarLancamentos();}
   else{showLogin();}
   sb.auth.onAuthStateChange(async(event,session)=>{
-    if(session){showApp();await carregarLancamentos();}
-    else{showLogin();}
+    if(event==='PASSWORD_RECOVERY'){
+      showResetSenha();
+    } else if(session){
+      showApp();
+      await carregarLancamentos();
+    } else {
+      showLogin();
+    }
   });
 }
 async function loginUser(){
@@ -465,6 +516,45 @@ async function enviarRecuperacao(){
   } else {
     msg.style.color='#34d399';
     msg.textContent='✓ Link enviado! Verifique sua caixa de entrada.';
+  }
+}
+
+// ── Reset de senha (tela nova senha) ──
+function showResetSenha(){
+  document.getElementById('login-overlay').style.display='flex';
+  document.getElementById('login-view').style.display='none';
+  document.getElementById('recuperacao-view').style.display='none';
+  document.getElementById('nova-senha-view').style.display='block';
+}
+function toggleNovaSenha(){
+  const inp=document.getElementById('nova-senha');
+  const eye=document.getElementById('ns-eye');
+  const off=document.getElementById('ns-eye-off');
+  if(inp.type==='password'){inp.type='text';eye.style.display='none';off.style.display='';}
+  else{inp.type='password';eye.style.display='';off.style.display='none';}
+}
+async function confirmarNovaSenha(){
+  const senha=document.getElementById('nova-senha').value;
+  const conf=document.getElementById('confirmar-nova-senha').value;
+  const btn=document.getElementById('nova-senha-btn');
+  const msg=document.getElementById('nova-senha-msg');
+  msg.textContent='';
+  if(senha.length<6){msg.style.color='#f87171';msg.textContent='A senha deve ter pelo menos 6 caracteres.';return;}
+  if(senha!==conf){msg.style.color='#f87171';msg.textContent='As senhas não coincidem.';return;}
+  btn.disabled=true; btn.textContent='Salvando...';
+  const {error}=await sb.auth.updateUser({password:senha});
+  if(error){
+    msg.style.color='#f87171';
+    msg.textContent='Erro ao atualizar senha. Tente novamente.';
+    btn.disabled=false; btn.textContent='Salvar nova senha';
+  } else {
+    msg.style.color='#34d399';
+    msg.textContent='✓ Senha atualizada! Abrindo o painel...';
+    setTimeout(async()=>{
+      document.getElementById('nova-senha-view').style.display='none';
+      showApp();
+      await carregarLancamentos();
+    },1500);
   }
 }
 </script>
@@ -675,6 +765,33 @@ tbody tr:hover td{background:#f9fafb;}
         <a href="#" onclick="voltarLogin();return false;" style="color:#9ca3af;font-size:12px;text-decoration:none;">← Voltar ao login</a>
       </div>
     </div>
+
+    <!-- VIEW: NOVA SENHA (recuperação) -->
+    <div id="nova-senha-view" style="display:none;">
+      <div class="login-title" style="margin-bottom:6px;">Criar nova senha</div>
+      <div class="login-sub" style="margin-bottom:22px;">Escolha uma senha segura para sua conta.</div>
+      <div class="login-field">
+        <label>Nova senha</label>
+        <div style="position:relative;">
+          <input type="password" id="nova-senha" placeholder="••••••••"
+            style="padding-right:42px;width:100%;"
+            onkeydown="if(event.key==='Enter')confirmarNovaSenha()" />
+          <button type="button" onclick="toggleNovaSenha()" title="Mostrar/ocultar"
+            style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#6b7280;padding:2px;line-height:1;font-size:17px;">
+            <svg id="ns-eye" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg id="ns-eye-off" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="login-field">
+        <label>Confirmar nova senha</label>
+        <input type="password" id="confirmar-nova-senha" placeholder="••••••••"
+          onkeydown="if(event.key==='Enter')confirmarNovaSenha()" />
+      </div>
+      <button class="login-btn" id="nova-senha-btn" onclick="confirmarNovaSenha()">Salvar nova senha</button>
+      <div id="nova-senha-msg" style="font-size:12px;text-align:center;margin-top:12px;min-height:18px;"></div>
+    </div>
+
   </div>
 </div>
 
@@ -1787,8 +1904,14 @@ async function initAuth(){
   if(session){showApp();await carregarLancamentos();}
   else{showLogin();}
   sb.auth.onAuthStateChange(async(event,session)=>{
-    if(session){showApp();await carregarLancamentos();}
-    else{showLogin();}
+    if(event==='PASSWORD_RECOVERY'){
+      showResetSenha();
+    } else if(session){
+      showApp();
+      await carregarLancamentos();
+    } else {
+      showLogin();
+    }
   });
 }
 async function loginUser(){
@@ -1997,6 +2120,45 @@ async function enviarRecuperacao(){
   } else {
     msg.style.color='#34d399';
     msg.textContent='✓ Link enviado! Verifique sua caixa de entrada.';
+  }
+}
+
+// ── Reset de senha (tela nova senha) ──
+function showResetSenha(){
+  document.getElementById('login-overlay').style.display='flex';
+  document.getElementById('login-view').style.display='none';
+  document.getElementById('recuperacao-view').style.display='none';
+  document.getElementById('nova-senha-view').style.display='block';
+}
+function toggleNovaSenha(){
+  const inp=document.getElementById('nova-senha');
+  const eye=document.getElementById('ns-eye');
+  const off=document.getElementById('ns-eye-off');
+  if(inp.type==='password'){inp.type='text';eye.style.display='none';off.style.display='';}
+  else{inp.type='password';eye.style.display='';off.style.display='none';}
+}
+async function confirmarNovaSenha(){
+  const senha=document.getElementById('nova-senha').value;
+  const conf=document.getElementById('confirmar-nova-senha').value;
+  const btn=document.getElementById('nova-senha-btn');
+  const msg=document.getElementById('nova-senha-msg');
+  msg.textContent='';
+  if(senha.length<6){msg.style.color='#f87171';msg.textContent='A senha deve ter pelo menos 6 caracteres.';return;}
+  if(senha!==conf){msg.style.color='#f87171';msg.textContent='As senhas não coincidem.';return;}
+  btn.disabled=true; btn.textContent='Salvando...';
+  const {error}=await sb.auth.updateUser({password:senha});
+  if(error){
+    msg.style.color='#f87171';
+    msg.textContent='Erro ao atualizar senha. Tente novamente.';
+    btn.disabled=false; btn.textContent='Salvar nova senha';
+  } else {
+    msg.style.color='#34d399';
+    msg.textContent='✓ Senha atualizada! Abrindo o painel...';
+    setTimeout(async()=>{
+      document.getElementById('nova-senha-view').style.display='none';
+      showApp();
+      await carregarLancamentos();
+    },1500);
   }
 }
 </script>
