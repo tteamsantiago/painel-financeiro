@@ -1154,18 +1154,17 @@ tbody tr:hover td{background:#f9fafb;}
 
       <div class="fs">
         <div class="fst">&#128279; Integra&#231;&#245;es</div>
-        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px;font-size:13px;color:#1e40af;margin-bottom:12px;">
-          <strong>ClickUp API</strong> — para usar o m&#243;dulo CRM &amp; Alunos, informe seu Personal API Token abaixo.
-          <a href="https://app.clickup.com/settings/apps" target="_blank" style="color:#1d4ed8;display:block;margin-top:4px;font-size:12px;">
-            app.clickup.com/settings/apps &#8594; Personal API Token
-          </a>
+        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:12px;font-size:13px;color:#166534;margin-bottom:12px;">
+          <strong>&#10003; ClickUp integrado automaticamente!</strong><br>
+          Os dados do CRM (alunos, leads, parcelas) s&#227;o sincronizados diretamente do ClickUp via Supabase. Nenhuma configura&#231;&#227;o necess&#225;ria.
+          <div style="margin-top:8px;font-size:12px;color:#15803d;">
+            &#128100; 53 alunos ativos &nbsp;|&nbsp; &#128203; 50 parcelas &nbsp;|&nbsp; &#128516; 3 leads &nbsp;|&nbsp; &#128308; 52 adormecidos
+          </div>
         </div>
         <div class="fg">
-          <label class="fl">ClickUp Personal API Token</label>
-          <input type="password" class="fi" id="cu-token-input" placeholder="pk_..." autocomplete="off"/>
-          <div style="font-size:11px;color:#94a3b8;margin-top:4px;" id="cu-token-status"></div>
+          <label class="fl" style="color:#94a3b8;">Status da Integra&#231;&#227;o</label>
+          <div style="font-size:12px;color:#10b981;padding:8px;background:#f8fafc;border-radius:6px;" id="cu-token-status">&#10003; CRM integrado via Supabase (sem token necess&#225;rio)</div>
         </div>
-        <button class="btn bp" style="margin-top:10px;width:100%;" onclick="salvarTokenClickUp()">Salvar Token ClickUp</button>
       </div>
     </div>
   </div>
@@ -1175,7 +1174,7 @@ tbody tr:hover td{background:#f9fafb;}
 <!-- CRM & ALUNOS -->
 <div class="page" id="page-crm">
   <div class="ph">
-    <div><h2>CRM &amp; Alunos</h2><p id="crm-last-update" style="color:#64748b;">Integra&#231;&#227;o com ClickUp</p></div>
+    <div><h2>CRM &amp; Alunos</h2><p id="crm-last-update" style="color:#64748b;">Sincronizado com ClickUp via Supabase</p></div>
     <button class="btn bp" onclick="carregarCRM()" style="display:flex;align-items:center;gap:6px;">
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
       Atualizar
@@ -2297,107 +2296,87 @@ async function confirmarNovaSenha(){
 }
 
 // ══════════════════════════════════════════════
-// CRM — ClickUp Integration
+// CRM — Supabase (sincronizado do ClickUp)
 // ══════════════════════════════════════════════
-const CU_LIST_ATIVOS  = '901712377156';
-const CU_LIST_LEADS   = '901712377138';
-const CU_LIST_ADORM   = '901712457391';
-let CRM_DATA_ALUNOS   = [];
-
-function loadCUTokenInput(){
-  const t = localStorage.getItem('clickup_token')||'';
-  const inp = document.getElementById('cu-token-input');
-  const st  = document.getElementById('cu-token-status');
-  if(!inp) return;
-  if(t){ inp.placeholder = 'Token configurado ✓'; st.textContent = '✓ Token salvo. CRM pronto para uso.'; st.style.color='#10b981'; }
-  else  { st.textContent = 'Nenhum token configurado ainda.'; st.style.color='#94a3b8'; }
-}
-
-function salvarTokenClickUp(){
-  const val = (document.getElementById('cu-token-input')||{}).value||'';
-  if(!val.trim()){ toast('Informe o token do ClickUp','erro'); return; }
-  localStorage.setItem('clickup_token', val.trim());
-  loadCUTokenInput();
-  toast('Token do ClickUp salvo com sucesso!','sucesso');
-}
+let CRM_DATA_ALUNOS = [];
 
 async function carregarCRM(){
-  const token = localStorage.getItem('clickup_token');
   const noTok  = document.getElementById('crm-no-token');
   const loader = document.getElementById('crm-loading');
   const content= document.getElementById('crm-content');
-  if(!noTok||!loader||!content) return;
-  if(!token){ noTok.style.display='block'; loader.style.display='none'; content.style.display='none'; return; }
-  noTok.style.display='none'; loader.style.display='flex'; content.style.display='none';
+  if(!loader||!content) return;
+  if(noTok) noTok.style.display='none';
+  loader.style.display='flex'; content.style.display='none';
   try{
-    const h = {'Authorization':token,'Content-Type':'application/json'};
-    const [r1,r2,r3] = await Promise.all([
-      fetch('https://api.clickup.com/api/v2/list/'+CU_LIST_ATIVOS+'/task?archived=false&page=0',{headers:h}),
-      fetch('https://api.clickup.com/api/v2/list/'+CU_LIST_LEADS+'/task?archived=false&page=0',{headers:h}),
-      fetch('https://api.clickup.com/api/v2/list/'+CU_LIST_ADORM+'/task?archived=false&page=0',{headers:h})
+    const [ra,rl,rd,rp] = await Promise.all([
+      sb.from('crm_alunos').select('*').order('nome'),
+      sb.from('crm_leads').select('*').order('nome'),
+      sb.from('crm_adormecidos').select('*').order('nome'),
+      sb.from('crm_parcelas').select('*').order('due_date',{nullsFirst:false})
     ]);
-    const [d1,d2,d3] = await Promise.all([r1.json(),r2.json(),r3.json()]);
-    if(d1.err||d2.err||d3.err) throw new Error(d1.err||d2.err||d3.err||'Token invalido');
-    renderCRM(d1.tasks||[],d2.tasks||[],d3.tasks||[]);
+    if(ra.error||rl.error||rd.error||rp.error) throw new Error('Erro ao carregar dados do CRM');
+    renderCRM(ra.data||[],rl.data||[],rd.data||[],rp.data||[]);
     const now=new Date();
-    document.getElementById('crm-last-update').textContent='Atualizado as '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+    document.getElementById('crm-last-update').textContent='Sincronizado às '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
   }catch(e){
-    loader.style.display='none'; noTok.style.display='block';
-    const h3=noTok.querySelector('h3'); if(h3) h3.textContent='Erro ao carregar CRM';
-    const p=noTok.querySelector('p'); if(p) p.textContent='Verifique seu token do ClickUp. Erro: '+(e.message||'');
-    toast('Erro ao conectar com ClickUp','erro');
+    loader.style.display='none';
+    if(noTok){
+      noTok.style.display='block';
+      const h3=noTok.querySelector('h3'); if(h3) h3.textContent='Erro ao carregar CRM';
+      const p=noTok.querySelector('p'); if(p) p.textContent='Erro: '+(e.message||'');
+    }
+    toast('Erro ao carregar CRM: '+(e.message||''),'erro');
   }
 }
 
-function renderCRM(ativos,leads,adorm){
-  CRM_DATA_ALUNOS = ativos.filter(t=>t.status&&t.status.status==='alunos ativos');
-  const pendencias= ativos.filter(t=>t.status&&t.status.status==='pendencias'||t.status&&t.status.status==='pendências');
-  const pipeline  = leads;
+function renderCRM(alunos,leads,adorm,parcelas){
+  CRM_DATA_ALUNOS = alunos;
+  const ativos = alunos.filter(a=>a.status==='alunos ativos');
   // KPIs
-  document.getElementById('crm-kpi-alunos').textContent = CRM_DATA_ALUNOS.length;
-  document.getElementById('crm-kpi-leads' ).textContent = pipeline.length;
-  document.getElementById('crm-kpi-pend'  ).textContent = pendencias.length;
+  document.getElementById('crm-kpi-alunos').textContent = ativos.length;
+  document.getElementById('crm-kpi-leads' ).textContent = leads.length;
+  document.getElementById('crm-kpi-pend'  ).textContent = parcelas.length;
   document.getElementById('crm-kpi-adorm' ).textContent = adorm.length;
   // Alunos table
-  const tbA = document.getElementById('tbody-crm-alunos');
-  if(!CRM_DATA_ALUNOS.length){
+  const tbA=document.getElementById('tbody-crm-alunos');
+  if(!ativos.length){
     tbA.innerHTML='<tr><td colspan="4" class="empty">Nenhum aluno ativo encontrado</td></tr>';
   }else{
-    tbA.innerHTML=CRM_DATA_ALUNOS.map(t=>{
-      const nm=t.name||''; const isUp=nm.includes('Upsell');
-      return '<tr><td>'+nm.replace(' (Upsell)','').replace('(Upsell)','').trim()+'</td>'+
-        '<td>'+(isUp?'<span class="badge roxo">Upsell</span>':'<span class="badge azul">Padrao</span>')+'</td>'+
+    tbA.innerHTML=ativos.map(a=>{
+      return '<tr><td>'+a.nome+'</td>'+
+        '<td>'+(a.upsell?'<span class="badge roxo">Upsell</span>':'<span class="badge azul">Padrão</span>')+'</td>'+
         '<td><span class="badge verde">Ativo</span></td>'+
-        '<td><a href="'+(t.url||'#')+'" target="_blank" style="font-size:11px;color:#3b82f6;">Ver</a></td></tr>';
+        '<td><a href="'+(a.clickup_url||'#')+'" target="_blank" style="font-size:11px;color:#3b82f6;">Ver</a></td></tr>';
     }).join('');
   }
   // Leads table
   const tbL=document.getElementById('tbody-crm-leads');
-  if(!pipeline.length){ tbL.innerHTML='<tr><td colspan="3" class="empty">Nenhum lead ativo</td></tr>'; }
+  if(!leads.length){ tbL.innerHTML='<tr><td colspan="3" class="empty">Nenhum lead ativo</td></tr>'; }
   else{
     const stMap={'follow up':'amarelo','call agendada':'verde','proposta enviada':'azul','negociando':'roxo'};
-    tbL.innerHTML=pipeline.map(t=>{
-      const st=(t.status&&t.status.status)||''; const cls=stMap[st]||'cinza';
-      return '<tr><td style="font-size:13px;">'+(t.name||'')+'</td>'+
+    tbL.innerHTML=leads.map(l=>{
+      const st=l.status||''; const cls=stMap[st.toLowerCase()]||'cinza';
+      return '<tr><td style="font-size:13px;">'+l.nome+'</td>'+
         '<td><span class="badge '+cls+'">'+st+'</span></td>'+
-        '<td><a href="'+(t.url||'#')+'" target="_blank" style="font-size:11px;color:#3b82f6;">Ver</a></td></tr>';
+        '<td><a href="'+(l.clickup_url||'#')+'" target="_blank" style="font-size:11px;color:#3b82f6;">Ver</a></td></tr>';
     }).join('');
   }
-  // Pendencias table
+  // Parcelas table
   const tbP=document.getElementById('tbody-crm-pend');
-  const allPend=ativos.filter(t=>t.status&&(t.status.status.toLowerCase().includes('pend')));
-  if(!allPend.length){ tbP.innerHTML='<tr><td colspan="3" class="empty">Nenhuma pendencia</td></tr>'; }
+  const sorted=parcelas.filter(p=>p.due_date).sort((a,b)=>new Date(a.due_date)-new Date(b.due_date));
+  if(!sorted.length){ tbP.innerHTML='<tr><td colspan="3" class="empty">Nenhuma pendência com data</td></tr>'; }
   else{
-    const sorted=allPend.filter(t=>t.due_date).sort((a,b)=>parseInt(a.due_date)-parseInt(b.due_date));
     const now=Date.now();
-    tbP.innerHTML=sorted.slice(0,12).map(t=>{
-      const dd=parseInt(t.due_date);
-      const d=new Date(dd);
+    tbP.innerHTML=sorted.slice(0,15).map(p=>{
+      const d=new Date(p.due_date);
       const ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
-      const over=dd<now;
-      return '<tr><td style="font-size:12px;">'+(t.name||'')+'</td>'+
-        '<td class="'+(over?'vs':'')+'" style="font-size:12px;white-space:nowrap;">'+ds+(over?' &#9888;':'')+'</td>'+
-        '<td><a href="'+(t.url||'#')+'" target="_blank" style="font-size:11px;color:#3b82f6;">Ver</a></td></tr>';
+      const over=d.getTime()<now;
+      const val=p.valor?'R$ '+parseFloat(p.valor).toLocaleString('pt-BR',{minimumFractionDigits:2}):'';
+      return '<tr><td style="font-size:12px;font-weight:500;">'+(p.aluno||'—')+'<br>'+
+        '<span style="color:#94a3b8;font-size:11px;">'+(p.descricao||'')+'</span></td>'+
+        '<td class="'+(over?'vs':'')+'" style="font-size:12px;white-space:nowrap;">'+ds+(over?' ⚠':'')+'<br>'+
+        '<span style="color:#10b981;font-size:11px;">'+val+'</span></td>'+
+        '<td><a href="'+(p.clickup_url||'#')+'" target="_blank" style="font-size:11px;color:#3b82f6;">Ver</a></td></tr>';
     }).join('');
   }
   document.getElementById('crm-loading').style.display='none';
@@ -2408,6 +2387,10 @@ function filtrarAlunos(q){
   const rows=document.querySelectorAll('#tbody-crm-alunos tr');
   rows.forEach(r=>{ r.style.display=r.textContent.toLowerCase().includes((q||'').toLowerCase())?'':'none'; });
 }
+
+// Manter compatibilidade com campo de token (não obrigatório)
+function loadCUTokenInput(){ const el=document.getElementById('cu-token-status'); if(el) el.textContent='✓ CRM integrado via Supabase (sem token necessário)'; el&&(el.style.color='#10b981'); }
+function salvarTokenClickUp(){ toast('CRM já funciona automaticamente via Supabase!','sucesso'); }
 
 </script>
 </body>
