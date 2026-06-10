@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Painel Financeiro Team Santiago</title>
+<title>Painel Team Santiago</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js">
 // ══════════════════════════════════════════════
 // AUTH
@@ -639,6 +639,17 @@ tbody tr:hover td{background:#f9fafb;}
 .ve{color:#059669;font-weight:700;} .vs{color:#dc2626;font-weight:700;}
 
 /* ── Badges ── */
+@keyframes spin{to{transform:rotate(360deg);}}
+.notion-card{cursor:pointer;transition:transform .15s,box-shadow .15s;display:flex;flex-direction:column;gap:6px;padding:20px!important;}
+.notion-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.12);}
+.nc-icon{font-size:26px;margin-bottom:4px;}
+.nc-title{font-weight:600;font-size:14px;color:#1e293b;}
+.nc-desc{font-size:12px;color:#64748b;line-height:1.5;}
+.nc-section-label{font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #e2e8f0;}
+.notion-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;}
+@media(max-width:900px){.notion-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.notion-grid{grid-template-columns:1fr;}}
+.crm-spin{animation:spin 1s linear infinite;}
 .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:500;}
 .badge.entrada{background:#d1fae5;color:#065f46;}
 .badge.saida{background:#fee2e2;color:#991b1b;}
@@ -823,6 +834,12 @@ tbody tr:hover td{background:#f9fafb;}
     </div>
     <div class="nl" onclick="irPara('configuracoes',this)">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configurações
+    </div>
+    <div class="nl" onclick="irPara('crm',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>CRM & Alunos
+    </div>
+    <div class="nl" onclick="irPara('notion',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="3" y1="9" x2="9" y2="9"/><line x1="3" y1="15" x2="9" y2="15"/></svg>Notion Hub
     </div>
   </nav>
   <div class="sb-footer">
@@ -1134,11 +1151,126 @@ tbody tr:hover td{background:#f9fafb;}
           </tbody>
         </table></div>
       </div>
+
+      <div class="fs">
+        <div class="fst">&#128279; Integra&#231;&#245;es</div>
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px;font-size:13px;color:#1e40af;margin-bottom:12px;">
+          <strong>ClickUp API</strong> — para usar o m&#243;dulo CRM &amp; Alunos, informe seu Personal API Token abaixo.
+          <a href="https://app.clickup.com/settings/apps" target="_blank" style="color:#1d4ed8;display:block;margin-top:4px;font-size:12px;">
+            app.clickup.com/settings/apps &#8594; Personal API Token
+          </a>
+        </div>
+        <div class="fg">
+          <label class="fl">ClickUp Personal API Token</label>
+          <input type="password" class="fi" id="cu-token-input" placeholder="pk_..." autocomplete="off"/>
+          <div style="font-size:11px;color:#94a3b8;margin-top:4px;" id="cu-token-status"></div>
+        </div>
+        <button class="btn bp" style="margin-top:10px;width:100%;" onclick="salvarTokenClickUp()">Salvar Token ClickUp</button>
+      </div>
     </div>
   </div>
   <div class="demo-footer">⚠ Dados fictícios — apenas para demonstração visual</div>
 </div>
 
+<!-- CRM & ALUNOS -->
+<div class="page" id="page-crm">
+  <div class="ph">
+    <div><h2>CRM &amp; Alunos</h2><p id="crm-last-update" style="color:#64748b;">Integra&#231;&#227;o com ClickUp</p></div>
+    <button class="btn bp" onclick="carregarCRM()" style="display:flex;align-items:center;gap:6px;">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+      Atualizar
+    </button>
+  </div>
+  <div id="crm-no-token" style="display:none;">
+    <div class="card" style="text-align:center;padding:48px 32px;max-width:480px;margin:40px auto;">
+      <div style="font-size:48px;margin-bottom:16px;">&#128279;</div>
+      <h3 style="margin:0 0 8px;color:#1e293b;">Configure o ClickUp</h3>
+      <p style="color:#64748b;font-size:14px;margin-bottom:24px;line-height:1.6;">Adicione seu Personal API Token do ClickUp nas <strong>Configura&#231;&#245;es</strong> para ver alunos e leads em tempo real.</p>
+      <button class="btn bp" onclick="document.querySelectorAll('.nl')[6].click()">Ir para Configura&#231;&#245;es</button>
+      <p style="margin-top:16px;font-size:12px;color:#94a3b8;">ClickUp &#8594; Perfil &#8594; Apps &#8594; Personal API Token</p>
+    </div>
+  </div>
+  <div id="crm-loading" style="display:flex;align-items:center;justify-content:center;height:200px;gap:10px;color:#64748b;font-size:14px;">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="crm-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+    Carregando dados do ClickUp...
+  </div>
+  <div id="crm-content" style="display:none;">
+    <div class="kpi-grid">
+      <div class="kpi verde"><div class="kl">Alunos Ativos</div><div class="kv" id="crm-kpi-alunos">--</div></div>
+      <div class="kpi azul"><div class="kl">Leads em Pipeline</div><div class="kv" id="crm-kpi-leads">--</div></div>
+      <div class="kpi" style="border-color:#f59e0b;background:#fffbeb;"><div class="kl">Pend&#234;ncias</div><div class="kv" id="crm-kpi-pend" style="color:#92400e;">--</div></div>
+      <div class="kpi" style="border-color:#94a3b8;background:#f8fafc;"><div class="kl">Leads Adormecidos</div><div class="kv" id="crm-kpi-adorm" style="color:#475569;">--</div></div>
+    </div>
+    <div class="card mb16">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+        <h3 style="margin:0;">&#128170; Alunos Ativos</h3>
+        <input type="text" id="crm-search" placeholder="Buscar aluno..." class="fi" style="width:200px;padding:6px 12px;font-size:13px;" oninput="filtrarAlunos(this.value)"/>
+      </div>
+      <div class="tw"><table>
+        <thead><tr><th>Nome</th><th>Plano</th><th>Status</th><th></th></tr></thead>
+        <tbody id="tbody-crm-alunos"><tr><td colspan="4" class="empty">Carregando...</td></tr></tbody>
+      </table></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+      <div class="card">
+        <h3 style="margin-bottom:14px;">&#128640; Pipeline de Vendas</h3>
+        <div class="tw"><table>
+          <thead><tr><th>Lead</th><th>Status</th><th></th></tr></thead>
+          <tbody id="tbody-crm-leads"><tr><td colspan="3" class="empty">Carregando...</td></tr></tbody>
+        </table></div>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:14px;">&#9201; Pr&#243;ximas Parcelas</h3>
+        <div class="tw"><table>
+          <thead><tr><th>Descri&#231;&#227;o</th><th>Vencimento</th><th></th></tr></thead>
+          <tbody id="tbody-crm-pend"><tr><td colspan="3" class="empty">Carregando...</td></tr></tbody>
+        </table></div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- NOTION HUB -->
+<div class="page" id="page-notion">
+  <div class="ph">
+    <div><h2>Notion Hub</h2><p>Acesso r&#225;pido ao workspace Team Santiago</p></div>
+    <a href="https://app.notion.com/p/26e3324523a9817e92cefffab428e990" target="_blank" class="btn bp" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      Abrir no Notion
+    </a>
+  </div>
+  <div style="margin-bottom:28px;">
+    <div class="nc-section-label">&#128176; Financeiro</div>
+    <div class="notion-grid">
+      <div class="card notion-card" onclick="window.open('https://app.notion.com/p/2443324523a9807b9d3ceb5fce45e5e7','_blank')"><div class="nc-icon">&#128202;</div><div class="nc-title">Gest&#227;o Financeira</div><div class="nc-desc">Controle completo de faturamento da consultoria</div></div>
+      <div class="card notion-card" onclick="window.open('https://app.notion.com/p/2a93324523a98056a846e5734a1a71d0','_blank')"><div class="nc-icon">&#128181;</div><div class="nc-title">Faturamento</div><div class="nc-desc">Registro mensal de faturamento Team Santiago</div></div>
+      <div class="card notion-card" onclick="window.open('https://app.notion.com/p/2e13324523a98030ade7dd4ea5a87624','_blank')"><div class="nc-icon">&#128200;</div><div class="nc-title">Controle Financeiro TS</div><div class="nc-desc">Banco de dados de controle financeiro</div></div>
+    </div>
+  </div>
+  <div style="margin-bottom:28px;">
+    <div class="nc-section-label">&#128101; Alunos &amp; Operacional</div>
+    <div class="notion-grid">
+      <div class="card notion-card" onclick="window.open('https://app.notion.com/p/35f3324523a98080af2ee75e10155911','_blank')"><div class="nc-icon">&#128170;</div><div class="nc-title">Alunos Team Santiago</div><div class="nc-desc">Base de dados de todos os alunos ativos</div></div>
+      <div class="card notion-card" onclick="window.open('https://app.notion.com/p/35f3324523a9803e88b4f789b5ce5698','_blank')"><div class="nc-icon">&#9989;</div><div class="nc-title">Checklist Di&#225;rio/Semanal</div><div class="nc-desc">Gest&#227;o di&#225;ria e semanal da consultoria</div></div>
+      <div class="card notion-card" onclick="window.open('https://app.notion.com/p/26e3324523a9810f9342ddd7cc899009','_blank')"><div class="nc-icon">&#128197;</div><div class="nc-title">Atividades Di&#225;rias</div><div class="nc-desc">Banco de tarefas e atividades di&#225;rias</div></div>
+    </div>
+  </div>
+  <div style="margin-bottom:28px;">
+    <div class="nc-section-label">&#128640; Comercial &amp; Marketing</div>
+    <div class="notion-grid">
+      <div class="card notion-card" onclick="window.open('https://app.notion.com/p/2a63324523a9800ca7eadf99ce247149','_blank')"><div class="nc-icon">&#128188;</div><div class="nc-title">Comercial</div><div class="nc-desc">Processos e estrat&#233;gias de vendas</div></div>
+      <div class="card notion-card" onclick="window.open('https://app.notion.com/p/b983324523a9824ba17701c8565021bc','_blank')"><div class="nc-icon">&#128222;</div><div class="nc-title">Roteiro de Call de Venda</div><div class="nc-desc">Script para calls de fechamento</div></div>
+      <div class="card notion-card" onclick="window.open('https://app.notion.com/p/26e3324523a981b49442f90d572fbdcc','_blank')"><div class="nc-icon">&#128227;</div><div class="nc-title">Marketing</div><div class="nc-desc">Estrat&#233;gias e campanhas de marketing</div></div>
+    </div>
+  </div>
+  <div>
+    <div class="nc-section-label">&#129309; Equipe</div>
+    <div class="notion-grid">
+      <div class="card notion-card" onclick="window.open('https://app.notion.com/p/3633324523a980e89351e61d70adfb1e','_blank')"><div class="nc-icon">&#128100;</div><div class="nc-title">Colaboradores</div><div class="nc-desc">Gest&#227;o da equipe Team Santiago</div></div>
+      <div class="card notion-card" onclick="window.open('https://app.notion.com/p/35f3324523a980c8bd66c4aaabcdebf3','_blank')"><div class="nc-icon">&#128421;</div><div class="nc-title">Painel da N&#250;bia</div><div class="nc-desc">&#193;rea de trabalho colaboradora</div></div>
+      <div class="card notion-card" onclick="window.open('https://app.notion.com/p/2c53324523a980eab8a1c6de40844af7','_blank')"><div class="nc-icon">&#11088;</div><div class="nc-title">Influencers</div><div class="nc-desc">Gest&#227;o de parcerias com influenciadores</div></div>
+    </div>
+  </div>
+</div>
 </main>
 
 <!-- ═══════ MODAL ═══════ -->
@@ -1266,6 +1398,7 @@ function irPara(p,el){
   document.getElementById('page-'+p).classList.add('active');
   el.classList.add('active');
   if(p==='dashboard'&&!chartBarras)initCharts();
+  if(p==='crm')carregarCRM();
 }
 
 // ══════════════════════════════════════════════
@@ -1884,6 +2017,7 @@ async function carregarLancamentos(){
 window.addEventListener('DOMContentLoaded',()=>{
   initCharts();
   initAuth();
+  loadCUTokenInput();
 });
 
 // ══════════════════════════════════════════════
@@ -2161,6 +2295,120 @@ async function confirmarNovaSenha(){
     },1500);
   }
 }
+
+// ══════════════════════════════════════════════
+// CRM — ClickUp Integration
+// ══════════════════════════════════════════════
+const CU_LIST_ATIVOS  = '901712377156';
+const CU_LIST_LEADS   = '901712377138';
+const CU_LIST_ADORM   = '901712457391';
+let CRM_DATA_ALUNOS   = [];
+
+function loadCUTokenInput(){
+  const t = localStorage.getItem('clickup_token')||'';
+  const inp = document.getElementById('cu-token-input');
+  const st  = document.getElementById('cu-token-status');
+  if(!inp) return;
+  if(t){ inp.placeholder = 'Token configurado ✓'; st.textContent = '✓ Token salvo. CRM pronto para uso.'; st.style.color='#10b981'; }
+  else  { st.textContent = 'Nenhum token configurado ainda.'; st.style.color='#94a3b8'; }
+}
+
+function salvarTokenClickUp(){
+  const val = (document.getElementById('cu-token-input')||{}).value||'';
+  if(!val.trim()){ toast('Informe o token do ClickUp','erro'); return; }
+  localStorage.setItem('clickup_token', val.trim());
+  loadCUTokenInput();
+  toast('Token do ClickUp salvo com sucesso!','sucesso');
+}
+
+async function carregarCRM(){
+  const token = localStorage.getItem('clickup_token');
+  const noTok  = document.getElementById('crm-no-token');
+  const loader = document.getElementById('crm-loading');
+  const content= document.getElementById('crm-content');
+  if(!noTok||!loader||!content) return;
+  if(!token){ noTok.style.display='block'; loader.style.display='none'; content.style.display='none'; return; }
+  noTok.style.display='none'; loader.style.display='flex'; content.style.display='none';
+  try{
+    const h = {'Authorization':token,'Content-Type':'application/json'};
+    const [r1,r2,r3] = await Promise.all([
+      fetch('https://api.clickup.com/api/v2/list/'+CU_LIST_ATIVOS+'/task?archived=false&page=0',{headers:h}),
+      fetch('https://api.clickup.com/api/v2/list/'+CU_LIST_LEADS+'/task?archived=false&page=0',{headers:h}),
+      fetch('https://api.clickup.com/api/v2/list/'+CU_LIST_ADORM+'/task?archived=false&page=0',{headers:h})
+    ]);
+    const [d1,d2,d3] = await Promise.all([r1.json(),r2.json(),r3.json()]);
+    if(d1.err||d2.err||d3.err) throw new Error(d1.err||d2.err||d3.err||'Token invalido');
+    renderCRM(d1.tasks||[],d2.tasks||[],d3.tasks||[]);
+    const now=new Date();
+    document.getElementById('crm-last-update').textContent='Atualizado as '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  }catch(e){
+    loader.style.display='none'; noTok.style.display='block';
+    const h3=noTok.querySelector('h3'); if(h3) h3.textContent='Erro ao carregar CRM';
+    const p=noTok.querySelector('p'); if(p) p.textContent='Verifique seu token do ClickUp. Erro: '+(e.message||'');
+    toast('Erro ao conectar com ClickUp','erro');
+  }
+}
+
+function renderCRM(ativos,leads,adorm){
+  CRM_DATA_ALUNOS = ativos.filter(t=>t.status&&t.status.status==='alunos ativos');
+  const pendencias= ativos.filter(t=>t.status&&t.status.status==='pendencias'||t.status&&t.status.status==='pendências');
+  const pipeline  = leads;
+  // KPIs
+  document.getElementById('crm-kpi-alunos').textContent = CRM_DATA_ALUNOS.length;
+  document.getElementById('crm-kpi-leads' ).textContent = pipeline.length;
+  document.getElementById('crm-kpi-pend'  ).textContent = pendencias.length;
+  document.getElementById('crm-kpi-adorm' ).textContent = adorm.length;
+  // Alunos table
+  const tbA = document.getElementById('tbody-crm-alunos');
+  if(!CRM_DATA_ALUNOS.length){
+    tbA.innerHTML='<tr><td colspan="4" class="empty">Nenhum aluno ativo encontrado</td></tr>';
+  }else{
+    tbA.innerHTML=CRM_DATA_ALUNOS.map(t=>{
+      const nm=t.name||''; const isUp=nm.includes('Upsell');
+      return '<tr><td>'+nm.replace(' (Upsell)','').replace('(Upsell)','').trim()+'</td>'+
+        '<td>'+(isUp?'<span class="badge roxo">Upsell</span>':'<span class="badge azul">Padrao</span>')+'</td>'+
+        '<td><span class="badge verde">Ativo</span></td>'+
+        '<td><a href="'+(t.url||'#')+'" target="_blank" style="font-size:11px;color:#3b82f6;">Ver</a></td></tr>';
+    }).join('');
+  }
+  // Leads table
+  const tbL=document.getElementById('tbody-crm-leads');
+  if(!pipeline.length){ tbL.innerHTML='<tr><td colspan="3" class="empty">Nenhum lead ativo</td></tr>'; }
+  else{
+    const stMap={'follow up':'amarelo','call agendada':'verde','proposta enviada':'azul','negociando':'roxo'};
+    tbL.innerHTML=pipeline.map(t=>{
+      const st=(t.status&&t.status.status)||''; const cls=stMap[st]||'cinza';
+      return '<tr><td style="font-size:13px;">'+(t.name||'')+'</td>'+
+        '<td><span class="badge '+cls+'">'+st+'</span></td>'+
+        '<td><a href="'+(t.url||'#')+'" target="_blank" style="font-size:11px;color:#3b82f6;">Ver</a></td></tr>';
+    }).join('');
+  }
+  // Pendencias table
+  const tbP=document.getElementById('tbody-crm-pend');
+  const allPend=ativos.filter(t=>t.status&&(t.status.status.toLowerCase().includes('pend')));
+  if(!allPend.length){ tbP.innerHTML='<tr><td colspan="3" class="empty">Nenhuma pendencia</td></tr>'; }
+  else{
+    const sorted=allPend.filter(t=>t.due_date).sort((a,b)=>parseInt(a.due_date)-parseInt(b.due_date));
+    const now=Date.now();
+    tbP.innerHTML=sorted.slice(0,12).map(t=>{
+      const dd=parseInt(t.due_date);
+      const d=new Date(dd);
+      const ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+      const over=dd<now;
+      return '<tr><td style="font-size:12px;">'+(t.name||'')+'</td>'+
+        '<td class="'+(over?'vs':'')+'" style="font-size:12px;white-space:nowrap;">'+ds+(over?' &#9888;':'')+'</td>'+
+        '<td><a href="'+(t.url||'#')+'" target="_blank" style="font-size:11px;color:#3b82f6;">Ver</a></td></tr>';
+    }).join('');
+  }
+  document.getElementById('crm-loading').style.display='none';
+  document.getElementById('crm-content').style.display='block';
+}
+
+function filtrarAlunos(q){
+  const rows=document.querySelectorAll('#tbody-crm-alunos tr');
+  rows.forEach(r=>{ r.style.display=r.textContent.toLowerCase().includes((q||'').toLowerCase())?'':'none'; });
+}
+
 </script>
 </body>
 </html>
