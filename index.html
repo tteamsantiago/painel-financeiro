@@ -733,6 +733,7 @@ tbody tr:hover td{background:#f9fafb;}
 .login-erro{color:#f87171;font-size:12px;text-align:center;margin-top:12px;min-height:18px;}
 @media print{aside,.ph,#toast,.modal-bg,.ctr-top-grid{display:none!important;}main{margin:0!important;padding:0!important;}.page{padding:0!important;}.page:not(#page-contratos){display:none!important;}.page#page-contratos{display:block!important;}#ctr-preview-section{box-shadow:none!important;border:none!important;}#ctr-preview-box{border:none!important;padding:0!important;}}</style>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pizzip@3.1.4/dist/pizzip.min.js"></script>
 </head>
 <body>
 
@@ -1357,8 +1358,8 @@ tbody tr:hover td{background:#f9fafb;}
            style="border:2px dashed #d1d5db;border-radius:10px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:8px;">
         <svg width="36" height="36" fill="none" stroke="#6366f1" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="12 12 12 18"/><polyline points="9 15 12 12 15 15"/></svg>
         <div style="font-weight:600;color:#374151;font-size:14px;">Clique ou arraste o .docx aqui</div>
-        <div style="font-size:12px;color:#94a3b8;">Use {{campo}} no documento para campos dinâmicos</div>
-        <div style="font-size:11px;color:#7c3aed;background:#f5f3ff;border-radius:6px;padding:6px 12px;margin-top:4px;">Ex: {{nome_aluno}} {{cpf}} {{valor}} {{data_inicio}}</div>
+        <div style="font-size:12px;color:#94a3b8;">Os campos em vermelho do contrato serão detectados automaticamente</div>
+        <div style="font-size:11px;color:#7c3aed;background:#f5f3ff;border-radius:6px;padding:6px 12px;margin-top:4px;">Sem necessidade de alterar o modelo — basta subir como está</div>
       </div>
       <div id="ctr-template-status" style="display:none;"></div>
       <div id="ctr-campos-tags" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
@@ -2618,102 +2619,153 @@ function salvarTokenClickUp(){ toast('CRM já funciona automaticamente via Supab
 // ══════════════════════════════════════════════
 // CONTRATOS
 // ══════════════════════════════════════════════
-let ctrHtmlBase='',ctrCampos=[];
+let ctrHtmlBase='', ctrCamposVermelhos=[], ctrNomeArquivo='';
 
 function initContratos(){
-  const saved=localStorage.getItem('ctr_template_html');
-  const nome=localStorage.getItem('ctr_template_nome');
-  if(saved){
-    ctrHtmlBase=saved;
-    ctrCampos=ctrDetectarCampos(saved);
-    ctrRenderStatus(nome||'template.docx');
+  const savedHtml=localStorage.getItem('ctr_template_html');
+  const savedCampos=localStorage.getItem('ctr_campos_vermelhos');
+  const savedNome=localStorage.getItem('ctr_template_nome');
+  if(savedHtml && savedCampos){
+    ctrHtmlBase=savedHtml;
+    ctrCamposVermelhos=JSON.parse(savedCampos);
+    ctrNomeArquivo=savedNome||'contrato.docx';
+    ctrRenderStatus(ctrNomeArquivo);
     ctrRenderForm();
     ctrAtualizarPreview();
   }
 }
 
-function ctrDetectarCampos(html){
-  return [...new Set([...html.matchAll(/\{\{([^}]+)\}\}/g)].map(m=>m[1].trim()))];
+// Lê o .docx como ArrayBuffer
+function ctrLerArquivo(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=e=>res(e.target.result);
+    r.onerror=rej;
+    r.readAsArrayBuffer(file);
+  });
 }
 
-function ctrLabel(c){
-  return c.replace(/_/g,' ').replace(/\b\w/g,ch=>ch.toUpperCase());
+// Extrai textos em vermelho do XML word/document.xml
+// Agrupa runs consecutivos vermelhos no mesmo parágrafo como um único campo
+function ctrExtrairCamposVermelhos(xml){
+  const campos=[];
+  const isRed=val=>{
+    if(!val)return false;
+    const v=val.toUpperCase().replace(/^#/,'');
+    // Vermelho puro (FF0000) e variações próximas comuns no Word
+    return v==='FF0000'||v==='F00'||v==='RED'||v==='C00000'||v==='FF0000'||v==='FE0000';
+  };
+
+  // Itera por parágrafo para agrupar runs adjacentes vermelhos
+  const paraRe=/<w:p[\s>][\s\S]*?<\/w:p>/g;
+  let pMatch;
+  while((pMatch=paraRe.exec(xml))!==null){
+    const para=pMatch[0];
+    const runRe=/<w:r[\s>][\s\S]*?<\/w:r>/g;
+    let currentRed='';
+    let rMatch;
+    while((rMatch=runRe.exec(para))!==null){
+      const run=rMatch[0];
+      // Detecta cor vermelha no rPr
+      const colorMatch=run.match(/<w:color[^>]+w:val="([^"]+)"/);
+      const colored=colorMatch&&isRed(colorMatch[1]);
+      // Texto do run
+      const tMatch=run.match(/<w:t[^>]*>([^<]*)<\/w:t>/);
+      const txt=tMatch?tMatch[1]:'';
+      if(colored&&txt){
+        currentRed+=txt;
+      } else {
+        if(currentRed.trim())campos.push(currentRed.trim());
+        currentRed='';
+      }
+    }
+    if(currentRed.trim())campos.push(currentRed.trim());
+  }
+  // Retorna únicos preservando a ordem de aparição
+  return [...new Map(campos.map(c=>[c,c])).values()];
 }
 
-function processarTemplate(file){
+async function processarTemplate(file){
   if(!file)return;
   if(!file.name.toLowerCase().endsWith('.docx')){toast('Selecione um arquivo .docx','erro');return;}
-  const reader=new FileReader();
-  reader.onload=async(e)=>{
-    try{
-      if(typeof mammoth==='undefined'){toast('Biblioteca mammoth.js ainda carregando, tente novamente','erro');return;}
-      const result=await mammoth.convertToHtml({arrayBuffer:e.target.result});
-      ctrHtmlBase=result.value;
-      ctrCampos=ctrDetectarCampos(ctrHtmlBase);
-      localStorage.setItem('ctr_template_html',ctrHtmlBase);
-      localStorage.setItem('ctr_template_nome',file.name);
-      ctrRenderStatus(file.name);
-      ctrRenderForm();
-      ctrAtualizarPreview();
-      toast('Template carregado — '+ctrCampos.length+' campo(s) detectado(s)','sucesso');
-    }catch(err){
-      toast('Erro ao processar .docx: '+err.message,'erro');
-    }
-  };
-  reader.readAsArrayBuffer(file);
+  if(typeof mammoth==='undefined'||typeof PizZip==='undefined'){
+    toast('Bibliotecas ainda carregando, aguarde e tente novamente','erro');return;
+  }
+  try{
+    const buf=await ctrLerArquivo(file);
+
+    // 1. Extrai campos vermelhos via XML
+    const zip=new PizZip(buf.slice(0));
+    const xmlText=zip.file('word/document.xml').asText();
+    ctrCamposVermelhos=ctrExtrairCamposVermelhos(xmlText);
+
+    // 2. Converte docx → HTML para preview (mammoth strip colors, mas já temos os textos)
+    const result=await mammoth.convertToHtml({arrayBuffer:buf.slice(0)});
+    ctrHtmlBase=result.value;
+    ctrNomeArquivo=file.name;
+
+    localStorage.setItem('ctr_template_html',ctrHtmlBase);
+    localStorage.setItem('ctr_campos_vermelhos',JSON.stringify(ctrCamposVermelhos));
+    localStorage.setItem('ctr_template_nome',file.name);
+
+    ctrRenderStatus(file.name);
+    ctrRenderForm();
+    ctrAtualizarPreview();
+    const n=ctrCamposVermelhos.length;
+    toast(n>0?n+' campo(s) em vermelho detectado(s)':'Nenhum texto vermelho encontrado — verifique a fonte do arquivo','sucesso');
+  }catch(err){
+    toast('Erro ao processar .docx: '+err.message,'erro');
+  }
 }
 
 function ctrRenderStatus(nome){
-  const dz=document.getElementById('ctr-dropzone');
+  document.getElementById('ctr-dropzone').style.display='none';
   const st=document.getElementById('ctr-template-status');
-  const tags=document.getElementById('ctr-campos-tags');
-  dz.style.display='none';
   st.style.display='block';
   st.innerHTML='<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;margin-bottom:12px;">'
     +'<svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>'
     +'<span style="font-size:13px;font-weight:600;color:#065f46;flex:1;">'+nome+'</span>'
     +'<button onclick="ctrLimparTemplate()" style="font-size:11px;color:#ef4444;background:none;border:none;cursor:pointer;font-weight:500;">Remover</button>'
     +'</div>';
-  if(ctrCampos.length>0){
-    tags.innerHTML='<div style="font-size:11px;font-weight:600;color:#6b7280;margin-bottom:6px;width:100%;">CAMPOS DETECTADOS:</div>'
-      +ctrCampos.map(c=>'<span style="background:#ede9fe;color:#5b21b6;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:500;">{{'+c+'}}</span>').join('');
+  const tags=document.getElementById('ctr-campos-tags');
+  if(ctrCamposVermelhos.length>0){
+    tags.innerHTML='<div style="font-size:11px;font-weight:600;color:#6b7280;margin-bottom:6px;width:100%;">CAMPOS EM VERMELHO DETECTADOS:</div>'
+      +ctrCamposVermelhos.map(c=>'<span style="background:#fee2e2;color:#991b1b;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:500;">'+c+'</span>').join('');
   }else{
-    tags.innerHTML='<div style="font-size:12px;color:#f59e0b;">⚠ Nenhum campo {{placeholder}} encontrado. Adicione {{campo}} no seu .docx.</div>';
+    tags.innerHTML='<div style="font-size:12px;color:#f59e0b;margin-top:4px;">⚠ Nenhum texto vermelho encontrado. Certifique-se de que a cor da fonte é vermelho puro no Word.</div>';
   }
 }
 
 function ctrLimparTemplate(){
-  localStorage.removeItem('ctr_template_html');
-  localStorage.removeItem('ctr_template_nome');
-  ctrHtmlBase='';ctrCampos=[];
+  ['ctr_template_html','ctr_campos_vermelhos','ctr_template_nome'].forEach(k=>localStorage.removeItem(k));
+  ctrHtmlBase='';ctrCamposVermelhos=[];ctrNomeArquivo='';
   document.getElementById('ctr-dropzone').style.display='flex';
   const st=document.getElementById('ctr-template-status');
   st.style.display='none';st.innerHTML='';
   document.getElementById('ctr-campos-tags').innerHTML='';
-  document.getElementById('ctr-form-fields').innerHTML='<div style="text-align:center;padding:40px 0;color:#94a3b8;font-size:13px;">Faça upload do template para ver os campos</div>';
-  document.getElementById('ctr-preview-box').innerHTML='<div style="text-align:center;padding:60px 0;color:#94a3b8;font-size:14px;font-family:-apple-system,sans-serif;">Faça upload do template e preencha os campos para visualizar o contrato</div>';
+  document.getElementById('ctr-form-fields').innerHTML='<div style="text-align:center;padding:40px 0;color:#94a3b8;font-size:13px;"><svg width="32" height="32" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 10px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Faça upload do contrato para ver os campos</div>';
+  document.getElementById('ctr-preview-box').innerHTML='<div style="text-align:center;padding:60px 0;color:#94a3b8;font-size:14px;font-family:-apple-system,sans-serif;"><svg width="40" height="40" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 12px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Faça upload do contrato e preencha os campos para visualizar</div>';
   document.getElementById('ctr-file-input').value='';
 }
 
 function ctrRenderForm(){
   const form=document.getElementById('ctr-form-fields');
-  if(ctrCampos.length===0){
-    form.innerHTML='<p style="color:#94a3b8;font-size:13px;">Nenhum campo {{placeholder}} detectado no template.</p>';
-    return;
+  if(ctrCamposVermelhos.length===0){
+    form.innerHTML='<p style="color:#f59e0b;font-size:13px;">Nenhum texto vermelho detectado no template.</p>';return;
   }
-  form.innerHTML=ctrCampos.map(c=>
+  form.innerHTML=ctrCamposVermelhos.map((c,i)=>
     '<div style="margin-bottom:12px;">'
-    +'<label style="display:block;font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;">'+ctrLabel(c)+'</label>'
-    +'<input type="text" id="ctr-inp-'+c.replace(/[^a-zA-Z0-9]/g,'_')+'" placeholder="'+ctrLabel(c)+'" oninput="ctrAtualizarPreview()" '
-    +'style="border:1px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-size:13px;width:100%;background:#fff;outline:none;font-family:inherit;"/>'
+    +'<label style="display:block;font-size:11px;font-weight:700;color:#991b1b;margin-bottom:4px;letter-spacing:.3px;">'+c+'</label>'
+    +'<input type="text" id="ctr-inp-'+i+'" placeholder="Substituir: '+c+'" oninput="ctrAtualizarPreview()" '
+    +'style="border:1px solid #fecaca;border-radius:8px;padding:8px 12px;font-size:13px;width:100%;background:#fff;outline:none;font-family:inherit;"/>'
     +'</div>'
   ).join('');
 }
 
 function ctrGetValores(){
   const v={};
-  ctrCampos.forEach(c=>{
-    const el=document.getElementById('ctr-inp-'+c.replace(/[^a-zA-Z0-9]/g,'_'));
+  ctrCamposVermelhos.forEach((c,i)=>{
+    const el=document.getElementById('ctr-inp-'+i);
     v[c]=el?el.value.trim():'';
   });
   return v;
@@ -2723,20 +2775,22 @@ function ctrAtualizarPreview(){
   if(!ctrHtmlBase)return;
   const vals=ctrGetValores();
   let html=ctrHtmlBase;
-  ctrCampos.forEach(c=>{
+  // Aplica do mais longo para o mais curto para evitar substituição parcial
+  const ordenados=[...ctrCamposVermelhos].sort((a,b)=>b.length-a.length);
+  ordenados.forEach(c=>{
     const esc=c.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-    const regex=new RegExp('\\{\\{'+esc+'\\}\\}','g');
+    const regex=new RegExp(esc,'g');
     const v=vals[c];
     html=html.replace(regex,v
-      ?'<strong style="color:#111827;border-bottom:1px solid #111827;">'+v+'</strong>'
-      :'<span style="background:#fef3c7;border-radius:3px;padding:0 3px;font-style:italic;color:#92400e;">{{'+c+'}}</span>');
+      ?'<strong style="color:#111827;border-bottom:2px solid #6366f1;">'+v+'</strong>'
+      :'<span style="color:#dc2626;background:#fef2f2;border-radius:3px;padding:0 3px;font-weight:600;">'+c+'</span>');
   });
   document.getElementById('ctr-preview-box').innerHTML=html;
 }
 
 function limparCtrForm(){
-  ctrCampos.forEach(c=>{
-    const el=document.getElementById('ctr-inp-'+c.replace(/[^a-zA-Z0-9]/g,'_'));
+  ctrCamposVermelhos.forEach((_,i)=>{
+    const el=document.getElementById('ctr-inp-'+i);
     if(el)el.value='';
   });
   ctrAtualizarPreview();
@@ -2744,17 +2798,19 @@ function limparCtrForm(){
 }
 
 function gerarCtrPdf(){
-  if(!ctrHtmlBase){toast('Faça upload do template primeiro','erro');return;}
+  if(!ctrHtmlBase){toast('Faça upload do contrato primeiro','erro');return;}
   const vals=ctrGetValores();
   let html=ctrHtmlBase;
-  ctrCampos.forEach(c=>{
+  const ordenados=[...ctrCamposVermelhos].sort((a,b)=>b.length-a.length);
+  ordenados.forEach(c=>{
     const esc=c.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-    html=html.replace(new RegExp('\\{\\{'+esc+'\\}\\}','g'),vals[c]||'{{'+c+'}}');
+    html=html.replace(new RegExp(esc,'g'),vals[c]||c);
   });
   const w=window.open('','_blank');
   w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Contrato</title>'
     +'<style>body{font-family:Georgia,"Times New Roman",serif;font-size:12pt;line-height:1.8;color:#000;padding:2cm;max-width:21cm;margin:0 auto;}'
-    +'p{margin-bottom:1em;}strong{font-weight:bold;}@media print{body{padding:0;}}</style>'
+    +'p{margin-bottom:1em;}strong{font-weight:bold;}table{border-collapse:collapse;width:100%;}'
+    +'td,th{border:1px solid #999;padding:6px 10px;}@media print{body{padding:0;}}</style>'
     +'</head><body>'+html+'<script>window.onload=function(){window.print();};<\/script></body></html>');
   w.document.close();
 }
