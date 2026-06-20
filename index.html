@@ -1462,6 +1462,7 @@ const DADOS = {
 
 const HIST=[{l:'',e:0,s:0},{l:'',e:0,s:0},{l:'',e:0,s:0},{l:'',e:0,s:0},{l:'',e:0,s:0},{l:'',e:0,s:0}];
 const MNOME={'2026-12':'Dezembro 2026','2026-11':'Novembro 2026','2026-10':'Outubro 2026','2026-09':'Setembro 2026','2026-08':'Agosto 2026','2026-07':'Julho 2026','2026-06':'Junho 2026','2026-05':'Maio 2026','2026-04':'Abril 2026','2026-03':'Março 2026','2026-02':'Fevereiro 2026','2026-01':'Janeiro 2026','2025-12':'Dezembro 2025','2025-11':'Novembro 2025'};
+const MNOME_CURTO={'2026-12':'Dez/26','2026-11':'Nov/26','2026-10':'Out/26','2026-09':'Set/26','2026-08':'Ago/26','2026-07':'Jul/26','2026-06':'Jun/26','2026-05':'Mai/26','2026-04':'Abr/26','2026-03':'Mar/26','2026-02':'Fev/26','2026-01':'Jan/26','2025-12':'Dez/25','2025-11':'Nov/25'};
 const MANT={'2026-12':'2026-11','2026-11':'2026-10','2026-10':'2026-09','2026-09':'2026-08','2026-08':'2026-07','2026-07':'2026-06','2026-06':'2026-05','2026-05':'2026-04','2026-04':'2026-03','2026-03':'2026-02','2026-02':'2026-01','2026-01':'2025-12','2025-12':'2025-11','2025-11':null};
 
 let LANCS = [ // dados carregados do Supabase
@@ -1524,7 +1525,15 @@ function irPara(p,el){
   document.querySelectorAll('.nl').forEach(x=>x.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
   el.classList.add('active');
-  if(p==='dashboard'&&!chartBarras)initCharts();
+  if(p==='dashboard'){
+    if(!chartBarras)initCharts();
+    const mes=mesAtual();
+    recalcularDados();
+    atualizarKPIs(mes);
+    renderDashLanc(mes);
+    atualizarCharts(mes);
+    carregarDashboardCRM();
+  }
   if(p==='crm')carregarCRM();
   if(p==='contratos')initContratos();
 }
@@ -1612,7 +1621,58 @@ function renderDashLanc(mes){
 
 function trocarMes(mes){
   atualizarKPIs(mes);
-  const d=DADOS[mes];
+  atualizarCharts(mes);
+  renderDashLanc(mes);
+}
+
+function mesAtual(){
+  const sel=document.getElementById('mes-select');
+  return sel?sel.value:'2026-04';
+}
+
+// Recalcula DADOS e HIST a partir dos lançamentos reais (LANCS)
+function recalcularDados(){
+  // Zera todos os meses
+  Object.keys(DADOS).forEach(mes=>{
+    DADOS[mes].e=0; DADOS[mes].s=0;
+    DADOS[mes].cs.forEach(c=>c.v=0);
+    DADOS[mes].ce.forEach(c=>c.v=0);
+  });
+  // Acumula por mês e categoria
+  LANCS.forEach(l=>{
+    const d=DADOS[l.mes];
+    if(!d)return;
+    if(l.tipo==='entrada'){
+      d.e+=l.valor;
+      const cat=d.ce.find(c=>c.n===l.cat);
+      if(cat) cat.v+=l.valor;
+      else { const out=d.ce.find(c=>c.n==='Outros'); if(out)out.v+=l.valor; }
+    } else {
+      d.s+=l.valor;
+      const cat=d.cs.find(c=>c.n===l.cat);
+      if(cat) cat.v+=l.valor;
+    }
+  });
+  // Reconstrói HIST com os 6 meses mais recentes que têm dados
+  const meses=Object.keys(DADOS).filter(m=>DADOS[m].e>0||DADOS[m].s>0).sort().slice(-6);
+  for(let i=0;i<6;i++){
+    const m=meses[i];
+    HIST[i].l=m?(MNOME_CURTO[m]||m):'';
+    HIST[i].e=m?DADOS[m].e:0;
+    HIST[i].s=m?DADOS[m].s:0;
+  }
+}
+
+// Atualiza os gráficos Chart.js com os valores atuais de DADOS e HIST
+function atualizarCharts(mes){
+  if(!chartBarras)return;
+  const d=DADOS[mes]||DADOS['2026-04'];
+  // Barras (histórico 6 meses)
+  chartBarras.data.labels=HIST.map(h=>h.l);
+  chartBarras.data.datasets[0].data=HIST.map(h=>h.e);
+  chartBarras.data.datasets[1].data=HIST.map(h=>h.s);
+  chartBarras.update();
+  // Pizzas (categorias do mês)
   [chartPS,chartPE].forEach((c,i)=>{
     const cats=i===0?d.cs:d.ce;
     c.data.datasets[0].data=cats.map(x=>x.v);
@@ -1620,8 +1680,8 @@ function trocarMes(mes){
     c.data.labels=cats.map(x=>x.n);
     c.update();
   });
-  renderLeg('leg-s',d.cs); renderLeg('leg-e',d.ce);
-  renderDashLanc(mes);
+  renderLeg('leg-s',d.cs);
+  renderLeg('leg-e',d.ce);
 }
 
 // ══════════════════════════════════════════════
@@ -2138,8 +2198,11 @@ async function carregarLancamentos(){
     data:l.data.split('-').reverse().join('/'),mes:l.mes,valor:parseFloat(l.valor)
   }));
   filtrarLanc();
-  renderDashLanc('2026-04');
-  atualizarKPIs('2026-04');
+  recalcularDados();
+  const mes=mesAtual();
+  renderDashLanc(mes);
+  atualizarKPIs(mes);
+  atualizarCharts(mes);
 }
 
 window.addEventListener('DOMContentLoaded',()=>{
