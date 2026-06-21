@@ -2722,13 +2722,12 @@ async function salvarWindsorKey() {
 }
 
 async function carregarInstagram() {
-  const days = document.getElementById('ig-periodo')?.value || 30;
+  const days = parseInt(document.getElementById('ig-periodo')?.value || 30);
   document.getElementById('ig-loading').style.display = 'block';
   document.getElementById('ig-conteudo').style.display = 'none';
   document.getElementById('ig-setup-banner').style.display = 'none';
 
-  const data = await fnCall('instagram-windsor', { days: parseInt(days) });
-
+  const data = await fnCall('instagram-windsor', { days });
   document.getElementById('ig-loading').style.display = 'none';
 
   if (data.setup || data.error) {
@@ -2736,50 +2735,54 @@ async function carregarInstagram() {
     return;
   }
 
-  const rows = (data.data || data || []).filter(r => r.date);
-  if (!rows.length) { toast('Sem dados para o período', 'erro'); return; }
-
-  rows.sort((a, b) => a.date > b.date ? 1 : -1);
+  const rows = (data.data || []).filter(r => r.date).sort((a,b) => a.date > b.date ? 1 : -1);
+  if (!rows.length) { toast('Sem dados para o período selecionado', 'erro'); return; }
 
   const soma = (campo) => rows.reduce((acc, r) => acc + (parseFloat(r[campo]) || 0), 0);
   const ultimo = rows[rows.length - 1];
 
-  document.getElementById('ig-kpi-seg').textContent = parseInt(ultimo.follower_count || 0).toLocaleString('pt-BR');
-  document.getElementById('ig-kpi-alcance').textContent = parseInt(soma('reach')).toLocaleString('pt-BR');
-  document.getElementById('ig-kpi-imp').textContent = parseInt(soma('impressions')).toLocaleString('pt-BR');
-  document.getElementById('ig-kpi-visitas').textContent = parseInt(soma('profile_views')).toLocaleString('pt-BR');
+  // follower_count no Windsor = novos seguidores/dia; exibimos o total do período
+  const novosSegs = soma('follower_count');
+  const totalAlcance = soma('reach');
+  const totalImp = soma('impressions');
+  const totalVisitas = soma('profile_views') || soma('accounts_engaged');
+
+  document.getElementById('ig-kpi-seg').textContent = '+' + parseInt(novosSegs).toLocaleString('pt-BR');
+  document.getElementById('ig-kpi-alcance').textContent = parseInt(totalAlcance).toLocaleString('pt-BR');
+  document.getElementById('ig-kpi-imp').textContent = totalImp > 0 ? parseInt(totalImp).toLocaleString('pt-BR') : '—';
+  document.getElementById('ig-kpi-visitas').textContent = totalVisitas > 0 ? parseInt(totalVisitas).toLocaleString('pt-BR') : '—';
   document.getElementById('ig-conta-nome').textContent = '@' + (ultimo.account_name || '');
+
+  // Atualiza labels dos KPIs
+  const kpis = document.querySelectorAll('#ig-conteudo .kpi-label');
+  if (kpis[0]) kpis[0].textContent = 'Novos seguidores';
 
   const labels = rows.map(r => r.date.slice(5));
   const alcance = rows.map(r => parseFloat(r.reach) || 0);
   const impressoes = rows.map(r => parseFloat(r.impressions) || 0);
-  const visitas = rows.map(r => parseFloat(r.profile_views) || 0);
-  const seguidores = rows.map(r => parseFloat(r.follower_count) || 0);
+  const visitas = rows.map(r => parseFloat(r.profile_views) || parseFloat(r.accounts_engaged) || 0);
+  const segDiario = rows.map(r => parseFloat(r.follower_count) || 0);
 
   if (chartIgLinha) chartIgLinha.destroy();
+  const datasets = [{ label: 'Alcance', data: alcance, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.08)', tension: 0.4, fill: true }];
+  if (impressoes.some(v => v > 0)) datasets.push({ label: 'Impressões', data: impressoes, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.08)', tension: 0.4, fill: true });
   chartIgLinha = new Chart(document.getElementById('chart-ig-linha').getContext('2d'), {
     type: 'line',
-    data: {
-      labels,
-      datasets: [
-        { label: 'Alcance', data: alcance, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.08)', tension: 0.4, fill: true },
-        { label: 'Impressões', data: impressoes, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.08)', tension: 0.4, fill: true }
-      ]
-    },
+    data: { labels, datasets },
     options: { responsive: true, plugins: { legend: { labels: { font: { size: 11 } } } }, scales: { y: { ticks: { font: { size: 10 } }, grid: { color: '#f3f4f6' } }, x: { ticks: { font: { size: 10 }, maxTicksLimit: 10 }, grid: { display: false } } } }
   });
 
   if (chartIgVisitas) chartIgVisitas.destroy();
   chartIgVisitas = new Chart(document.getElementById('chart-ig-visitas').getContext('2d'), {
     type: 'bar',
-    data: { labels, datasets: [{ label: 'Visitas', data: visitas, backgroundColor: '#10b981', borderRadius: 3 }] },
+    data: { labels, datasets: [{ label: visitas.some(v=>v>0)?'Visitas ao perfil':'Engajamento', data: visitas.some(v=>v>0)?visitas:segDiario, backgroundColor: '#10b981', borderRadius: 3 }] },
     options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { ticks: { font: { size: 10 } }, grid: { color: '#f3f4f6' } }, x: { ticks: { font: { size: 10 }, maxTicksLimit: 8 }, grid: { display: false } } } }
   });
 
   if (chartIgSeg) chartIgSeg.destroy();
   chartIgSeg = new Chart(document.getElementById('chart-ig-seguidores').getContext('2d'), {
-    type: 'line',
-    data: { labels, datasets: [{ label: 'Seguidores', data: seguidores, borderColor: '#e1306c', backgroundColor: 'rgba(225,48,108,0.08)', tension: 0.4, fill: true }] },
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Novos seguidores/dia', data: segDiario, backgroundColor: '#e1306c', borderRadius: 3 }] },
     options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { ticks: { font: { size: 10 } }, grid: { color: '#f3f4f6' } }, x: { ticks: { font: { size: 10 }, maxTicksLimit: 10 }, grid: { display: false } } } }
   });
 
