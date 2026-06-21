@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Painel de Controle Team Santiago</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js">
 // ══════════════════════════════════════════════
 // AUTH
@@ -1519,7 +1520,7 @@ tbody tr:hover td{background:#f9fafb;}
   <div id="ig-posts-area" style="margin-top:24px;">
     <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
-        <div><h3 style="font-size:14px;font-weight:600;color:#374151;margin:0 0 2px;">Analise de Posts</h3><p style="font-size:12px;color:#6b7280;margin:0;">Desempenho individual de cada post — identifique o que funciona e replique</p></div>
+        <div><h3 style="font-size:14px;font-weight:600;color:#374151;margin:0 0 2px;">Analise de Posts</h3><p style="font-size:12px;color:#6b7280;margin:0;">Desempenho individual de cada post — identifique o que funciona e replique</p><p style="font-size:11px;color:#94a3b8;margin:4px 0 0;">Dados buscados ao vivo do Instagram ao clicar em Analisar Posts</p></div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <input id="ig-username-input" type="text" placeholder="@seuusuario" style="padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;width:160px;">
           <select id="ig-posts-limite" style="padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;background:#fff;">
@@ -2765,6 +2766,19 @@ async function salvarWindsorKey() {
   carregarInstagram();
 }
 
+function imgError(el, type) {
+  el.style.display = 'none';
+  const d = document.createElement('div');
+  if (type === 'avatar') {
+    d.style.cssText = 'width:36px;height:36px;border-radius:50%;background:#e0e7ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;';
+    d.textContent = '👤';
+  } else {
+    d.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f3f4f6;';
+    d.innerHTML = '<svg width="32" height="32" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>';
+  }
+  el.parentNode.insertBefore(d, el);
+}
+
 async function carregarInstagram() {
   const days = parseInt(document.getElementById('ig-periodo')?.value || 30);
   document.getElementById('ig-loading').style.display = 'block';
@@ -2881,7 +2895,7 @@ async function carregarMeusPosts() {
     const comments = item.commentsCount || 0;
     const plays = item.videoViewCount || item.videoPlayCount || 0;
     const eng = likes + comments;
-    const isReel = item.type === 'Video' || item.isVideo || plays > 0;
+    const isReel = item.type === 'Video' || item.isVideo || item.productType === 'clips' || plays > 0;
     const isCarousel = item.type === 'Sidecar' || (item.images && item.images.length > 1);
     const typeLabel = isReel ? 'REEL' : (isCarousel ? 'CARROSSEL' : 'FOTO');
     const typeBg = isReel ? '#e1306c' : (isCarousel ? '#f59e0b' : '#6366f1');
@@ -2895,7 +2909,7 @@ async function carregarMeusPosts() {
 
     html += `<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;">
       <div style="position:relative;aspect-ratio:1;background:#f9fafb;overflow:hidden;flex-shrink:0;">
-        ${thumb ? `<img src="${thumb}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">` : ''}
+        ${thumb ? `<img src="${thumb}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;" onerror="imgError(this,'thumb')">` : ''}
         <div style="position:absolute;top:6px;left:6px;background:${typeBg};color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;">${typeLabel}</div>
         <div style="position:absolute;top:6px;right:6px;background:${perfBg};color:${perfColor};font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;border:1px solid ${perfColor};">${perfLabel}</div>
       </div>
@@ -3009,7 +3023,7 @@ async function minerarLeads() {
       html += `<tr style="${bg}border-bottom:1px solid #f3f4f6;">
         <td style="padding:10px 14px;">
           <div style="display:flex;align-items:center;gap:10px;">
-            ${item.profilePicUrl ? `<img src="${item.profilePicUrl}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;">` : '<div style="width:36px;height:36px;border-radius:50%;background:#f3f4f6;flex-shrink:0;"></div>'}
+            ${item.profilePicUrl ? `<img src="${item.profilePicUrl}" referrerpolicy="no-referrer" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="imgError(this,'avatar')">` : '<div style="width:36px;height:36px;border-radius:50%;background:#f3f4f6;flex-shrink:0;"></div>'}
             <div>
               <div style="font-weight:600;color:#111827;">${item.fullName || item.username || '—'}</div>
               <div style="font-size:11px;color:#6b7280;">@${item.username || ''}${item.isVerified ? ' ✓' : ''}</div>
