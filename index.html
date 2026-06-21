@@ -1492,7 +1492,7 @@ tbody tr:hover td{background:#f9fafb;}
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;">
       <div class="kpi azul"><div class="kpi-label">Seguidores</div><div class="kpi-val" id="ig-kpi-seg">—</div></div>
       <div class="kpi verde"><div class="kpi-label">Alcance (período)</div><div class="kpi-val" id="ig-kpi-alcance">—</div></div>
-      <div class="kpi amarelo"><div class="kpi-label">Impressões (período)</div><div class="kpi-val" id="ig-kpi-imp">—</div></div>
+      <div class="kpi amarelo"><div class="kpi-label">Contas engajadas</div><div class="kpi-val" id="ig-kpi-imp">—</div></div>
       <div class="kpi cinza"><div class="kpi-label">Visitas ao Perfil</div><div class="kpi-val" id="ig-kpi-visitas">—</div></div>
     </div>
 
@@ -2749,7 +2749,8 @@ async function carregarInstagram() {
 
   document.getElementById('ig-kpi-seg').textContent = '+' + parseInt(novosSegs).toLocaleString('pt-BR');
   document.getElementById('ig-kpi-alcance').textContent = parseInt(totalAlcance).toLocaleString('pt-BR');
-  document.getElementById('ig-kpi-imp').textContent = totalImp > 0 ? parseInt(totalImp).toLocaleString('pt-BR') : '—';
+  const totalEng = soma('accounts_engaged');
+  document.getElementById('ig-kpi-imp').textContent = totalEng > 0 ? parseInt(totalEng).toLocaleString('pt-BR') : (totalImp > 0 ? parseInt(totalImp).toLocaleString('pt-BR') : '—');
   document.getElementById('ig-kpi-visitas').textContent = totalVisitas > 0 ? parseInt(totalVisitas).toLocaleString('pt-BR') : '—';
   document.getElementById('ig-conta-nome').textContent = '@' + (ultimo.account_name || '');
 
@@ -2764,8 +2765,10 @@ async function carregarInstagram() {
   const segDiario = rows.map(r => parseFloat(r.follower_count) || 0);
 
   if (chartIgLinha) chartIgLinha.destroy();
+  const engajamento = rows.map(r => parseFloat(r.accounts_engaged) || 0);
   const datasets = [{ label: 'Alcance', data: alcance, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.08)', tension: 0.4, fill: true }];
-  if (impressoes.some(v => v > 0)) datasets.push({ label: 'Impressões', data: impressoes, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.08)', tension: 0.4, fill: true });
+  if (engajamento.some(v => v > 0)) datasets.push({ label: 'Engajamento', data: engajamento, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)', tension: 0.4, fill: true });
+  else if (impressoes.some(v => v > 0)) datasets.push({ label: 'Impressões', data: impressoes, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.08)', tension: 0.4, fill: true });
   chartIgLinha = new Chart(document.getElementById('chart-ig-linha').getContext('2d'), {
     type: 'line',
     data: { labels, datasets },
