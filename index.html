@@ -847,6 +847,13 @@ tbody tr:hover td{background:#f9fafb;}
     <div class="nl" data-page="contratos" onclick="irPara('contratos',this)" id="nav-contratos">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Contratos
     </div>
+    <div style="font-size:10px;font-weight:700;color:#6b7280;letter-spacing:1px;padding:8px 14px 2px;text-transform:uppercase;">Marketing</div>
+    <div class="nl" data-page="instagram" onclick="irPara('instagram',this)" id="nav-instagram">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>Instagram
+    </div>
+    <div class="nl" data-page="minerador" onclick="irPara('minerador',this)" id="nav-minerador">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>Minerador de Leads
+    </div>
     <div style="border-top:1px solid #374151;margin:8px 0;"></div>
     <div class="nl" data-page="equipe" onclick="irPara('equipe',this)" id="nav-equipe">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>Equipe
@@ -1446,6 +1453,132 @@ tbody tr:hover td{background:#f9fafb;}
     </div>
   </div>
 </div>
+<div class="page" id="page-instagram">
+  <div class="ph">
+    <div><h2>Instagram</h2><p>Métricas da sua conta conectada via Windsor</p></div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <select id="ig-periodo" onchange="carregarInstagram()" style="padding:7px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff;cursor:pointer;">
+        <option value="30">Últimos 30 dias</option>
+        <option value="14">Últimos 14 dias</option>
+        <option value="7">Últimos 7 dias</option>
+        <option value="60">Últimos 60 dias</option>
+      </select>
+      <button onclick="carregarInstagram()" class="btn bp" style="display:flex;align-items:center;gap:6px;">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>Atualizar
+      </button>
+    </div>
+  </div>
+
+  <div id="ig-setup-banner" style="display:none;background:#fef3c7;border:1px solid #fde68a;border-radius:12px;padding:20px 24px;margin-bottom:24px;">
+    <div style="display:flex;gap:12px;align-items:flex-start;">
+      <svg width="22" height="22" fill="none" stroke="#d97706" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div style="flex:1;">
+        <p style="font-weight:600;color:#92400e;margin:0 0 4px;">Configure o Windsor para ver suas métricas</p>
+        <p style="font-size:13px;color:#b45309;margin:0 0 14px;">1. Crie conta em windsor.io &nbsp;2. Conecte o Instagram Business &nbsp;3. Copie a API Key e cole abaixo</p>
+        <div style="display:flex;gap:8px;">
+          <input id="ig-key-input" type="password" placeholder="Windsor API Key" style="flex:1;padding:8px 12px;border:1px solid #fde68a;border-radius:6px;font-size:13px;background:#fffbeb;">
+          <button onclick="salvarWindsorKey()" class="btn" style="background:#d97706;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="ig-loading" style="display:none;text-align:center;padding:60px;color:#6b7280;">
+    <svg width="32" height="32" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 12px;animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+    Carregando métricas do Instagram...
+  </div>
+
+  <div id="ig-conteudo" style="display:none;">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;">
+      <div class="kpi azul"><div class="kpi-label">Seguidores</div><div class="kpi-val" id="ig-kpi-seg">—</div></div>
+      <div class="kpi verde"><div class="kpi-label">Alcance (período)</div><div class="kpi-val" id="ig-kpi-alcance">—</div></div>
+      <div class="kpi amarelo"><div class="kpi-label">Impressões (período)</div><div class="kpi-val" id="ig-kpi-imp">—</div></div>
+      <div class="kpi cinza"><div class="kpi-label">Visitas ao Perfil</div><div class="kpi-val" id="ig-kpi-visitas">—</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px;">
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;">
+        <h3 style="font-size:14px;font-weight:600;color:#374151;margin:0 0 16px;">Alcance e Impressões por dia</h3>
+        <canvas id="chart-ig-linha" height="180"></canvas>
+      </div>
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;">
+        <h3 style="font-size:14px;font-weight:600;color:#374151;margin:0 0 16px;">Visitas ao Perfil</h3>
+        <canvas id="chart-ig-visitas" height="180"></canvas>
+      </div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <h3 style="font-size:14px;font-weight:600;color:#374151;margin:0;">Evolução de Seguidores</h3>
+        <span id="ig-conta-nome" style="font-size:12px;color:#6b7280;"></span>
+      </div>
+      <canvas id="chart-ig-seguidores" height="120"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-minerador">
+  <div class="ph">
+    <div><h2>Minerador de Leads</h2><p>Analise perfis e conteúdo do Instagram e TikTok via Apify</p></div>
+  </div>
+
+  <div id="min-setup-banner" style="display:none;background:#fef3c7;border:1px solid #fde68a;border-radius:12px;padding:20px 24px;margin-bottom:24px;">
+    <div style="display:flex;gap:12px;align-items:flex-start;">
+      <svg width="22" height="22" fill="none" stroke="#d97706" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div style="flex:1;">
+        <p style="font-weight:600;color:#92400e;margin:0 0 4px;">Configure o Apify para usar o minerador</p>
+        <p style="font-size:13px;color:#b45309;margin:0 0 14px;">1. Crie conta em apify.com &nbsp;2. Vá em Settings → Integrations → API tokens &nbsp;3. Cole o token abaixo</p>
+        <div style="display:flex;gap:8px;">
+          <input id="min-token-input" type="password" placeholder="Apify API Token" style="flex:1;padding:8px 12px;border:1px solid #fde68a;border-radius:6px;font-size:13px;background:#fffbeb;">
+          <button onclick="salvarApifyToken()" class="btn" style="background:#d97706;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:24px;margin-bottom:20px;">
+    <div style="display:flex;gap:8px;margin-bottom:20px;">
+      <button id="min-btn-ig" onclick="minPlataforma('instagram')" style="padding:8px 20px;border-radius:8px;border:2px solid #e1306c;background:#e1306c;color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>Instagram
+      </button>
+      <button id="min-btn-tt" onclick="minPlataforma('tiktok')" style="padding:8px 20px;border-radius:8px;border:2px solid #e5e7eb;background:#fff;color:#374151;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
+        <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.94a8.16 8.16 0 0 0 4.77 1.52V7a4.85 4.85 0 0 1-1-.31z"/></svg>TikTok
+      </button>
+    </div>
+
+    <div style="display:flex;gap:16px;margin-bottom:16px;">
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#374151;cursor:pointer;">
+        <input type="radio" name="min-tipo" value="perfil" id="min-tipo-perfil" checked onchange="minTipoChange()"> Analisar Perfil
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#374151;cursor:pointer;">
+        <input type="radio" name="min-tipo" value="hashtag" onchange="minTipoChange()"> Por Hashtag
+      </label>
+    </div>
+
+    <div style="display:flex;gap:8px;align-items:center;">
+      <div style="position:relative;flex:1;">
+        <span id="min-prefix" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#6b7280;font-size:14px;pointer-events:none;">@</span>
+        <input id="min-busca" type="text" placeholder="username" style="width:100%;padding:9px 12px 9px 28px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box;">
+      </div>
+      <select id="min-limite" style="padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff;">
+        <option value="10">10 itens</option>
+        <option value="20" selected>20 itens</option>
+        <option value="50">50 itens</option>
+      </select>
+      <button id="min-btn-buscar" onclick="minerarLeads()" class="btn bp" style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Minerar
+      </button>
+    </div>
+  </div>
+
+  <div id="min-resultado-area">
+    <div style="text-align:center;padding:50px;color:#94a3b8;">
+      <svg width="36" height="36" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 12px;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Pesquise um perfil ou hashtag para ver os resultados
+    </div>
+  </div>
+</div>
+
 </main>
 
 <!-- ═══════ MODAL ═══════ -->
@@ -1585,6 +1718,10 @@ function irPara(p,el){
   if(p==='crm')carregarCRM();
   if(p==='contratos')initContratos();
   if(p==='equipe')carregarEquipe();
+  if(p==='instagram')carregarInstagram();
+  if(p==='minerador'){
+    fnCall('apify-leads',{plataforma:'instagram',tipo:'check'}).then(d=>{if(d.setup)document.getElementById('min-setup-banner').style.display='block';});
+  }
 }
 
 // ══════════════════════════════════════════════
@@ -2390,6 +2527,8 @@ const PERM_MAPA = {
   contratos:    ['admin','crm'],
   equipe:       ['admin'],
   configuracoes:['admin'],
+  instagram:    ['admin','crm'],
+  minerador:    ['admin','crm'],
 };
 
 async function carregarRoleUsuario(){
@@ -2554,6 +2693,238 @@ async function desativarColab(email){
   }catch(err){
     toast('Erro: '+err.message,'erro');
   }
+}
+
+// ══════════════════════════════════════════════
+// INSTAGRAM — Windsor
+// ══════════════════════════════════════════════
+let chartIgLinha = null, chartIgVisitas = null, chartIgSeg = null;
+const FN = 'https://fhuromvcoujzmikxxjnv.supabase.co/functions/v1';
+
+async function fnCall(endpoint, body) {
+  const sess = (await sb.auth.getSession()).data.session;
+  const res = await fetch(FN + '/' + endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sess.access_token },
+    body: JSON.stringify(body)
+  });
+  return res.json();
+}
+
+async function salvarWindsorKey() {
+  const key = document.getElementById('ig-key-input').value.trim();
+  if (!key) { toast('Cole a API Key do Windsor', 'erro'); return; }
+  const { error } = await sb.from('app_config').upsert({ chave: 'windsor_api_key', valor: key, atualizado_em: new Date().toISOString() });
+  if (error) { toast('Erro ao salvar: ' + error.message, 'erro'); return; }
+  toast('Windsor conectado!', 'sucesso');
+  document.getElementById('ig-setup-banner').style.display = 'none';
+  carregarInstagram();
+}
+
+async function carregarInstagram() {
+  const days = document.getElementById('ig-periodo')?.value || 30;
+  document.getElementById('ig-loading').style.display = 'block';
+  document.getElementById('ig-conteudo').style.display = 'none';
+  document.getElementById('ig-setup-banner').style.display = 'none';
+
+  const data = await fnCall('instagram-windsor', { days: parseInt(days) });
+
+  document.getElementById('ig-loading').style.display = 'none';
+
+  if (data.setup || data.error) {
+    document.getElementById('ig-setup-banner').style.display = 'block';
+    return;
+  }
+
+  const rows = (data.data || data || []).filter(r => r.date);
+  if (!rows.length) { toast('Sem dados para o período', 'erro'); return; }
+
+  rows.sort((a, b) => a.date > b.date ? 1 : -1);
+
+  const soma = (campo) => rows.reduce((acc, r) => acc + (parseFloat(r[campo]) || 0), 0);
+  const ultimo = rows[rows.length - 1];
+
+  document.getElementById('ig-kpi-seg').textContent = parseInt(ultimo.follower_count || 0).toLocaleString('pt-BR');
+  document.getElementById('ig-kpi-alcance').textContent = parseInt(soma('reach')).toLocaleString('pt-BR');
+  document.getElementById('ig-kpi-imp').textContent = parseInt(soma('impressions')).toLocaleString('pt-BR');
+  document.getElementById('ig-kpi-visitas').textContent = parseInt(soma('profile_views')).toLocaleString('pt-BR');
+  document.getElementById('ig-conta-nome').textContent = '@' + (ultimo.account_name || '');
+
+  const labels = rows.map(r => r.date.slice(5));
+  const alcance = rows.map(r => parseFloat(r.reach) || 0);
+  const impressoes = rows.map(r => parseFloat(r.impressions) || 0);
+  const visitas = rows.map(r => parseFloat(r.profile_views) || 0);
+  const seguidores = rows.map(r => parseFloat(r.follower_count) || 0);
+
+  if (chartIgLinha) chartIgLinha.destroy();
+  chartIgLinha = new Chart(document.getElementById('chart-ig-linha').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Alcance', data: alcance, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.08)', tension: 0.4, fill: true },
+        { label: 'Impressões', data: impressoes, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.08)', tension: 0.4, fill: true }
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { labels: { font: { size: 11 } } } }, scales: { y: { ticks: { font: { size: 10 } }, grid: { color: '#f3f4f6' } }, x: { ticks: { font: { size: 10 }, maxTicksLimit: 10 }, grid: { display: false } } } }
+  });
+
+  if (chartIgVisitas) chartIgVisitas.destroy();
+  chartIgVisitas = new Chart(document.getElementById('chart-ig-visitas').getContext('2d'), {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Visitas', data: visitas, backgroundColor: '#10b981', borderRadius: 3 }] },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { ticks: { font: { size: 10 } }, grid: { color: '#f3f4f6' } }, x: { ticks: { font: { size: 10 }, maxTicksLimit: 8 }, grid: { display: false } } } }
+  });
+
+  if (chartIgSeg) chartIgSeg.destroy();
+  chartIgSeg = new Chart(document.getElementById('chart-ig-seguidores').getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets: [{ label: 'Seguidores', data: seguidores, borderColor: '#e1306c', backgroundColor: 'rgba(225,48,108,0.08)', tension: 0.4, fill: true }] },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { ticks: { font: { size: 10 } }, grid: { color: '#f3f4f6' } }, x: { ticks: { font: { size: 10 }, maxTicksLimit: 10 }, grid: { display: false } } } }
+  });
+
+  document.getElementById('ig-conteudo').style.display = 'block';
+}
+
+// ══════════════════════════════════════════════
+// MINERADOR DE LEADS — Apify
+// ══════════════════════════════════════════════
+let minAtualPlataforma = 'instagram';
+
+function minPlataforma(p) {
+  minAtualPlataforma = p;
+  const igBtn = document.getElementById('min-btn-ig');
+  const ttBtn = document.getElementById('min-btn-tt');
+  if (p === 'instagram') {
+    igBtn.style.background = '#e1306c'; igBtn.style.borderColor = '#e1306c'; igBtn.style.color = '#fff';
+    ttBtn.style.background = '#fff'; ttBtn.style.borderColor = '#e5e7eb'; ttBtn.style.color = '#374151';
+  } else {
+    ttBtn.style.background = '#010101'; ttBtn.style.borderColor = '#010101'; ttBtn.style.color = '#fff';
+    igBtn.style.background = '#fff'; igBtn.style.borderColor = '#e5e7eb'; igBtn.style.color = '#374151';
+  }
+}
+
+function minTipoChange() {
+  const tipo = document.querySelector('input[name="min-tipo"]:checked').value;
+  const prefix = document.getElementById('min-prefix');
+  const input = document.getElementById('min-busca');
+  if (tipo === 'hashtag') {
+    prefix.textContent = '#'; input.placeholder = 'hashtag (sem #)';
+  } else {
+    prefix.textContent = '@'; input.placeholder = 'username (sem @)';
+  }
+}
+
+async function salvarApifyToken() {
+  const token = document.getElementById('min-token-input').value.trim();
+  if (!token) { toast('Cole o token do Apify', 'erro'); return; }
+  const { error } = await sb.from('app_config').upsert({ chave: 'apify_token', valor: token, atualizado_em: new Date().toISOString() });
+  if (error) { toast('Erro ao salvar: ' + error.message, 'erro'); return; }
+  toast('Apify conectado!', 'sucesso');
+  document.getElementById('min-setup-banner').style.display = 'none';
+}
+
+async function minerarLeads() {
+  const busca = document.getElementById('min-busca').value.trim().replace('@', '').replace('#', '');
+  const tipo = document.querySelector('input[name="min-tipo"]:checked').value;
+  const limite = document.getElementById('min-limite').value;
+  if (!busca) { toast('Digite um usuário ou hashtag', 'erro'); return; }
+
+  const area = document.getElementById('min-resultado-area');
+  const btn = document.getElementById('min-btn-buscar');
+  area.innerHTML = '<div style="text-align:center;padding:50px;color:#6b7280;"><svg width="32" height="32" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 12px;animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>Minerando dados... pode levar até 2 minutos</div>';
+  btn.disabled = true; btn.textContent = 'Minerando...';
+
+  const data = await fnCall('apify-leads', { plataforma: minAtualPlataforma, tipo, busca, limite: parseInt(limite) });
+
+  btn.disabled = false; btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Minerar';
+
+  if (data.setup || data.error) {
+    if (data.setup) { document.getElementById('min-setup-banner').style.display = 'block'; area.innerHTML = ''; return; }
+    area.innerHTML = '<div style="text-align:center;padding:40px;color:#ef4444;">' + data.error + '</div>';
+    return;
+  }
+
+  const items = data.items || [];
+  if (!items.length) { area.innerHTML = '<div style="text-align:center;padding:40px;color:#6b7280;">Nenhum resultado encontrado.</div>'; return; }
+
+  let html = '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">';
+  html += '<div style="padding:14px 16px;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;align-items:center;">';
+  html += '<span style="font-size:14px;font-weight:600;color:#374151;">' + items.length + ' resultados encontrados</span>';
+  html += '<button onclick="exportarLeadsCSV()" style="padding:6px 12px;border:1px solid #e5e7eb;background:#fff;border-radius:6px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px;"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar CSV</button>';
+  html += '</div><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">';
+
+  if (minAtualPlataforma === 'instagram' && tipo === 'perfil') {
+    html += '<thead><tr style="background:#f9fafb;"><th style="text-align:left;padding:10px 14px;font-weight:600;color:#374151;">Perfil</th><th style="text-align:left;padding:10px 14px;font-weight:600;color:#374151;">Username</th><th style="text-align:right;padding:10px 14px;font-weight:600;color:#374151;">Seguidores</th><th style="text-align:right;padding:10px 14px;font-weight:600;color:#374151;">Seguindo</th><th style="text-align:right;padding:10px 14px;font-weight:600;color:#374151;">Posts</th></tr></thead><tbody>';
+    items.forEach((item, i) => {
+      const bg = i % 2 === 0 ? '' : 'background:#fafafa;';
+      html += `<tr style="${bg}border-bottom:1px solid #f3f4f6;">
+        <td style="padding:10px 14px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            ${item.profilePicUrl ? `<img src="${item.profilePicUrl}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">` : '<div style="width:36px;height:36px;border-radius:50%;background:#f3f4f6;"></div>'}
+            <div><div style="font-weight:600;color:#111827;">${item.fullName || item.username || '—'}</div><div style="font-size:11px;color:#6b7280;">${item.isVerified ? '✓ Verificado' : ''}</div></div>
+          </div>
+        </td>
+        <td style="padding:10px 14px;"><a href="https://instagram.com/${item.username}" target="_blank" style="color:#6366f1;">@${item.username || '—'}</a></td>
+        <td style="padding:10px 14px;text-align:right;font-weight:600;">${(item.followersCount || 0).toLocaleString('pt-BR')}</td>
+        <td style="padding:10px 14px;text-align:right;">${(item.followsCount || 0).toLocaleString('pt-BR')}</td>
+        <td style="padding:10px 14px;text-align:right;">${(item.postsCount || 0).toLocaleString('pt-BR')}</td>
+      </tr>`;
+    });
+  } else if (minAtualPlataforma === 'instagram' && tipo === 'hashtag') {
+    html += '<thead><tr style="background:#f9fafb;"><th style="text-align:left;padding:10px 14px;font-weight:600;color:#374151;">Post</th><th style="text-align:left;padding:10px 14px;font-weight:600;color:#374151;">Autor</th><th style="text-align:right;padding:10px 14px;font-weight:600;color:#374151;">Curtidas</th><th style="text-align:right;padding:10px 14px;font-weight:600;color:#374151;">Comentários</th><th style="text-align:left;padding:10px 14px;font-weight:600;color:#374151;">Link</th></tr></thead><tbody>';
+    items.forEach((item, i) => {
+      const bg = i % 2 === 0 ? '' : 'background:#fafafa;';
+      const desc = (item.caption || '').slice(0, 60) + (item.caption?.length > 60 ? '...' : '');
+      html += `<tr style="${bg}border-bottom:1px solid #f3f4f6;">
+        <td style="padding:10px 14px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${desc || '—'}</td>
+        <td style="padding:10px 14px;"><a href="https://instagram.com/${item.ownerUsername}" target="_blank" style="color:#6366f1;">@${item.ownerUsername || '—'}</a></td>
+        <td style="padding:10px 14px;text-align:right;font-weight:600;">${(item.likesCount || 0).toLocaleString('pt-BR')}</td>
+        <td style="padding:10px 14px;text-align:right;">${(item.commentsCount || 0).toLocaleString('pt-BR')}</td>
+        <td style="padding:10px 14px;"><a href="${item.url || '#'}" target="_blank" style="font-size:11px;color:#6b7280;">Ver post ↗</a></td>
+      </tr>`;
+    });
+  } else if (minAtualPlataforma === 'tiktok') {
+    const isPerfil = tipo === 'perfil';
+    html += `<thead><tr style="background:#f9fafb;"><th style="text-align:left;padding:10px 14px;font-weight:600;color:#374151;">${isPerfil ? 'Vídeo' : 'Conteúdo'}</th><th style="text-align:left;padding:10px 14px;font-weight:600;color:#374151;">Autor</th><th style="text-align:right;padding:10px 14px;font-weight:600;color:#374151;">Views</th><th style="text-align:right;padding:10px 14px;font-weight:600;color:#374151;">Curtidas</th><th style="text-align:right;padding:10px 14px;font-weight:600;color:#374151;">Comentários</th></tr></thead><tbody>`;
+    items.forEach((item, i) => {
+      const bg = i % 2 === 0 ? '' : 'background:#fafafa;';
+      const desc = (item.text || item.desc || '').slice(0, 60) + '...';
+      html += `<tr style="${bg}border-bottom:1px solid #f3f4f6;">
+        <td style="padding:10px 14px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${desc || '—'}</td>
+        <td style="padding:10px 14px;color:#374151;">@${item.authorMeta?.name || item.author?.uniqueId || '—'}</td>
+        <td style="padding:10px 14px;text-align:right;font-weight:600;">${(item.playCount || item.stats?.playCount || 0).toLocaleString('pt-BR')}</td>
+        <td style="padding:10px 14px;text-align:right;">${(item.diggCount || item.stats?.diggCount || 0).toLocaleString('pt-BR')}</td>
+        <td style="padding:10px 14px;text-align:right;">${(item.commentCount || item.stats?.commentCount || 0).toLocaleString('pt-BR')}</td>
+      </tr>`;
+    });
+  }
+
+  html += '</tbody></table></div></div>';
+  area.innerHTML = html;
+  window._minLeadsCache = items;
+}
+
+function exportarLeadsCSV() {
+  const items = window._minLeadsCache || [];
+  if (!items.length) return;
+  const flat = items.map(item => {
+    const out = {};
+    const flat2 = (obj, prefix = '') => {
+      Object.entries(obj).forEach(([k, v]) => {
+        if (typeof v === 'object' && v !== null) flat2(v, prefix + k + '_');
+        else out[prefix + k] = v;
+      });
+    };
+    flat2(item);
+    return out;
+  });
+  const keys = Object.keys(flat[0]);
+  const csv = [keys.join(','), ...flat.map(r => keys.map(k => JSON.stringify(r[k] ?? '')).join(','))].join('\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'leads_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click(); URL.revokeObjectURL(url);
 }
 async function initAuth(){
   const {data:{session}}=await sb.auth.getSession();
