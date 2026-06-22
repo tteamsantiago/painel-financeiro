@@ -1520,11 +1520,10 @@ tbody tr:hover td{background:#f9fafb;}
   <div id="ig-posts-area" style="margin-top:24px;">
     <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
-        <div><h3 style="font-size:14px;font-weight:600;color:#374151;margin:0 0 2px;">Analise de Posts</h3><p style="font-size:12px;color:#6b7280;margin:0;">Desempenho individual de cada post — identifique o que funciona e replique</p><p style="font-size:11px;color:#94a3b8;margin:4px 0 0;">Dados buscados ao vivo do Instagram ao clicar em Analisar Posts</p></div>
+        <div><h3 style="font-size:14px;font-weight:600;color:#374151;margin:0 0 2px;">Analise de Posts</h3><p style="font-size:12px;color:#6b7280;margin:0;">Desempenho individual — alcance, salvamentos, compartilhamentos e taxa de engajamento real</p><p style="font-size:11px;color:#94a3b8;margin:4px 0 0;">Dados oficiais do Instagram Insights via Windsor (conta conectada)</p></div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <input id="ig-username-input" type="text" placeholder="@seuusuario" style="padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;width:160px;">
           <select id="ig-posts-limite" style="padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;background:#fff;">
-            <option value="12">12 posts</option><option value="20" selected>20 posts</option><option value="30">30 posts</option>
+            <option value="12">Ultimos 12 posts</option><option value="20" selected>Ultimos 20 posts</option><option value="30">Ultimos 30 posts</option><option value="0">Todos (90 dias)</option>
           </select>
           <button onclick="carregarMeusPosts()" id="ig-posts-btn" class="btn bp" style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
             <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Analisar Posts
@@ -1533,12 +1532,12 @@ tbody tr:hover td{background:#f9fafb;}
       </div>
       <div id="ig-posts-loading" style="display:none;text-align:center;padding:40px;color:#6b7280;">
         <svg width="28" height="28" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 12px;animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
-        Buscando posts... pode levar ate 2 minutos
+        Buscando posts do Instagram...
       </div>
       <div id="ig-posts-content"></div>
       <div id="ig-posts-empty" style="text-align:center;padding:40px;color:#94a3b8;">
         <svg width="36" height="36" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 12px;"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#d1d5db" stroke="none"/></svg>
-        Digite seu @ do Instagram acima e clique em Analisar Posts
+        Clique em Analisar Posts para ver o desempenho dos seus posts
       </div>
     </div>
   </div>
@@ -2851,10 +2850,6 @@ async function carregarInstagram() {
 }
 
 async function carregarMeusPosts() {
-  const rawUsername = document.getElementById('ig-username-input').value.trim().replace('@', '');
-  if (!rawUsername) { toast('Digite seu username do Instagram', 'erro'); return; }
-  const limite = parseInt(document.getElementById('ig-posts-limite').value) || 20;
-
   const btn = document.getElementById('ig-posts-btn');
   btn.disabled = true; btn.textContent = 'Buscando...';
   document.getElementById('ig-posts-loading').style.display = 'block';
@@ -2862,66 +2857,99 @@ async function carregarMeusPosts() {
   document.getElementById('ig-posts-content').innerHTML = '';
   document.getElementById('ig-posts-empty').style.display = 'none';
 
-  const data = await fnCall('instagram-posts', { username: rawUsername, limit: limite });
+  const data = await fnCall('instagram-posts', {});
 
   btn.disabled = false;
   btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Analisar Posts';
   document.getElementById('ig-posts-loading').style.display = 'none';
 
-  if (data.setup) { toast('Configure o Apify token no Minerador de Leads', 'erro'); document.getElementById('ig-posts-empty').style.display = 'block'; return; }
-  if (data.needsUsername) { toast('Configure o username nas Configuracoes', 'erro'); return; }
-  if (data.error) { toast(data.error, 'erro'); document.getElementById('ig-posts-empty').style.display = 'block'; return; }
+  if (data.error) { toast('Erro: ' + data.error, 'erro'); document.getElementById('ig-posts-empty').style.display = 'block'; return; }
 
-  const items = data.items || [];
-  if (!items.length) { document.getElementById('ig-posts-empty').style.display = 'block'; toast('Nenhum post encontrado. Verifique o username.', 'erro'); return; }
+  const allItems = data.items || [];
+  if (!allItems.length) {
+    document.getElementById('ig-posts-empty').style.display = 'block';
+    toast('Nenhum post encontrado nos ultimos 90 dias.', 'aviso');
+    return;
+  }
+  const limiteVal = parseInt(document.getElementById('ig-posts-limite').value) || 20;
+  const items = limiteVal > 0 ? allItems.slice(0, limiteVal) : allItems;
 
-  const engList = items.map(i => (i.likesCount || 0) + (i.commentsCount || 0));
+  // KPI totals
+  const totalLikes = items.reduce((a, i) => a + (i.media_like_count || 0), 0);
+  const totalComments = items.reduce((a, i) => a + (i.media_comments_count || 0), 0);
+  const totalReach = items.reduce((a, i) => a + (i.media_reach || 0), 0);
+  const totalSaved = items.reduce((a, i) => a + (i.media_saved || 0), 0);
+  const totalShares = items.reduce((a, i) => a + (i.media_shares || 0), 0);
+  const totalViews = items.reduce((a, i) => a + (i.media_views || 0), 0);
+
+  // average engagement for performance comparison
+  const engList = items.map(i => i.media_engagement || ((i.media_like_count || 0) + (i.media_comments_count || 0) + (i.media_saved || 0) + (i.media_shares || 0)));
   const avgEng = engList.reduce((a, b) => a + b, 0) / (engList.length || 1);
-  const totalLikes = items.reduce((a, i) => a + (i.likesCount || 0), 0);
-  const totalComments = items.reduce((a, i) => a + (i.commentsCount || 0), 0);
-  const totalPlays = items.reduce((a, i) => a + (i.videoViewCount || i.videoPlayCount || 0), 0);
 
-  let html = `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;">
+  let html = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;">
     <div style="background:#f0f9ff;border-radius:8px;padding:12px;text-align:center;"><div style="font-size:10px;color:#0284c7;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Posts analisados</div><div style="font-size:22px;font-weight:700;color:#0369a1;">${items.length}</div></div>
-    <div style="background:#f0fdf4;border-radius:8px;padding:12px;text-align:center;"><div style="font-size:10px;color:#16a34a;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Total Curtidas</div><div style="font-size:22px;font-weight:700;color:#15803d;">${totalLikes.toLocaleString('pt-BR')}</div></div>
-    <div style="background:#fdf4ff;border-radius:8px;padding:12px;text-align:center;"><div style="font-size:10px;color:#9333ea;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Total Comentarios</div><div style="font-size:22px;font-weight:700;color:#7e22ce;">${totalComments.toLocaleString('pt-BR')}</div></div>
-    <div style="background:#fff7ed;border-radius:8px;padding:12px;text-align:center;"><div style="font-size:10px;color:#ea580c;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Total Plays</div><div style="font-size:22px;font-weight:700;color:#c2410c;">${totalPlays > 0 ? totalPlays.toLocaleString('pt-BR') : '—'}</div></div>
+    <div style="background:#f0fdf4;border-radius:8px;padding:12px;text-align:center;"><div style="font-size:10px;color:#16a34a;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Total Alcance</div><div style="font-size:22px;font-weight:700;color:#15803d;">${totalReach ? totalReach.toLocaleString('pt-BR') : '—'}</div></div>
+    <div style="background:#fdf4ff;border-radius:8px;padding:12px;text-align:center;"><div style="font-size:10px;color:#9333ea;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Total Views</div><div style="font-size:22px;font-weight:700;color:#7e22ce;">${totalViews ? totalViews.toLocaleString('pt-BR') : '—'}</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;">
+    <div style="background:#fff7ed;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:9px;color:#ea580c;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">Curtidas</div><div style="font-size:18px;font-weight:700;color:#c2410c;">${totalLikes.toLocaleString('pt-BR')}</div></div>
+    <div style="background:#fef2f2;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:9px;color:#dc2626;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">Comentarios</div><div style="font-size:18px;font-weight:700;color:#b91c1c;">${totalComments.toLocaleString('pt-BR')}</div></div>
+    <div style="background:#f0fdf4;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:9px;color:#16a34a;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">Salvamentos</div><div style="font-size:18px;font-weight:700;color:#15803d;">${totalSaved ? totalSaved.toLocaleString('pt-BR') : '—'}</div></div>
+    <div style="background:#eff6ff;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:9px;color:#2563eb;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">Compartilhamentos</div><div style="font-size:18px;font-weight:700;color:#1d4ed8;">${totalShares ? totalShares.toLocaleString('pt-BR') : '—'}</div></div>
   </div>`;
 
-  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:12px;">';
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;">';
 
   items.forEach(item => {
-    const likes = item.likesCount || 0;
-    const comments = item.commentsCount || 0;
-    const plays = item.videoViewCount || item.videoPlayCount || 0;
-    const eng = likes + comments;
-    const isReel = item.type === 'Video' || item.isVideo || item.productType === 'clips' || plays > 0;
-    const isCarousel = item.type === 'Sidecar' || (item.images && item.images.length > 1);
+    const likes = item.media_like_count || 0;
+    const comments = item.media_comments_count || 0;
+    const reach = item.media_reach || 0;
+    const saved = item.media_saved || 0;
+    const shares = item.media_shares || 0;
+    const views = item.media_views || 0;
+    const eng = item.media_engagement || (likes + comments + saved + shares);
+    const avgWatchSec = item.media_reel_avg_watch_time ? Math.round(item.media_reel_avg_watch_time / 1000) : 0;
+
+    const mtype = (item.media_type || '').toUpperCase();
+    const mptype = (item.media_product_type || '').toUpperCase();
+    const isReel = mtype === 'REEL' || mptype === 'REELS' || mptype === 'CLIPS';
+    const isCarousel = mtype === 'CAROUSEL_ALBUM';
     const typeLabel = isReel ? 'REEL' : (isCarousel ? 'CARROSSEL' : 'FOTO');
     const typeBg = isReel ? '#e1306c' : (isCarousel ? '#f59e0b' : '#6366f1');
+
     const perf = eng >= avgEng * 1.3 ? 'high' : (eng >= avgEng * 0.7 ? 'mid' : 'low');
     const perfColor = perf === 'high' ? '#10b981' : (perf === 'mid' ? '#f59e0b' : '#ef4444');
     const perfLabel = perf === 'high' ? '↑ Replicar' : (perf === 'mid' ? '→ Mediano' : '↓ Abaixo');
     const perfBg = perf === 'high' ? '#f0fdf4' : (perf === 'mid' ? '#fffbeb' : '#fef2f2');
-    const caption = (item.caption || '').slice(0, 70) + (item.caption?.length > 70 ? '...' : '');
+
+    const caption = (item.media_caption || '').slice(0, 80) + ((item.media_caption || '').length > 80 ? '...' : '');
     const date = item.timestamp ? new Date(item.timestamp).toLocaleDateString('pt-BR', {day:'2-digit', month:'short', year:'2-digit'}) : '—';
-    const thumb = item.displayUrl || (item.images && item.images[0]) || '';
+    const thumb = item.media_thumbnail_url || item.media_url || '';
+    const link = item.media_permalink || '#';
+
+    const engRate = reach > 0 ? ((eng / reach) * 100).toFixed(1) + '%' : '—';
 
     html += `<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;">
       <div style="position:relative;aspect-ratio:1;background:#f9fafb;overflow:hidden;flex-shrink:0;">
-        ${thumb ? `<img src="${thumb}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;" onerror="imgError(this,'thumb')">` : ''}
+        ${thumb ? `<img src="${thumb}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;" onerror="imgError(this,'thumb')">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f3f4f6;font-size:32px;">📷</div>'}
         <div style="position:absolute;top:6px;left:6px;background:${typeBg};color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;">${typeLabel}</div>
         <div style="position:absolute;top:6px;right:6px;background:${perfBg};color:${perfColor};font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;border:1px solid ${perfColor};">${perfLabel}</div>
       </div>
       <div style="padding:10px;flex:1;display:flex;flex-direction:column;gap:4px;">
         <div style="font-size:11px;color:#9ca3af;">${date}</div>
-        ${caption ? `<div style="font-size:12px;color:#374151;line-height:1.4;flex:1;">${caption}</div>` : '<div style="flex:1;"></div>'}
-        <div style="display:flex;gap:10px;font-size:12px;color:#6b7280;margin-top:6px;">
-          <span style="display:flex;align-items:center;gap:3px;font-weight:600;color:#111827;"><svg width="11" height="11" fill="${likes > 0 ? '#ef4444' : 'none'}" stroke="${likes > 0 ? '#ef4444' : 'currentColor'}" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>${likes.toLocaleString('pt-BR')}</span>
-          <span style="display:flex;align-items:center;gap:3px;"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>${comments.toLocaleString('pt-BR')}</span>
-          ${plays > 0 ? `<span style="display:flex;align-items:center;gap:3px;color:#6366f1;font-weight:600;"><svg width="11" height="11" fill="#6366f1" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>${plays.toLocaleString('pt-BR')}</span>` : ''}
+        ${caption ? `<div style="font-size:11px;color:#374151;line-height:1.4;flex:1;">${caption}</div>` : '<div style="flex:1;"></div>'}
+        <div style="display:flex;gap:8px;font-size:11px;color:#6b7280;margin-top:6px;flex-wrap:wrap;">
+          <span style="display:flex;align-items:center;gap:3px;font-weight:600;color:#111827;">❤ ${likes.toLocaleString('pt-BR')}</span>
+          <span>💬 ${comments.toLocaleString('pt-BR')}</span>
+          ${saved ? `<span>🔖 ${saved.toLocaleString('pt-BR')}</span>` : ''}
+          ${views ? `<span>👁 ${views.toLocaleString('pt-BR')}</span>` : ''}
+          ${reach ? `<span style="color:#0284c7;">📡 ${reach.toLocaleString('pt-BR')}</span>` : ''}
         </div>
-        <a href="${item.url || '#'}" target="_blank" style="font-size:11px;color:#6366f1;text-decoration:none;margin-top:4px;display:block;">Ver no Instagram ↗</a>
+        ${isReel && avgWatchSec > 0 ? `<div style="font-size:10px;color:#7c3aed;margin-top:2px;">⏱ Tempo medio: ${avgWatchSec}s</div>` : ''}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+          ${reach > 0 ? `<span style="font-size:10px;color:#6b7280;">Taxa eng: <strong style="color:#374151;">${engRate}</strong></span>` : '<span></span>'}
+          <a href="${link}" target="_blank" style="font-size:10px;color:#6366f1;text-decoration:none;">Ver ↗</a>
+        </div>
       </div>
     </div>`;
   });
@@ -2930,6 +2958,7 @@ async function carregarMeusPosts() {
   document.getElementById('ig-posts-content').innerHTML = html;
   document.getElementById('ig-posts-content').style.display = 'block';
 }
+
 
 
 // ══════════════════════════════════════════════
