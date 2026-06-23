@@ -20,6 +20,7 @@ function showApp(){
 function showLogin(){
   document.getElementById('login-overlay').style.display='flex';
 }
+
 async function initAuth(){
   const {data:{session}}=await sb.auth.getSession();
   if(session){showApp();await carregarLancamentos();}
@@ -1596,7 +1597,15 @@ tbody tr:hover td{background:#f9fafb;}
         <label style="font-size:12px;color:#6b7280;display:flex;align-items:center;gap:6px;">Palavras na Bio
           <input type="text" id="min-palavras-bio" placeholder="fitness, treino, academia" style="width:200px;padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;">
         </label>
+        <label style="font-size:12px;color:#6b7280;display:flex;align-items:center;gap:8px;">Genero
+          <div style="display:flex;gap:10px;">
+            <label style="cursor:pointer;display:flex;align-items:center;gap:4px;font-size:12px;"><input type="radio" name="min-genero" value="todos" checked> Todos</label>
+            <label style="cursor:pointer;display:flex;align-items:center;gap:4px;font-size:12px;"><input type="radio" name="min-genero" value="mulher"> Mulher</label>
+            <label style="cursor:pointer;display:flex;align-items:center;gap:4px;font-size:12px;"><input type="radio" name="min-genero" value="homem"> Homem</label>
+          </div>
+        </label>
       </div>
+      <p style="font-size:10px;color:#94a3b8;margin:8px 0 0;">Filtro de genero detecta palavras-chave na bio (mae, mulher, she/her, pai, homem, he/him, etc.)</p>
     </div>
 
     <div style="display:flex;gap:8px;align-items:center;">
@@ -1604,11 +1613,7 @@ tbody tr:hover td{background:#f9fafb;}
         <span id="min-prefix" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#6b7280;font-size:14px;pointer-events:none;">@</span>
         <input id="min-busca" type="text" placeholder="username" style="width:100%;padding:9px 12px 9px 28px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box;">
       </div>
-      <select id="min-limite" style="padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff;">
-        <option value="10">10 itens</option>
-        <option value="20" selected>20 itens</option>
-        <option value="50">50 itens</option>
-      </select>
+      <input type="number" id="min-limite" value="20" min="1" max="100" placeholder="20" title="Quantidade de leads (1-100)" style="padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;width:72px;text-align:center;">
       <button id="min-btn-buscar" onclick="minerarLeads()" class="btn bp" style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Minerar
       </button>
@@ -2996,7 +3001,7 @@ function minTipoChange() {
   } else {
     prefix.textContent = '@'; input.placeholder = 'username (sem @)';
     input.style.paddingLeft = '28px';
-    if (filtros) filtros.style.display = 'none';
+    if (filtros) filtros.style.display = 'block';
   }
 }
 
@@ -3019,13 +3024,15 @@ async function minerarLeads() {
   const minSeg = parseInt(document.getElementById('min-min-seg')?.value || 0) || 0;
   const maxSeg = parseInt(document.getElementById('min-max-seg')?.value || 0) || 0;
   const palavrasBio = document.getElementById('min-palavras-bio')?.value?.trim() || '';
+  const generoEl = document.querySelector('input[name="min-genero"]:checked');
+  const genero = generoEl ? generoEl.value : 'todos';
 
   const area = document.getElementById('min-resultado-area');
   const btn = document.getElementById('min-btn-buscar');
-  area.innerHTML = '<div style="text-align:center;padding:50px;color:#6b7280;"><svg width="32" height="32" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 12px;animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>Minerando dados... pode levar até 2 minutos</div>';
+  area.innerHTML = '<div style="text-align:center;padding:50px;color:#6b7280;"><svg width="32" height="32" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 12px;animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>Minerando dados... pode levar ate 2 minutos</div>';
   btn.disabled = true; btn.textContent = 'Minerando...';
 
-  const data = await fnCall('apify-leads', { plataforma: minAtualPlataforma, tipo, busca, limite: parseInt(limite), min_seguidores: minSeg, max_seguidores: maxSeg, palavras_bio: palavrasBio });
+  const data = await fnCall('apify-leads', { plataforma: minAtualPlataforma, tipo, busca, limite: Math.min(Math.max(parseInt(limite) || 20, 1), 100), min_seguidores: minSeg, max_seguidores: maxSeg, palavras_bio: palavrasBio, genero });
 
   btn.disabled = false; btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Minerar';
 
@@ -3036,12 +3043,15 @@ async function minerarLeads() {
   }
 
   const items = data.items || [];
-  if (!items.length) { area.innerHTML = '<div style="text-align:center;padding:40px;color:#6b7280;">Nenhum resultado encontrado.</div>'; return; }
+  if (!items.length) { area.innerHTML = '<div style="text-align:center;padding:40px;color:#6b7280;">' + (data.message || 'Nenhum resultado encontrado. Tente filtros menos restritivos.') + '</div>'; return; }
 
   let html = '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">';
   html += '<div style="padding:14px 16px;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;align-items:center;">';
   html += '<span style="font-size:14px;font-weight:600;color:#374151;">' + items.length + ' resultados encontrados</span>';
-  html += '<button onclick="exportarLeadsCSV()" style="padding:6px 12px;border:1px solid #e5e7eb;background:#fff;border-radius:6px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px;"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar CSV</button>';
+  html += '<div style="display:flex;gap:8px;">' +
+    '<button onclick="exportarLeadsCSV()" style="padding:6px 12px;border:1px solid #e5e7eb;background:#fff;border-radius:6px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px;"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>CSV</button>' +
+    '<button onclick="exportarLeadsPDF()" style="padding:6px 12px;border:1px solid #e5e7eb;background:#fff;border-radius:6px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px;"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Imprimir / PDF</button>' +
+    '</div>';
   html += '</div><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">';
 
   if (minAtualPlataforma === 'instagram' && (tipo === 'perfil' || tipo === 'post-comentadores')) {
@@ -3120,6 +3130,65 @@ function exportarLeadsCSV() {
   const a = document.createElement('a'); a.href = url; a.download = 'leads_' + new Date().toISOString().slice(0,10) + '.csv';
   a.click(); URL.revokeObjectURL(url);
 }
+
+function exportarLeadsPDF() {
+  const items = window._minLeadsCache || [];
+  if (!items.length) { toast('Nenhum lead para exportar', 'aviso'); return; }
+
+  const date = new Date().toLocaleDateString('pt-BR');
+  const rows = items.map((item, i) => {
+    const nome = item.fullName || item.username || '—';
+    const user = item.username || '';
+    const bio = (item.biography || item.bio || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const seg = (item.followersCount || 0).toLocaleString('pt-BR');
+    const link = user ? `https://instagram.com/${user}` : '#';
+    const bg = i % 2 === 0 ? '#fff' : '#f9fafb';
+    return `<tr style="background:${bg};">
+      <td style="padding:10px 12px;font-weight:600;color:#111827;border-bottom:1px solid #f3f4f6;">${i+1}. ${nome}<br><span style="font-weight:400;font-size:11px;color:#6b7280;">@${user}</span></td>
+      <td style="padding:10px 12px;font-size:12px;color:#6b7280;border-bottom:1px solid #f3f4f6;max-width:280px;">${bio || '—'}</td>
+      <td style="padding:10px 12px;text-align:right;font-weight:600;border-bottom:1px solid #f3f4f6;">${seg}</td>
+      <td style="padding:10px 12px;text-align:center;border-bottom:1px solid #f3f4f6;"><a href="${link}" target="_blank" style="color:#6366f1;font-weight:600;font-size:13px;text-decoration:none;">&#x1F517; Abrir perfil</a></td>
+    </tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Leads Team Santiago — ${date}</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:Arial,sans-serif;font-size:13px;color:#111827;background:#fff;padding:24px;}
+    h1{font-size:18px;color:#111827;margin-bottom:4px;}
+    .sub{font-size:12px;color:#6b7280;margin-bottom:20px;}
+    table{width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;}
+    thead{background:#f3f4f6;}
+    th{padding:10px 12px;text-align:left;font-size:12px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.5px;}
+    th:nth-child(3){text-align:right;}
+    th:nth-child(4){text-align:center;}
+    a{color:#6366f1;}
+    @media print{
+      body{padding:12px;}
+      a{color:#4f46e5 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+      tr{page-break-inside:avoid;}
+    }
+  </style></head><body>
+  <h1>Lista de Leads — Team Santiago</h1>
+  <p class="sub">Gerado em ${date} &bull; ${items.length} leads encontrados</p>
+  <table>
+    <thead><tr>
+      <th>Perfil</th>
+      <th>Bio</th>
+      <th style="text-align:right;">Seguidores</th>
+      <th style="text-align:center;">Link</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <p style="margin-top:16px;font-size:11px;color:#9ca3af;">Clique em "Abrir perfil" para acessar o Instagram de cada lead.</p>
+  <script>window.onload=function(){window.print();}<\/script>
+  </body></html>`;
+
+  const w = window.open('', '_blank');
+  if (w) { w.document.write(html); w.document.close(); }
+  else toast('Permita popups para abrir o PDF', 'aviso');
+}
+
 async function initAuth(){
   const {data:{session}}=await sb.auth.getSession();
   if(session){showApp();await carregarLancamentos();}
