@@ -3043,7 +3043,12 @@ async function minerarLeads() {
   }
 
   const items = data.items || [];
-  if (!items.length) { area.innerHTML = '<div style="text-align:center;padding:40px;color:#6b7280;">' + (data.message || 'Nenhum resultado encontrado. Tente filtros menos restritivos.') + '</div>'; return; }
+  if (!items.length) {
+    const dbg = (data.debug||[]).join('\n');
+    const debugHtml = dbg ? '<p style="font-size:11px;color:#94a3b8;margin:12px 0 0;font-family:monospace;white-space:pre-wrap;text-align:left;background:#f8fafc;padding:8px 10px;border-radius:6px;">'+dbg+'</p>' : '';
+    area.innerHTML = '<div style="text-align:center;padding:32px 20px;color:#6b7280;">'+(data.message||'Nenhum resultado encontrado. Tente filtros menos restritivos.')+debugHtml+'</div>';
+    return;
+  }
 
   let html = '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">';
   html += '<div style="padding:14px 16px;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;align-items:center;">';
