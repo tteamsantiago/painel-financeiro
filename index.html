@@ -1475,8 +1475,8 @@ tbody tr:hover td{background:#f9fafb;}
     <div style="display:flex;gap:12px;align-items:flex-start;">
       <svg width="22" height="22" fill="none" stroke="#d97706" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       <div style="flex:1;">
-        <p style="font-weight:600;color:#92400e;margin:0 0 4px;">Configure o Windsor para ver suas métricas</p>
-        <p style="font-size:13px;color:#b45309;margin:0 0 14px;">1. Crie conta em windsor.io &nbsp;2. Conecte o Instagram Business &nbsp;3. Copie a API Key e cole abaixo</p>
+        <p style="font-weight:600;color:#92400e;margin:0 0 4px;">Chave Windsor invalida ou expirada — atualize para ver as metricas</p>
+        <p style="font-size:13px;color:#b45309;margin:0 0 14px;">Va em <strong>app.windsor.ai</strong> → Settings → API Keys → copie a sua chave e cole abaixo (diferente do login OAuth)</p>
         <div style="display:flex;gap:8px;">
           <input id="ig-key-input" type="password" placeholder="Windsor API Key" style="flex:1;padding:8px 12px;border:1px solid #fde68a;border-radius:6px;font-size:13px;background:#fffbeb;">
           <button onclick="salvarWindsorKey()" class="btn" style="background:#d97706;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">Salvar</button>
@@ -1521,7 +1521,7 @@ tbody tr:hover td{background:#f9fafb;}
   <div id="ig-posts-area" style="margin-top:24px;">
     <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
-        <div><h3 style="font-size:14px;font-weight:600;color:#374151;margin:0 0 2px;">Analise de Posts</h3><p style="font-size:12px;color:#6b7280;margin:0;">Desempenho individual — alcance, salvamentos, compartilhamentos e taxa de engajamento real</p><p style="font-size:11px;color:#94a3b8;margin:4px 0 0;">Dados oficiais do Instagram Insights via Windsor (conta conectada)</p></div>
+        <div><h3 style="font-size:14px;font-weight:600;color:#374151;margin:0 0 2px;">Analise de Posts</h3><p style="font-size:12px;color:#6b7280;margin:0;">Desempenho individual — curtidas, comentarios, views e engajamento</p><p style="font-size:11px;color:#94a3b8;margin:4px 0 0;">Posts do @felipesantiago.oficial via Apify (pode levar ~60s)</p></div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <select id="ig-posts-limite" style="padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;background:#fff;">
             <option value="12">Ultimos 12 posts</option><option value="20" selected>Ultimos 20 posts</option><option value="30">Ultimos 30 posts</option><option value="0">Todos (90 dias)</option>
@@ -1533,7 +1533,7 @@ tbody tr:hover td{background:#f9fafb;}
       </div>
       <div id="ig-posts-loading" style="display:none;text-align:center;padding:40px;color:#6b7280;">
         <svg width="28" height="28" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 12px;animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
-        Buscando posts do Instagram...
+        Buscando posts... pode levar ate 60 segundos
       </div>
       <div id="ig-posts-content"></div>
       <div id="ig-posts-empty" style="text-align:center;padding:40px;color:#94a3b8;">
