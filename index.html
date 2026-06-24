@@ -878,7 +878,12 @@ tbody tr:hover td{background:#f9fafb;}
 <div class="page active" id="page-dashboard">
   <div class="ph">
     <div><h2>Dashboard</h2><p id="mes-label">Abril 2026</p></div>
-    <select id="mes-select" onchange="trocarMes(this.value)">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <button id="btn-sync-clickup" onclick="sincronizarClickUp()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:#7c3aed;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
+        <svg id="sync-icon" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        <span id="sync-label">Sincronizar ClickUp</span>
+      </button>
+      <select id="mes-select" onchange="trocarMes(this.value)">
       <option value="2026-12">Dezembro 2026</option>
       <option value="2026-11">Novembro 2026</option>
       <option value="2026-10">Outubro 2026</option>
@@ -894,6 +899,7 @@ tbody tr:hover td{background:#f9fafb;}
       <option value="2025-12">Dezembro 2025</option>
       <option value="2025-11">Novembro 2025</option>
     </select>
+    </div>
   </div>
   <!-- KPIs Financeiros -->
   <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">💰 Financeiro do Mês</div>
@@ -2469,6 +2475,36 @@ window.addEventListener('DOMContentLoaded',()=>{
 // ══════════════════════════════════════════════
 // Dashboard CRM — KPIs e Parcelas em destaque
 // ══════════════════════════════════════════════
+async function sincronizarClickUp() {
+  const btn = document.getElementById('btn-sync-clickup');
+  const icon = document.getElementById('sync-icon');
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+  icon.style.animation = 'spin 1s linear infinite';
+  document.getElementById('sync-label').textContent = 'Sincronizando...';
+  try {
+    const sess = (await sb.auth.getSession()).data.session;
+    const res = await fetch('https://fhuromvcoujzmikxxjnv.supabase.co/functions/v1/sync-clickup-crm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (sess?.access_token || '') },
+      body: JSON.stringify({})
+    });
+    const data = await res.json();
+    if (data.error) { toast('Erro ao sincronizar: ' + data.error, 'erro'); }
+    else {
+      toast('ClickUp sincronizado! ' + (data.sincronizados || '') + ' registros atualizados', 'sucesso');
+      await carregarDashboardCRM();
+    }
+  } catch(e) {
+    toast('Erro de conexão com ClickUp', 'erro');
+  } finally {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    icon.style.animation = '';
+    document.getElementById('sync-label').textContent = 'Sincronizar ClickUp';
+  }
+}
+
 async function carregarDashboardCRM(){
   try{
     const hoje = new Date();
