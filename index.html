@@ -948,6 +948,24 @@ tbody tr:hover td{background:#f9fafb;}
     <div class="card"><h3>📋 Últimos Lançamentos</h3><div id="dash-lanc"></div></div>
   </div>
 
+  <!-- Previsão de Faturamento -->
+  <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">📈 Previsão de Faturamento</div>
+  <div class="card" style="padding:20px;margin-bottom:4px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h3 style="margin:0 0 2px;font-size:14px;">Receitas futuras mês a mês</h3>
+        <p style="font-size:12px;color:#6b7280;margin:0;">Parcelas do ClickUp — o que você tem a receber</p>
+      </div>
+      <div id="dash-prev-total" style="text-align:right;">
+        <div style="font-size:22px;font-weight:700;color:#10b981;">—</div>
+        <div style="font-size:11px;color:#6b7280;">total previsto</div>
+      </div>
+    </div>
+    <div id="dash-prev-meses" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;">
+      <div style="color:#94a3b8;text-align:center;padding:20px;grid-column:1/-1;">Carregando...</div>
+    </div>
+  </div>
+
   <!-- Gráficos -->
   <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">📊 Análise Financeira</div>
   <div class="g3">
@@ -2536,6 +2554,47 @@ async function carregarDashboardCRM(){
       items.push('<div style="color:#10b981;text-align:center;padding:20px;font-weight:500;">✓ Nenhum alerta no momento</div>');
     }
     alertasEl.innerHTML = items.join('');
+
+    // Previsão de faturamento mês a mês
+    const mesesMap = {};
+    parcelas.forEach(p => {
+      if (!p.due_date) return;
+      const d = new Date(p.due_date);
+      const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+      if (!mesesMap[key]) {
+        const nomeMes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][d.getMonth()];
+        mesesMap[key] = { total: 0, qtd: 0, label: nomeMes+'/'+String(d.getFullYear()).slice(2) };
+      }
+      mesesMap[key].total += parseFloat(p.valor) || 0;
+      mesesMap[key].qtd++;
+    });
+
+    const sorted = Object.entries(mesesMap).sort(([a],[b]) => a.localeCompare(b));
+    const maxVal = Math.max(...sorted.map(([,m]) => m.total), 1);
+    const totalGeral = sorted.reduce((s,[,m]) => s+m.total, 0);
+    const totalParcs = sorted.reduce((s,[,m]) => s+m.qtd, 0);
+    const mesAtualKey = hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0');
+
+    document.getElementById('dash-prev-total').innerHTML =
+      '<div style="font-size:22px;font-weight:700;color:#10b981;">R$ '+totalGeral.toLocaleString('pt-BR',{minimumFractionDigits:2})+'</div>'+
+      '<div style="font-size:11px;color:#6b7280;">'+totalParcs+' parcelas previstas</div>';
+
+    document.getElementById('dash-prev-meses').innerHTML = sorted.map(([key,m]) => {
+      const pct = Math.round((m.total/maxVal)*100);
+      const isAtual = key === mesAtualKey;
+      const isPast = key < mesAtualKey;
+      const cor = isPast ? '#94a3b8' : (isAtual ? '#10b981' : '#6366f1');
+      const bg  = isPast ? '#f8fafc'  : (isAtual ? '#f0fdf4' : '#f5f3ff');
+      const border = isAtual ? '2px solid #10b981' : '1px solid #e5e7eb';
+      return `<div style="background:${bg};border:${border};border-radius:10px;padding:12px;text-align:center;">
+        <div style="font-size:10px;font-weight:700;color:${cor};text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">${m.label}${isAtual?' ◀':''}</div>
+        <div style="font-size:15px;font-weight:700;color:#111827;">R$ ${m.total.toLocaleString('pt-BR',{minimumFractionDigits:0})}</div>
+        <div style="font-size:11px;color:#6b7280;margin:2px 0 8px;">${m.qtd} parcela${m.qtd>1?'s':''}</div>
+        <div style="background:#e5e7eb;border-radius:4px;height:5px;overflow:hidden;">
+          <div style="background:${cor};width:${pct}%;height:100%;border-radius:4px;"></div>
+        </div>
+      </div>`;
+    }).join('') || '<div style="color:#94a3b8;text-align:center;padding:20px;grid-column:1/-1;">Nenhuma parcela cadastrada</div>';
 
   }catch(e){
     console.warn('Erro ao carregar CRM no dashboard:',e.message);
