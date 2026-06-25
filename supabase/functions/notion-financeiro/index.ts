@@ -50,6 +50,17 @@ function getDate(page: any, name: string): string {
   return getProp(page, name)?.date?.start ?? ''
 }
 
+// Mês nome PT → número para ordenação
+const MES_ORDER: Record<string, number> = {
+  janeiro: 1, fevereiro: 2, março: 3, abril: 4, maio: 5, junho: 6,
+  julho: 7, agosto: 8, setembro: 9, outubro: 10, novembro: 11, dezembro: 12,
+}
+
+function mesKey(mes: string, data: string): string {
+  // Usar data ISO (YYYY-MM-DD) como chave de ordenação
+  return data.substring(0, 7) // YYYY-MM
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
@@ -74,35 +85,59 @@ serve(async (req) => {
 
     const token = cfg.valor
 
-    // Consulta banco de dados Controle Financeiro
-    const result = await notionQuery(token, DB_FINANCEIRO, {
-      sorts: [{ property: 'Data de Fechamento', direction: 'ascending' }],
-      page_size: 100,
-    })
+    // Consulta banco de dados Controle Financeiro com paginação
+    let allPages: any[] = []
+    let cursor: string | undefined = undefined
 
-    const pages = result.results ?? []
+    do {
+      const body: any = {
+        sorts: [{ property: 'Data de Fechamento', direction: 'ascending' }],
+        page_size: 100,
+      }
+      if (cursor) body.start_cursor = cursor
 
-    // Mapeia cada linha para um objeto normalizado
-    const rows = pages
-      .map((p: any) => ({
-        mes:        getTitle(p, 'Mês / Referência'),
-        data:       getDate(p, 'Data de Fechamento'),
-        entrada:    getNumber(p, 'Entrada Total'),
-        saida:      getNumber(p, 'Saída Total'),
-        fluxo:      getNumber(p, 'Fluxo Caixa Team Santiago'),
-        consultoria:  getNumber(p, 'Consultoria Online'),
-        personal:     getNumber(p, 'Personal Trainer'),
-        gastos_fixo:  getNumber(p, 'Gastos Fixo'),
-        gastos_var:   getNumber(p, 'Gastos Variáveis'),
-        cartao:       getNumber(p, 'Cartão de Crédito'),
-        investimento: getNumber(p, 'Investimentos'),
-      }))
-      .filter((r: any) => r.mes || r.entrada)
+      const result = await notionQuery(token, DB_FINANCEIRO, body)
+      allPages = allPages.concat(result.results ?? [])
+      cursor = result.has_more ? result.next_cursor : undefined
+    } while (cursor)
 
-    // Retorna só os últimos N meses
-    const slice = rows.slice(-Math.max(1, meses))
+    // Agrupa por mês (chave = YYYY-MM da Data de Fechamento)
+    // Para dados semanais acumulados: pega o ÚLTIMO snapshot por mês (maior Data de Fechamento)
+    const monthMap = new Map<string, any>()
 
-    return json({ rows: slice })
+    for (const p of allPages) {
+      const mes   = getTitle(p, 'Mês / Referência')
+      const data  = getDate(p, 'Data de Fechamento')
+      if (!data) continue
+
+      const key = mesKey(mes, data)
+      const existing = monthMap.get(key)
+
+      // Mantém o registro com a data mais recente (snapshot final do mês)
+      if (!existing || data > existing.data) {
+        monthMap.set(key, {
+          mes,
+          data,
+          entrada:      getNumber(p, 'Entrada Total'),
+          saida:        getNumber(p, 'Saída Total'),
+          fluxo:        getNumber(p, 'Fluxo Caixa Team Santiago'),
+          consultoria:  getNumber(p, 'Consultoria Online'),
+          personal:     getNumber(p, 'Personal Trainer'),
+          gastos_fixo:  getNumber(p, 'Gastos Fixo'),
+          gastos_var:   getNumber(p, 'Gastos Variáveis'),
+          cartao:       getNumber(p, 'Cartão de Crédito'),
+          investimento: getNumber(p, 'Investimentos'),
+        })
+      }
+    }
+
+    // Ordena por data e pega os últimos N meses
+    const rows = Array.from(monthMap.values())
+      .sort((a, b) => a.data.localeCompare(b.data))
+      .filter((r) => r.entrada > 0 || r.saida > 0)
+      .slice(-Math.max(1, meses))
+
+    return json({ rows })
   } catch (e: any) {
     console.error('notion-financeiro error:', e)
     return json({ error: e.message }, 500)
