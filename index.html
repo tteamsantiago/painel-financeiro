@@ -1891,26 +1891,25 @@ function renderLeg(id,cats){
 
 function atualizarKPIs(mes){
   const d=DADOS[mes],ant=MANT[mes]?DADOS[MANT[mes]]:null;
+  if(!d)return;
   const res=d.e-d.s,mrg=(res/d.e)*100,pct=(d.s/d.e)*100;
-  document.getElementById('mes-label').textContent=MNOME[mes];
-  document.getElementById('kpi-e').textContent=fmt(d.e);
-  document.getElementById('kpi-s').textContent=fmt(d.s);
-  document.getElementById('kpi-r').textContent=fmt(res);
-  document.getElementById('kpi-m').textContent=mrg.toFixed(1)+'%';
+  const $=id=>document.getElementById(id);
+  if($('mes-label'))$('mes-label').textContent=MNOME[mes];
+  if($('kpi-e'))$('kpi-e').textContent=fmt(d.e);
+  if($('kpi-s'))$('kpi-s').textContent=fmt(d.s);
+  if($('kpi-r'))$('kpi-r').textContent=fmt(res);
+  if($('kpi-m'))$('kpi-m').textContent=mrg.toFixed(1)+'%';
   const vE=ant?((d.e-ant.e)/ant.e*100):null;
   const vS=ant?((d.s-ant.s)/ant.s*100):null;
-  const eE=document.getElementById('kpi-ev'),eS=document.getElementById('kpi-sv');
-  eE.textContent=vE!=null?`${vE>0?'↑':'↓'} ${vE>0?'+':''}${vE.toFixed(1)}% vs mês anterior`:'';
-  eE.className='kvar '+(vE>=0?'up':'dn');
-  eS.textContent=vS!=null?`${vS>0?'↑':'↓'} ${vS>0?'+':''}${vS.toFixed(1)}% vs mês anterior`:'';
-  eS.className='kvar '+(vS>=0?'up':'dn');
-  document.getElementById('kpi-m').closest('.kpi').className='kpi '+(mrg>=20?'verde':mrg>=0?'amarelo':'vermelho');
-  document.getElementById('kpi-r').closest('.kpi').className='kpi '+(res>=0?'azul':'vermelho');
-  const f=document.getElementById('prog-fill');
-  f.style.width=Math.min(pct,100)+'%';
-  f.style.background=pct>90?'#ef4444':pct>70?'#f59e0b':'#10b981';
-  document.getElementById('prog-pct').textContent=pct.toFixed(1)+'% das entradas comprometidas';
-  document.getElementById('prog-max').textContent=fmt(d.e);
+  const eE=$('kpi-ev'),eS=$('kpi-sv');
+  if(eE){eE.textContent=vE!=null?`${vE>0?'↑':'↓'} ${vE>0?'+':''}${vE.toFixed(1)}% vs mês anterior`:'';eE.className='kvar '+(vE>=0?'up':'dn');}
+  if(eS){eS.textContent=vS!=null?`${vS>0?'↑':'↓'} ${vS>0?'+':''}${vS.toFixed(1)}% vs mês anterior`:'';eS.className='kvar '+(vS>=0?'up':'dn');}
+  const kpiM=$('kpi-m');if(kpiM&&kpiM.closest('.kpi'))kpiM.closest('.kpi').className='kpi '+(mrg>=20?'verde':mrg>=0?'amarelo':'vermelho');
+  const kpiR=$('kpi-r');if(kpiR&&kpiR.closest('.kpi'))kpiR.closest('.kpi').className='kpi '+(res>=0?'azul':'vermelho');
+  const f=$('prog-fill');
+  if(f){f.style.width=Math.min(pct,100)+'%';f.style.background=pct>90?'#ef4444':pct>70?'#f59e0b':'#10b981';}
+  if($('prog-pct'))$('prog-pct').textContent=pct.toFixed(1)+'% das entradas comprometidas';
+  if($('prog-max'))$('prog-max').textContent=fmt(d.e);
 }
 
 function renderDashLanc(mes){
