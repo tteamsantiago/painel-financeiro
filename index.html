@@ -915,6 +915,107 @@ tbody tr:hover td{background:#f9fafb;}
     <div class="prog-scale"><span>R$ 0,00</span><span id="prog-max">—</span></div>
   </div>
 
+  <!-- Notion Financeiro -->
+  <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">📒 Controle Financeiro — Notion</div>
+  <div id="notion-fin-setup-banner" style="display:none;background:#fef3c7;border:1px solid #fbbf24;border-radius:10px;padding:14px 18px;margin-bottom:12px;font-size:13px;">
+    ⚙️ Configure o token do Notion em <strong>Configurações → Integrações</strong> para ver seus dados financeiros aqui.
+  </div>
+  <div id="notion-fin-card" class="card" style="padding:20px;display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h3 style="margin:0 0 2px;font-size:14px;">Fluxo de Caixa — Team Santiago</h3>
+        <p id="notion-fin-periodo" style="font-size:12px;color:#6b7280;margin:0;">Últimos meses</p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select id="notion-fin-meses" onchange="carregarNotionFinanceiro()" style="font-size:12px;padding:5px 8px;border:1px solid #e5e7eb;border-radius:7px;background:#fff;">
+          <option value="3">Últimos 3 meses</option>
+          <option value="6" selected>Últimos 6 meses</option>
+          <option value="12">Últimos 12 meses</option>
+        </select>
+      </div>
+    </div>
+    <!-- KPIs do mês mais recente -->
+    <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;" id="notion-fin-mes-label">Mês mais recente</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;">
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px;text-align:center;">
+        <div style="font-size:10px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Entradas</div>
+        <div id="nf-entradas" style="font-size:16px;font-weight:700;color:#15803d;">—</div>
+      </div>
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px;text-align:center;">
+        <div style="font-size:10px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Saídas</div>
+        <div id="nf-saidas" style="font-size:16px;font-weight:700;color:#dc2626;">—</div>
+      </div>
+      <div id="nf-lucro-card" style="background:#fefce8;border:1px solid #fde68a;border-radius:10px;padding:12px;text-align:center;">
+        <div style="font-size:10px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Lucro do Mês</div>
+        <div id="nf-lucro" style="font-size:16px;font-weight:700;color:#92400e;">—</div>
+      </div>
+      <div id="nf-resultado-card" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:12px;text-align:center;">
+        <div style="font-size:10px;font-weight:700;color:#0369a1;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Fluxo de Caixa</div>
+        <div id="nf-resultado" style="font-size:16px;font-weight:700;color:#0369a1;">—</div>
+      </div>
+    </div>
+    <!-- Gráfico histórico -->
+    <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Histórico mensal</div>
+    <div style="position:relative;height:180px;margin-bottom:20px;">
+      <canvas id="chart-notion-fin"></canvas>
+    </div>
+    <!-- Detalhamento do mês -->
+    <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Detalhamento — mês mais recente</div>
+    <div id="nf-detalhes" style="font-size:13px;"></div>
+  </div>
+
+  <!-- Previsão de Faturamento -->
+  <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">📈 Previsão de Faturamento</div>
+  <div class="card" style="padding:20px;margin-bottom:4px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h3 style="margin:0 0 2px;font-size:14px;">Receitas futuras mês a mês</h3>
+        <p style="font-size:12px;color:#6b7280;margin:0;">Parcelas do ClickUp — o que você tem a receber</p>
+      </div>
+      <div id="dash-prev-total" style="text-align:right;">
+        <div style="font-size:22px;font-weight:700;color:#10b981;">—</div>
+        <div style="font-size:11px;color:#6b7280;">total previsto</div>
+      </div>
+    </div>
+    <div id="dash-prev-meses" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;">
+      <div style="color:#94a3b8;text-align:center;padding:20px;grid-column:1/-1;">Carregando...</div>
+    </div>
+  </div>
+
+  <!-- Linha: Parcelas + Últimos lançamentos -->
+  <div class="g2" style="margin-top:16px;">
+    <div class="card">
+      <h3 style="display:flex;align-items:center;justify-content:space-between;">
+        ⏰ Próximas Parcelas (30 dias)
+        <span id="dash-parcelas-count" style="font-size:11px;font-weight:400;color:#94a3b8;"></span>
+      </h3>
+      <div id="dash-parcelas-list" style="font-size:13px;">
+        <div style="color:#94a3b8;text-align:center;padding:20px;">Carregando...</div>
+      </div>
+    </div>
+    <div class="card"><h3>📋 Últimos Lançamentos</h3><div id="dash-lanc"></div></div>
+  </div>
+
+  <!-- Gráficos -->
+  <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">📊 Análise Financeira</div>
+  <div class="g3">
+    <div class="card"><h3>Entradas vs Saídas (últimos 6 meses)</h3><canvas id="chart-barras" height="120"></canvas></div>
+    <div class="card"><h3>Saídas por Categoria</h3>
+      <div class="pz-wrap"><div class="pz-canvas"><canvas id="chart-ps"></canvas></div><div id="leg-s"></div></div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card"><h3>Entradas por Categoria</h3>
+      <div class="pz-wrap"><div class="pz-canvas"><canvas id="chart-pe"></canvas></div><div id="leg-e"></div></div>
+    </div>
+    <div class="card">
+      <h3>🔴 Alertas</h3>
+      <div id="dash-alertas" style="font-size:13px;">
+        <div style="color:#94a3b8;text-align:center;padding:20px;">Carregando...</div>
+      </div>
+    </div>
+  </div>
+
   <!-- KPIs CRM -->
   <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">👥 CRM — Visão Geral</div>
   <div class="kpi-grid">
@@ -938,102 +1039,6 @@ tbody tr:hover td{background:#f9fafb;}
       <div class="kv" id="dash-kpi-adorm">—</div>
       <div class="kvar" style="font-size:11px;color:#94a3b8;">Reativação pendente</div>
     </div>
-  </div>
-
-  <!-- Linha: Parcelas + Últimos lançamentos -->
-  <div class="g2" style="margin-top:16px;">
-    <div class="card">
-      <h3 style="display:flex;align-items:center;justify-content:space-between;">
-        ⏰ Próximas Parcelas (30 dias)
-        <span id="dash-parcelas-count" style="font-size:11px;font-weight:400;color:#94a3b8;"></span>
-      </h3>
-      <div id="dash-parcelas-list" style="font-size:13px;">
-        <div style="color:#94a3b8;text-align:center;padding:20px;">Carregando...</div>
-      </div>
-    </div>
-    <div class="card"><h3>📋 Últimos Lançamentos</h3><div id="dash-lanc"></div></div>
-  </div>
-
-  <!-- Previsão de Faturamento -->
-  <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">📈 Previsão de Faturamento</div>
-  <div class="card" style="padding:20px;margin-bottom:4px;">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
-      <div>
-        <h3 style="margin:0 0 2px;font-size:14px;">Receitas futuras mês a mês</h3>
-        <p style="font-size:12px;color:#6b7280;margin:0;">Parcelas do ClickUp — o que você tem a receber</p>
-      </div>
-      <div id="dash-prev-total" style="text-align:right;">
-        <div style="font-size:22px;font-weight:700;color:#10b981;">—</div>
-        <div style="font-size:11px;color:#6b7280;">total previsto</div>
-      </div>
-    </div>
-    <div id="dash-prev-meses" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;">
-      <div style="color:#94a3b8;text-align:center;padding:20px;grid-column:1/-1;">Carregando...</div>
-    </div>
-  </div>
-
-  <!-- Gráficos -->
-  <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">📊 Análise Financeira</div>
-  <div class="g3">
-    <div class="card"><h3>Entradas vs Saídas (últimos 6 meses)</h3><canvas id="chart-barras" height="120"></canvas></div>
-    <div class="card"><h3>Saídas por Categoria</h3>
-      <div class="pz-wrap"><div class="pz-canvas"><canvas id="chart-ps"></canvas></div><div id="leg-s"></div></div>
-    </div>
-  </div>
-  <div class="g2">
-    <div class="card"><h3>Entradas por Categoria</h3>
-      <div class="pz-wrap"><div class="pz-canvas"><canvas id="chart-pe"></canvas></div><div id="leg-e"></div></div>
-    </div>
-    <div class="card">
-      <h3>🔴 Alertas</h3>
-      <div id="dash-alertas" style="font-size:13px;">
-        <div style="color:#94a3b8;text-align:center;padding:20px;">Carregando...</div>
-      </div>
-    </div>
-  </div>
-  <!-- Notion Financeiro -->
-  <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">📒 Controle Financeiro — Notion</div>
-  <div id="notion-fin-setup-banner" style="display:none;background:#fef3c7;border:1px solid #fbbf24;border-radius:10px;padding:14px 18px;margin-bottom:12px;font-size:13px;">
-    ⚙️ Configure o token do Notion em <strong>Configurações → Integrações</strong> para ver seus dados financeiros aqui.
-  </div>
-  <div id="notion-fin-card" class="card" style="padding:20px;display:none;">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
-      <div>
-        <h3 style="margin:0 0 2px;font-size:14px;">Fluxo de Caixa — Team Santiago</h3>
-        <p id="notion-fin-periodo" style="font-size:12px;color:#6b7280;margin:0;">Últimos meses</p>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <select id="notion-fin-meses" onchange="carregarNotionFinanceiro()" style="font-size:12px;padding:5px 8px;border:1px solid #e5e7eb;border-radius:7px;background:#fff;">
-          <option value="3">Últimos 3 meses</option>
-          <option value="6" selected>Últimos 6 meses</option>
-          <option value="12">Últimos 12 meses</option>
-        </select>
-      </div>
-    </div>
-    <!-- KPIs do mês mais recente -->
-    <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;" id="notion-fin-mes-label">Mês mais recente</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;">
-      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px;text-align:center;">
-        <div style="font-size:10px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Entradas</div>
-        <div id="nf-entradas" style="font-size:16px;font-weight:700;color:#15803d;">—</div>
-      </div>
-      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px;text-align:center;">
-        <div style="font-size:10px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Saídas</div>
-        <div id="nf-saidas" style="font-size:16px;font-weight:700;color:#dc2626;">—</div>
-      </div>
-      <div id="nf-resultado-card" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:12px;text-align:center;">
-        <div style="font-size:10px;font-weight:700;color:#0369a1;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Fluxo de Caixa</div>
-        <div id="nf-resultado" style="font-size:16px;font-weight:700;color:#0369a1;">—</div>
-      </div>
-    </div>
-    <!-- Gráfico histórico -->
-    <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Histórico mensal</div>
-    <div style="position:relative;height:180px;margin-bottom:20px;">
-      <canvas id="chart-notion-fin"></canvas>
-    </div>
-    <!-- Detalhamento do mês -->
-    <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Detalhamento — mês mais recente</div>
-    <div id="nf-detalhes" style="font-size:13px;"></div>
   </div>
 
   <div class="demo-footer">⚠ Dados fictícios — apenas para demonstração visual</div>
@@ -2581,6 +2586,14 @@ async function carregarNotionFinanceiro() {
     document.getElementById('notion-fin-mes-label').textContent = ultimo.mes || 'Mês mais recente';
     document.getElementById('nf-entradas').textContent = fmt(ultimo.entrada);
     document.getElementById('nf-saidas').textContent   = fmt(ultimo.saida);
+    const lucro = (ultimo.entrada || 0) - (ultimo.saida || 0);
+    const lucroEl = document.getElementById('nf-lucro');
+    lucroEl.textContent = (lucro >= 0 ? '+' : '') + fmt(lucro);
+    lucroEl.style.color = lucro >= 0 ? '#92400e' : '#dc2626';
+    const lc = document.getElementById('nf-lucro-card');
+    lc.style.background  = lucro >= 0 ? '#fefce8' : '#fef2f2';
+    lc.style.borderColor = lucro >= 0 ? '#fde68a' : '#fecaca';
+
     const fluxo = (ultimo.fluxo || 0);
     const resEl  = document.getElementById('nf-resultado');
     resEl.textContent = (fluxo >= 0 ? '+' : '') + fmt(fluxo);
