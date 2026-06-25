@@ -991,45 +991,49 @@ tbody tr:hover td{background:#f9fafb;}
       </div>
     </div>
   </div>
-  <!-- Organizze Caixa -->
-  <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">🏦 Controle de Caixa — Organizze</div>
-  <div id="organizze-setup-banner" style="display:none;background:#fef3c7;border:1px solid #fbbf24;border-radius:10px;padding:14px 18px;margin-bottom:12px;font-size:13px;">
-    ⚙️ Configure suas credenciais do Organizze em <strong>Configurações → Integrações</strong> para ver seu caixa aqui.
+  <!-- Notion Financeiro -->
+  <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">📒 Controle Financeiro — Notion</div>
+  <div id="notion-fin-setup-banner" style="display:none;background:#fef3c7;border:1px solid #fbbf24;border-radius:10px;padding:14px 18px;margin-bottom:12px;font-size:13px;">
+    ⚙️ Configure o token do Notion em <strong>Configurações → Integrações</strong> para ver seus dados financeiros aqui.
   </div>
-  <div id="organizze-card" class="card" style="padding:20px;display:none;">
+  <div id="notion-fin-card" class="card" style="padding:20px;display:none;">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
       <div>
-        <h3 style="margin:0 0 2px;font-size:14px;">Saldo e fluxo de caixa</h3>
-        <p id="organizze-periodo" style="font-size:12px;color:#6b7280;margin:0;">Últimos 30 dias</p>
+        <h3 style="margin:0 0 2px;font-size:14px;">Fluxo de Caixa — Team Santiago</h3>
+        <p id="notion-fin-periodo" style="font-size:12px;color:#6b7280;margin:0;">Últimos meses</p>
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
-        <select id="organizze-days" onchange="carregarOrganizze()" style="font-size:12px;padding:5px 8px;border:1px solid #e5e7eb;border-radius:7px;background:#fff;">
-          <option value="30">Últimos 30 dias</option>
-          <option value="60">Últimos 60 dias</option>
-          <option value="90">Últimos 90 dias</option>
+        <select id="notion-fin-meses" onchange="carregarNotionFinanceiro()" style="font-size:12px;padding:5px 8px;border:1px solid #e5e7eb;border-radius:7px;background:#fff;">
+          <option value="3">Últimos 3 meses</option>
+          <option value="6" selected>Últimos 6 meses</option>
+          <option value="12">Últimos 12 meses</option>
         </select>
       </div>
     </div>
-    <!-- Saldo das contas -->
-    <div id="organizze-accounts" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:16px;"></div>
-    <!-- KPIs do período -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
+    <!-- KPIs do mês mais recente -->
+    <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;" id="notion-fin-mes-label">Mês mais recente</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;">
       <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px;text-align:center;">
         <div style="font-size:10px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Entradas</div>
-        <div id="org-entradas" style="font-size:16px;font-weight:700;color:#15803d;">—</div>
+        <div id="nf-entradas" style="font-size:16px;font-weight:700;color:#15803d;">—</div>
       </div>
       <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px;text-align:center;">
         <div style="font-size:10px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Saídas</div>
-        <div id="org-saidas" style="font-size:16px;font-weight:700;color:#dc2626;">—</div>
+        <div id="nf-saidas" style="font-size:16px;font-weight:700;color:#dc2626;">—</div>
       </div>
-      <div id="org-resultado-card" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:12px;text-align:center;">
-        <div style="font-size:10px;font-weight:700;color:#0369a1;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Resultado</div>
-        <div id="org-resultado" style="font-size:16px;font-weight:700;color:#0369a1;">—</div>
+      <div id="nf-resultado-card" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:12px;text-align:center;">
+        <div style="font-size:10px;font-weight:700;color:#0369a1;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Fluxo de Caixa</div>
+        <div id="nf-resultado" style="font-size:16px;font-weight:700;color:#0369a1;">—</div>
       </div>
     </div>
-    <!-- Transações recentes -->
-    <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Transações recentes</div>
-    <div id="organizze-tx" style="font-size:13px;"></div>
+    <!-- Gráfico histórico -->
+    <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Histórico mensal</div>
+    <div style="position:relative;height:180px;margin-bottom:20px;">
+      <canvas id="chart-notion-fin"></canvas>
+    </div>
+    <!-- Detalhamento do mês -->
+    <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Detalhamento — mês mais recente</div>
+    <div id="nf-detalhes" style="font-size:13px;"></div>
   </div>
 
   <div class="demo-footer">⚠ Dados fictícios — apenas para demonstração visual</div>
@@ -1294,20 +1298,23 @@ tbody tr:hover td{background:#f9fafb;}
           <strong>&#10003; ClickUp integrado automaticamente!</strong><br>
           Os dados do CRM (alunos, leads, parcelas) s&#227;o sincronizados diretamente do ClickUp via Supabase. Nenhuma configura&#231;&#227;o necess&#225;ria.
         </div>
-        <!-- Organizze -->
+        <!-- Notion Financeiro -->
         <div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px;margin-bottom:4px;">
-          <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:10px;">🏦 Organizze — Controle de Caixa</div>
-          <p style="font-size:12px;color:#6b7280;margin:0 0 12px;">Entre no app do Organizze → Menu → Perfil → API Key. Cole aqui para ver seu caixa no dashboard.</p>
-          <div class="fg" style="margin-bottom:8px;">
-            <label class="fl">E-mail do Organizze</label>
-            <input type="email" class="fi" id="organizze-email-input" placeholder="seu@email.com" oninput=""/>
+          <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">📒 Notion — Controle Financeiro</div>
+          <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:7px;padding:10px 12px;font-size:12px;color:#0369a1;margin-bottom:12px;line-height:1.6;">
+            <strong>Como configurar:</strong><br>
+            1. Acesse <strong>notion.so/my-integrations</strong> → "New integration"<br>
+            2. Dê um nome (ex: "Painel Financeiro"), selecione seu workspace → "Submit"<br>
+            3. Copie o <strong>Internal Integration Token</strong> (começa com <code>secret_</code>)<br>
+            4. No Notion, abra o banco de dados "Controle Financeiro" → "..." → "Add connection" → selecione sua integração<br>
+            5. Cole o token abaixo
           </div>
           <div class="fg" style="margin-bottom:10px;">
-            <label class="fl">API Key do Organizze</label>
-            <input type="password" class="fi" id="organizze-key-input" placeholder="Cole sua API Key aqui"/>
+            <label class="fl">Internal Integration Token</label>
+            <input type="password" class="fi" id="notion-token-input" placeholder="secret_..."/>
           </div>
-          <button class="btn bp" style="font-size:12px;padding:7px 16px;" onclick="salvarOrganizze()">Salvar credenciais</button>
-          <div id="organizze-cfg-status" style="font-size:12px;color:#6b7280;margin-top:8px;"></div>
+          <button class="btn bp" style="font-size:12px;padding:7px 16px;" onclick="salvarNotionToken()">Salvar token</button>
+          <div id="notion-cfg-status" style="font-size:12px;color:#6b7280;margin-top:8px;"></div>
         </div>
       </div>
     </div>
@@ -1836,9 +1843,9 @@ function irPara(p,el){
     renderDashLanc(mes);
     atualizarCharts(mes);
     carregarDashboardCRM();
-    carregarOrganizze();
+    carregarNotionFinanceiro();
   }
-  if(p==='configuracoes') carregarCfgOrganizze();
+  if(p==='configuracoes') carregarCfgNotion();
   if(p==='crm')carregarCRM();
   if(p==='contratos')initContratos();
   if(p==='equipe')carregarEquipe();
@@ -2520,100 +2527,119 @@ window.addEventListener('DOMContentLoaded',()=>{
   initAuth();
   loadCUTokenInput();
   carregarDashboardCRM();
-  carregarOrganizze();
+  carregarNotionFinanceiro();
   minTipoChange();
 });
 
 // ══════════════════════════════════════════════
 // Dashboard CRM — KPIs e Parcelas em destaque
 // ══════════════════════════════════════════════
-async function carregarCfgOrganizze() {
+async function carregarCfgNotion() {
   try {
-    const { data } = await sb.from('app_config').select('chave,valor').in('chave',['organizze_email','organizze_api_key']);
-    const email  = data?.find(r => r.chave === 'organizze_email')?.valor  || '';
-    const apiKey = data?.find(r => r.chave === 'organizze_api_key')?.valor || '';
-    const eEl = document.getElementById('organizze-email-input');
-    const kEl = document.getElementById('organizze-key-input');
-    if (eEl) eEl.value = email;
-    if (kEl && apiKey) kEl.value = '••••••••';
-    const status = document.getElementById('organizze-cfg-status');
-    if (status && email) { status.textContent = '✓ Credenciais configuradas'; status.style.color = '#10b981'; }
+    const { data } = await sb.from('app_config').select('chave,valor').eq('chave','notion_token');
+    const token = data?.[0]?.valor || '';
+    const el = document.getElementById('notion-token-input');
+    if (el && token) el.value = '••••••••••••••••';
+    const status = document.getElementById('notion-cfg-status');
+    if (status && token) { status.textContent = '✓ Token configurado'; status.style.color = '#10b981'; }
   } catch(e) {}
 }
 
-async function salvarOrganizze() {
-  const email  = document.getElementById('organizze-email-input').value.trim();
-  const apiKey = document.getElementById('organizze-key-input').value.trim();
-  const status = document.getElementById('organizze-cfg-status');
-  if (!email || !apiKey) { status.textContent = 'Preencha e-mail e API Key.'; status.style.color = '#dc2626'; return; }
+async function salvarNotionToken() {
+  const token  = document.getElementById('notion-token-input').value.trim();
+  const status = document.getElementById('notion-cfg-status');
+  if (!token || token === '••••••••••••••••') { status.textContent = 'Cole o token do Notion.'; status.style.color = '#dc2626'; return; }
   status.textContent = 'Salvando...'; status.style.color = '#6b7280';
   try {
-    await sb.from('app_config').upsert([
-      { chave: 'organizze_email',   valor: email,  atualizado_em: new Date().toISOString() },
-      { chave: 'organizze_api_key', valor: apiKey, atualizado_em: new Date().toISOString() },
-    ], { onConflict: 'chave' });
-    status.textContent = '✓ Credenciais salvas! Carregando dados...'; status.style.color = '#10b981';
-    await carregarOrganizze();
+    await sb.from('app_config').upsert({ chave: 'notion_token', valor: token, atualizado_em: new Date().toISOString() }, { onConflict: 'chave' });
+    status.textContent = '✓ Token salvo! Carregando dados...'; status.style.color = '#10b981';
+    await carregarNotionFinanceiro();
   } catch(e) {
-    status.textContent = 'Erro ao salvar: ' + e.message; status.style.color = '#dc2626';
+    status.textContent = 'Erro: ' + e.message; status.style.color = '#dc2626';
   }
 }
 
-async function carregarOrganizze() {
-  const days = parseInt(document.getElementById('organizze-days')?.value || '30');
-  const banner = document.getElementById('organizze-setup-banner');
-  const card   = document.getElementById('organizze-card');
+let chartNotionFin = null;
+async function carregarNotionFinanceiro() {
+  const meses  = parseInt(document.getElementById('notion-fin-meses')?.value || '6');
+  const banner = document.getElementById('notion-fin-setup-banner');
+  const card   = document.getElementById('notion-fin-card');
   try {
-    const sess = (await sb.auth.getSession()).data.session;
-    const res = await fnCall('organizze-data', { days });
+    const res = await fnCall('notion-financeiro', { meses });
     if (res.setup || res.error) {
       banner.style.display = 'block'; card.style.display = 'none'; return;
     }
     banner.style.display = 'none'; card.style.display = 'block';
 
-    // Contas bancárias
-    const accounts = res.accounts || [];
-    document.getElementById('organizze-accounts').innerHTML = accounts.length
-      ? accounts.map(a => `<div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:9px;padding:10px 12px;">
-          <div style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">${a.name}</div>
-          <div style="font-size:15px;font-weight:700;color:${a.balance>=0?'#10b981':'#dc2626'};">R$ ${a.balance.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
-        </div>`).join('')
-      : '<div style="color:#94a3b8;font-size:12px;">Nenhuma conta encontrada</div>';
+    const rows = res.rows || [];
+    if (!rows.length) return;
 
-    // KPIs
-    const fmt = v => 'R$ ' + Math.abs(v).toLocaleString('pt-BR', {minimumFractionDigits:2});
-    document.getElementById('org-entradas').textContent = fmt(res.totalEntradas || 0);
-    document.getElementById('org-saidas').textContent   = fmt(res.totalSaidas || 0);
-    const resultado = (res.resultado || 0);
-    const resEl = document.getElementById('org-resultado');
-    resEl.textContent = fmt(resultado);
-    resEl.style.color = resultado >= 0 ? '#0369a1' : '#dc2626';
-    document.getElementById('org-resultado-card').style.background = resultado >= 0 ? '#f0f9ff' : '#fef2f2';
-    document.getElementById('org-resultado-card').style.borderColor = resultado >= 0 ? '#bae6fd' : '#fecaca';
+    const fmt = v => 'R$ ' + Math.abs(v||0).toLocaleString('pt-BR', {minimumFractionDigits:2});
+    const ultimo = rows[rows.length - 1];
 
-    document.getElementById('organizze-periodo').textContent = `Últimos ${days} dias`;
+    // KPIs do mês mais recente
+    document.getElementById('notion-fin-mes-label').textContent = ultimo.mes || 'Mês mais recente';
+    document.getElementById('nf-entradas').textContent = fmt(ultimo.entrada);
+    document.getElementById('nf-saidas').textContent   = fmt(ultimo.saida);
+    const fluxo = (ultimo.fluxo || 0);
+    const resEl  = document.getElementById('nf-resultado');
+    resEl.textContent = (fluxo >= 0 ? '+' : '') + fmt(fluxo);
+    resEl.style.color = fluxo >= 0 ? '#0369a1' : '#dc2626';
+    const rc = document.getElementById('nf-resultado-card');
+    rc.style.background   = fluxo >= 0 ? '#f0f9ff' : '#fef2f2';
+    rc.style.borderColor  = fluxo >= 0 ? '#bae6fd' : '#fecaca';
 
-    // Transações recentes
-    const txList = res.recentTx || [];
-    document.getElementById('organizze-tx').innerHTML = txList.length
-      ? txList.map(t => {
-          const val = parseFloat(t.amount) || 0;
-          const cor = val >= 0 ? '#15803d' : '#dc2626';
-          const sinal = val >= 0 ? '+' : '';
-          const data = t.date ? t.date.split('T')[0].split('-').reverse().join('/') : '';
-          return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f3f4f6;">
-            <div>
-              <div style="font-size:13px;font-weight:500;color:#111827;">${t.description || '—'}</div>
-              <div style="font-size:11px;color:#9ca3af;">${data}${t.category?' · '+t.category:''}</div>
-            </div>
-            <div style="font-size:13px;font-weight:700;color:${cor};white-space:nowrap;margin-left:12px;">${sinal}R$ ${Math.abs(val).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
-          </div>`;
-        }).join('')
-      : '<div style="color:#94a3b8;text-align:center;padding:16px;font-size:13px;">Nenhuma transação no período</div>';
+    // Atualiza período
+    document.getElementById('notion-fin-periodo').textContent =
+      rows[0].mes + ' → ' + ultimo.mes;
+
+    // Gráfico histórico
+    const labels   = rows.map(r => r.mes);
+    const entradas = rows.map(r => r.entrada || 0);
+    const saidas   = rows.map(r => r.saida   || 0);
+    const ctx = document.getElementById('chart-notion-fin').getContext('2d');
+    if (chartNotionFin) chartNotionFin.destroy();
+    chartNotionFin = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Entradas', data: entradas, backgroundColor: '#86efac', borderRadius: 4 },
+          { label: 'Saídas',   data: saidas,   backgroundColor: '#fca5a5', borderRadius: 4 },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', labels: { font: { size: 11 } } } },
+        scales: {
+          x: { ticks: { font: { size: 10 } } },
+          y: { ticks: { font: { size: 10 }, callback: v => 'R$' + (v/1000).toFixed(0) + 'k' } }
+        }
+      }
+    });
+
+    // Detalhamento do mês mais recente
+    const cats = [
+      { k: 'consultoria',  label: 'Consultoria Online', cor: '#10b981', tipo: 'entrada' },
+      { k: 'personal',     label: 'Personal Trainer',   cor: '#f59e0b', tipo: 'saida'   },
+      { k: 'gastos_fixo',  label: 'Gastos Fixos',       cor: '#ef4444', tipo: 'saida'   },
+      { k: 'gastos_var',   label: 'Gastos Variáveis',   cor: '#f97316', tipo: 'saida'   },
+      { k: 'cartao',       label: 'Cartão de Crédito',  cor: '#8b5cf6', tipo: 'saida'   },
+      { k: 'investimento', label: 'Investimentos',      cor: '#3b82f6', tipo: 'saida'   },
+    ];
+    document.getElementById('nf-detalhes').innerHTML = cats
+      .filter(c => ultimo[c.k])
+      .map(c => `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f3f4f6;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:${c.cor};flex-shrink:0;"></div>
+          <span style="font-size:13px;color:#374151;">${c.label}</span>
+        </div>
+        <span style="font-size:13px;font-weight:600;color:${c.cor};">${c.tipo==='saida'?'- ':'+ '}${fmt(ultimo[c.k])}</span>
+      </div>`).join('') || '<div style="color:#94a3b8;text-align:center;padding:12px;font-size:13px;">Sem detalhes disponíveis</div>';
 
   } catch(e) {
     banner.style.display = 'block'; card.style.display = 'none';
-    console.error('Organizze:', e);
+    console.error('Notion financeiro:', e);
   }
 }
 
