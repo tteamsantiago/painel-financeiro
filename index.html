@@ -1546,10 +1546,16 @@ tbody tr:hover td{background:#f9fafb;}
     <div style="display:flex;gap:12px;align-items:flex-start;">
       <svg width="22" height="22" fill="none" stroke="#d97706" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       <div style="flex:1;">
-        <p style="font-weight:600;color:#92400e;margin:0 0 4px;">Chave Windsor invalida ou expirada — atualize para ver as metricas</p>
-        <p style="font-size:13px;color:#b45309;margin:0 0 14px;">Va em <strong>app.windsor.ai</strong> → Settings → API Keys → copie a sua chave e cole abaixo (diferente do login OAuth)</p>
+        <p style="font-weight:600;color:#92400e;margin:0 0 6px;">Chave Windsor invalida ou expirada</p>
+        <ol style="font-size:13px;color:#b45309;margin:0 0 14px;padding-left:20px;line-height:1.8;">
+          <li>Acesse <strong>app.windsor.ai</strong> e faca login</li>
+          <li>Va em <strong>Settings → API Keys</strong></li>
+          <li>Clique em <strong>Create API Key</strong> (ou copie uma existente)</li>
+          <li>Cole a chave abaixo e clique em Salvar</li>
+        </ol>
+        <p style="font-size:11px;color:#b45309;margin:0 0 10px;background:#fde68a;padding:6px 10px;border-radius:6px;">Atencao: a chave da API e diferente do token OAuth/conexao. Precisa ser uma API Key de Settings.</p>
         <div style="display:flex;gap:8px;">
-          <input id="ig-key-input" type="password" placeholder="Windsor API Key" style="flex:1;padding:8px 12px;border:1px solid #fde68a;border-radius:6px;font-size:13px;background:#fffbeb;">
+          <input id="ig-key-input" type="text" placeholder="Cole aqui a Windsor API Key" style="flex:1;padding:8px 12px;border:1px solid #fde68a;border-radius:6px;font-size:13px;background:#fffbeb;">
           <button onclick="salvarWindsorKey()" class="btn" style="background:#d97706;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">Salvar</button>
         </div>
       </div>
@@ -3039,8 +3045,20 @@ function imgError(el, type) {
     d.style.cssText = 'width:36px;height:36px;border-radius:50%;background:#e0e7ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;';
     d.textContent = '👤';
   } else {
-    d.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f3f4f6;';
-    d.innerHTML = '<svg width="32" height="32" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>';
+    // Thumb fallback: mostra tipo + legenda para identificar o post
+    const label = el.dataset.label || '';
+    const labelBg = el.dataset.labelbg || '#6366f1';
+    const caption = el.dataset.caption || '';
+    const date = el.dataset.date || '';
+    const link = el.dataset.link || '#';
+    d.style.cssText = 'width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f8fafc;padding:12px;box-sizing:border-box;text-align:center;gap:6px;cursor:pointer;';
+    d.innerHTML = `
+      ${label ? `<span style="background:${labelBg};color:#fff;font-size:9px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:.5px;">${label}</span>` : ''}
+      <svg width="28" height="28" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#d1d5db" stroke="none"/></svg>
+      ${date ? `<span style="font-size:10px;color:#9ca3af;">${date}</span>` : ''}
+      ${caption ? `<span style="font-size:10px;color:#6b7280;line-height:1.3;max-height:40px;overflow:hidden;">${caption.slice(0,55)}${caption.length>55?'...':''}</span>` : ''}
+      ${link !== '#' ? `<a href="${link}" target="_blank" onclick="event.stopPropagation()" style="font-size:10px;color:#6366f1;text-decoration:none;margin-top:2px;">Abrir no Instagram ↗</a>` : ''}
+    `;
   }
   el.parentNode.insertBefore(d, el);
 }
@@ -3196,9 +3214,20 @@ async function carregarMeusPosts() {
 
     const engRate = reach > 0 ? ((eng / reach) * 100).toFixed(1) + '%' : '—';
 
+    // Proxy para contornar expiração/CORS de CDN do Instagram
+    const thumbProxy = thumb ? `https://wsrv.nl/?url=${encodeURIComponent(thumb)}&w=400&h=400&fit=cover` : '';
+    const captionEsc = caption.replace(/"/g, '&quot;');
     html += `<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;">
       <div style="position:relative;aspect-ratio:1;background:#f9fafb;overflow:hidden;flex-shrink:0;">
-        ${thumb ? `<img src="${thumb}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;" onerror="imgError(this,'thumb')">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f3f4f6;font-size:32px;">📷</div>'}
+        ${thumbProxy
+          ? `<img src="${thumbProxy}" referrerpolicy="no-referrer" crossorigin="anonymous"
+               data-label="${typeLabel}" data-labelbg="${typeBg}" data-caption="${captionEsc}" data-date="${date}" data-link="${link}"
+               style="width:100%;height:100%;object-fit:cover;" onerror="imgError(this,'thumb')">`
+          : `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f8fafc;gap:6px;padding:12px;text-align:center;">
+               <span style="background:${typeBg};color:#fff;font-size:9px;font-weight:700;padding:3px 8px;border-radius:4px;">${typeLabel}</span>
+               <svg width="28" height="28" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>
+               <span style="font-size:10px;color:#9ca3af;">${date}</span>
+             </div>`}
         <div style="position:absolute;top:6px;left:6px;background:${typeBg};color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;">${typeLabel}</div>
         <div style="position:absolute;top:6px;right:6px;background:${perfBg};color:${perfColor};font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;border:1px solid ${perfColor};">${perfLabel}</div>
       </div>
@@ -3215,7 +3244,7 @@ async function carregarMeusPosts() {
         ${isReel && avgWatchSec > 0 ? `<div style="font-size:10px;color:#7c3aed;margin-top:2px;">⏱ Tempo medio: ${avgWatchSec}s</div>` : ''}
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
           ${reach > 0 ? `<span style="font-size:10px;color:#6b7280;">Taxa eng: <strong style="color:#374151;">${engRate}</strong></span>` : '<span></span>'}
-          <a href="${link}" target="_blank" style="font-size:10px;color:#6366f1;text-decoration:none;">Ver ↗</a>
+          <a href="${link}" target="_blank" style="font-size:10px;color:#6366f1;text-decoration:none;font-weight:600;">Abrir ↗</a>
         </div>
       </div>
     </div>`;
