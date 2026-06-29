@@ -118,24 +118,55 @@ serve(async (req) => {
         }
 
       } else if (tipo === 'hashtag') {
-        // Busca posts com a hashtag e retorna autores como leads
+        // Busca posts com a hashtag e retorna comentadores como leads
+        // (o Instagram não expõe ownerUsername em buscas de hashtag, mas expõe comentadores)
         debug.push(`Buscando posts com #${busca}...`)
         const posts = await apifyRun(token, 'apify~instagram-scraper', {
-          directUrls: [],
-          searchType: 'hashtag',
-          searchLimit: Math.min(limite * 3, 150),
-          search: busca,
+          directUrls: [`https://www.instagram.com/explore/tags/${encodeURIComponent(busca)}/`],
+          resultsType: 'posts',
+          resultsLimit: Math.min(limite * 3, 60),
           proxy: { useApifyProxy: true, apifyProxyGroups: ['RESIDENTIAL'] },
         })
         debug.push(`${posts.length} posts encontrados`)
 
-        const usernames = [...new Set(
-          posts.map((p: any) => p.ownerUsername || p.owner?.username || p.username).filter(Boolean)
-        )].slice(0, 50) as string[]
+        // Tenta extrair autores dos posts
+        const autores = [...new Set(
+          posts.map((p: any) =>
+            p.ownerUsername || p.owner?.username || p.username || p.author?.username
+          ).filter(Boolean)
+        )] as string[]
 
-        debug.push(`${usernames.length} autores únicos — carregando perfis...`)
-        rawItems = await fetchProfiles(token, usernames)
-        debug.push(`${rawItems.length} perfis carregados`)
+        if (autores.length > 0) {
+          debug.push(`${autores.length} autores encontrados — carregando perfis...`)
+          rawItems = await fetchProfiles(token, autores.slice(0, 50))
+          debug.push(`${rawItems.length} perfis carregados`)
+        } else {
+          // Fallback: busca comentadores dos posts encontrados
+          debug.push(`Autores nao disponiveis — buscando comentadores dos posts...`)
+          const postUrls = posts.map((p: any) =>
+            p.url || (p.shortCode ? `https://www.instagram.com/p/${p.shortCode}/` : '')
+          ).filter(Boolean).slice(0, 4)
+
+          if (postUrls.length === 0) {
+            debug.push(`Nenhuma URL de post disponivel`)
+          } else {
+            debug.push(`Buscando comentarios de ${postUrls.length} posts...`)
+            const comments = await apifyRun(token, 'apify~instagram-comment-scraper', {
+              directUrls: postUrls,
+              resultsLimit: Math.min(limite * 6, 300),
+              proxy: { useApifyProxy: true, apifyProxyGroups: ['RESIDENTIAL'] },
+            })
+            debug.push(`${comments.length} comentarios encontrados`)
+
+            const commenters = [...new Set(
+              comments.map((c: any) => c.ownerUsername || c.username || c.owner?.username).filter(Boolean)
+            )].slice(0, 50) as string[]
+
+            debug.push(`${commenters.length} comentadores unicos — carregando perfis...`)
+            rawItems = await fetchProfiles(token, commenters)
+            debug.push(`${rawItems.length} perfis carregados`)
+          }
+        }
 
       } else if (tipo === 'post-comentadores') {
         // Busca comentadores de um post/reel

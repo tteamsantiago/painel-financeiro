@@ -3350,7 +3350,7 @@ async function minerarLeads() {
     '</div>';
   html += '</div><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">';
 
-  if (minAtualPlataforma === 'instagram' && (tipo === 'perfil' || tipo === 'post-comentadores')) {
+  if (minAtualPlataforma === 'instagram' && (tipo === 'perfil' || tipo === 'post-comentadores' || tipo === 'hashtag')) {
     html += '<thead><tr style="background:#f9fafb;"><th style="text-align:left;padding:10px 14px;font-weight:600;color:#374151;">Perfil</th><th style="text-align:left;padding:10px 14px;font-weight:600;color:#374151;">Bio</th><th style="text-align:right;padding:10px 14px;font-weight:600;color:#374151;">Seguidores</th><th style="text-align:right;padding:10px 14px;font-weight:600;color:#374151;">Posts</th><th style="text-align:center;padding:10px 14px;font-weight:600;color:#374151;">Link</th></tr></thead><tbody>';
     items.forEach((item, i) => {
       const bg = i % 2 === 0 ? '' : 'background:#fafafa;';
