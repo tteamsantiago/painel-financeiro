@@ -1528,71 +1528,7 @@ tbody tr:hover td{background:#f9fafb;}
 </div>
 <div class="page" id="page-instagram">
   <div class="ph">
-    <div><h2>Instagram</h2><p>Métricas da sua conta conectada via Windsor</p></div>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <select id="ig-periodo" onchange="carregarInstagram()" style="padding:7px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff;cursor:pointer;">
-        <option value="30">Últimos 30 dias</option>
-        <option value="14">Últimos 14 dias</option>
-        <option value="7">Últimos 7 dias</option>
-        <option value="60">Últimos 60 dias</option>
-      </select>
-      <button onclick="carregarInstagram()" class="btn bp" style="display:flex;align-items:center;gap:6px;">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>Atualizar
-      </button>
-    </div>
-  </div>
-
-  <div id="ig-setup-banner" style="display:none;background:#fef3c7;border:1px solid #fde68a;border-radius:12px;padding:20px 24px;margin-bottom:24px;">
-    <div style="display:flex;gap:12px;align-items:flex-start;">
-      <svg width="22" height="22" fill="none" stroke="#d97706" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <div style="flex:1;">
-        <p style="font-weight:600;color:#92400e;margin:0 0 6px;">Chave Windsor invalida ou expirada</p>
-        <ol style="font-size:13px;color:#b45309;margin:0 0 14px;padding-left:20px;line-height:1.8;">
-          <li>Acesse <strong>app.windsor.ai</strong> e faca login</li>
-          <li>Va em <strong>Settings → API Keys</strong></li>
-          <li>Clique em <strong>Create API Key</strong> (ou copie uma existente)</li>
-          <li>Cole a chave abaixo e clique em Salvar</li>
-        </ol>
-        <p style="font-size:11px;color:#b45309;margin:0 0 10px;background:#fde68a;padding:6px 10px;border-radius:6px;">Atencao: a chave da API e diferente do token OAuth/conexao. Precisa ser uma API Key de Settings.</p>
-        <div style="display:flex;gap:8px;">
-          <input id="ig-key-input" type="text" placeholder="Cole aqui a Windsor API Key" style="flex:1;padding:8px 12px;border:1px solid #fde68a;border-radius:6px;font-size:13px;background:#fffbeb;">
-          <button onclick="salvarWindsorKey()" class="btn" style="background:#d97706;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">Salvar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="ig-loading" style="display:none;text-align:center;padding:60px;color:#6b7280;">
-    <svg width="32" height="32" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 12px;animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
-    Carregando métricas do Instagram...
-  </div>
-
-  <div id="ig-conteudo" style="display:none;">
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;">
-      <div class="kpi azul"><div class="kpi-label">Seguidores</div><div class="kpi-val" id="ig-kpi-seg">—</div></div>
-      <div class="kpi verde"><div class="kpi-label">Alcance (período)</div><div class="kpi-val" id="ig-kpi-alcance">—</div></div>
-      <div class="kpi amarelo"><div class="kpi-label">Contas engajadas</div><div class="kpi-val" id="ig-kpi-imp">—</div></div>
-      <div class="kpi cinza"><div class="kpi-label">Visitas ao Perfil</div><div class="kpi-val" id="ig-kpi-visitas">—</div></div>
-    </div>
-
-    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px;">
-      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;">
-        <h3 style="font-size:14px;font-weight:600;color:#374151;margin:0 0 16px;">Alcance e Impressões por dia</h3>
-        <canvas id="chart-ig-linha" height="180"></canvas>
-      </div>
-      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;">
-        <h3 style="font-size:14px;font-weight:600;color:#374151;margin:0 0 16px;">Visitas ao Perfil</h3>
-        <canvas id="chart-ig-visitas" height="180"></canvas>
-      </div>
-    </div>
-
-    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-        <h3 style="font-size:14px;font-weight:600;color:#374151;margin:0;">Evolução de Seguidores</h3>
-        <span id="ig-conta-nome" style="font-size:12px;color:#6b7280;"></span>
-      </div>
-      <canvas id="chart-ig-seguidores" height="120"></canvas>
-    </div>
+    <div><h2>Instagram</h2><p>Análise de posts via Apify</p></div>
   </div>
 
   <div id="ig-posts-area" style="margin-top:24px;">
@@ -1846,7 +1782,7 @@ function irPara(p,el){
   if(p==='crm')carregarCRM();
   if(p==='contratos')initContratos();
   if(p==='equipe')carregarEquipe();
-  if(p==='instagram')carregarInstagram();
+  if(p==='instagram'){/* posts carregados manualmente pelo botão */}
   if(p==='minerador'){
     fnCall('apify-leads',{plataforma:'instagram',tipo:'check'}).then(d=>{if(d.setup)document.getElementById('min-setup-banner').style.display='block';});
   }
@@ -3013,9 +2949,8 @@ async function desativarColab(email){
 }
 
 // ══════════════════════════════════════════════
-// INSTAGRAM — Windsor
+// INSTAGRAM — Apify
 // ══════════════════════════════════════════════
-let chartIgLinha = null, chartIgVisitas = null, chartIgSeg = null;
 const FN = 'https://fhuromvcoujzmikxxjnv.supabase.co/functions/v1';
 
 async function fnCall(endpoint, body) {
@@ -3026,16 +2961,6 @@ async function fnCall(endpoint, body) {
     body: JSON.stringify(body)
   });
   return res.json();
-}
-
-async function salvarWindsorKey() {
-  const key = document.getElementById('ig-key-input').value.trim();
-  if (!key) { toast('Cole a API Key do Windsor', 'erro'); return; }
-  const { error } = await sb.from('app_config').upsert({ chave: 'windsor_api_key', valor: key, atualizado_em: new Date().toISOString() });
-  if (error) { toast('Erro ao salvar: ' + error.message, 'erro'); return; }
-  toast('Windsor conectado!', 'sucesso');
-  document.getElementById('ig-setup-banner').style.display = 'none';
-  carregarInstagram();
 }
 
 function imgError(el, type) {
@@ -3061,77 +2986,6 @@ function imgError(el, type) {
     `;
   }
   el.parentNode.insertBefore(d, el);
-}
-
-async function carregarInstagram() {
-  const days = parseInt(document.getElementById('ig-periodo')?.value || 30);
-  document.getElementById('ig-loading').style.display = 'block';
-  document.getElementById('ig-conteudo').style.display = 'none';
-  document.getElementById('ig-setup-banner').style.display = 'none';
-
-  const data = await fnCall('instagram-windsor', { days });
-  document.getElementById('ig-loading').style.display = 'none';
-
-  if (data.setup || data.error) {
-    document.getElementById('ig-setup-banner').style.display = 'block';
-    return;
-  }
-
-  const rows = (data.data || []).filter(r => r.date).sort((a,b) => a.date > b.date ? 1 : -1);
-  if (!rows.length) { toast('Sem dados para o período selecionado', 'erro'); return; }
-
-  const soma = (campo) => rows.reduce((acc, r) => acc + (parseFloat(r[campo]) || 0), 0);
-  const ultimo = rows[rows.length - 1];
-
-  // follower_count no Windsor = novos seguidores/dia; exibimos o total do período
-  const novosSegs = soma('follower_count');
-  const totalAlcance = soma('reach');
-  const totalImp = soma('impressions');
-  const totalVisitas = soma('profile_views') || soma('accounts_engaged');
-
-  document.getElementById('ig-kpi-seg').textContent = '+' + parseInt(novosSegs).toLocaleString('pt-BR');
-  document.getElementById('ig-kpi-alcance').textContent = parseInt(totalAlcance).toLocaleString('pt-BR');
-  const totalEng = soma('accounts_engaged');
-  document.getElementById('ig-kpi-imp').textContent = totalEng > 0 ? parseInt(totalEng).toLocaleString('pt-BR') : (totalImp > 0 ? parseInt(totalImp).toLocaleString('pt-BR') : '—');
-  document.getElementById('ig-kpi-visitas').textContent = totalVisitas > 0 ? parseInt(totalVisitas).toLocaleString('pt-BR') : '—';
-  document.getElementById('ig-conta-nome').textContent = '@' + (ultimo.account_name || '');
-
-  // Atualiza labels dos KPIs
-  const kpis = document.querySelectorAll('#ig-conteudo .kpi-label');
-  if (kpis[0]) kpis[0].textContent = 'Novos seguidores';
-
-  const labels = rows.map(r => r.date.slice(5));
-  const alcance = rows.map(r => parseFloat(r.reach) || 0);
-  const impressoes = rows.map(r => parseFloat(r.impressions) || 0);
-  const visitas = rows.map(r => parseFloat(r.profile_views) || parseFloat(r.accounts_engaged) || 0);
-  const segDiario = rows.map(r => parseFloat(r.follower_count) || 0);
-
-  if (chartIgLinha) chartIgLinha.destroy();
-  const engajamento = rows.map(r => parseFloat(r.accounts_engaged) || 0);
-  const datasets = [{ label: 'Alcance', data: alcance, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.08)', tension: 0.4, fill: true }];
-  if (engajamento.some(v => v > 0)) datasets.push({ label: 'Engajamento', data: engajamento, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)', tension: 0.4, fill: true });
-  else if (impressoes.some(v => v > 0)) datasets.push({ label: 'Impressões', data: impressoes, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.08)', tension: 0.4, fill: true });
-  chartIgLinha = new Chart(document.getElementById('chart-ig-linha').getContext('2d'), {
-    type: 'line',
-    data: { labels, datasets },
-    options: { responsive: true, plugins: { legend: { labels: { font: { size: 11 } } } }, scales: { y: { ticks: { font: { size: 10 } }, grid: { color: '#f3f4f6' } }, x: { ticks: { font: { size: 10 }, maxTicksLimit: 10 }, grid: { display: false } } } }
-  });
-
-  if (chartIgVisitas) chartIgVisitas.destroy();
-  chartIgVisitas = new Chart(document.getElementById('chart-ig-visitas').getContext('2d'), {
-    type: 'bar',
-    data: { labels, datasets: [{ label: visitas.some(v=>v>0)?'Visitas ao perfil':'Engajamento', data: visitas.some(v=>v>0)?visitas:segDiario, backgroundColor: '#10b981', borderRadius: 3 }] },
-    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { ticks: { font: { size: 10 } }, grid: { color: '#f3f4f6' } }, x: { ticks: { font: { size: 10 }, maxTicksLimit: 8 }, grid: { display: false } } } }
-  });
-
-  if (chartIgSeg) chartIgSeg.destroy();
-  chartIgSeg = new Chart(document.getElementById('chart-ig-seguidores').getContext('2d'), {
-    type: 'bar',
-    data: { labels, datasets: [{ label: 'Novos seguidores/dia', data: segDiario, backgroundColor: '#e1306c', borderRadius: 3 }] },
-    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { ticks: { font: { size: 10 } }, grid: { color: '#f3f4f6' } }, x: { ticks: { font: { size: 10 }, maxTicksLimit: 10 }, grid: { display: false } } } }
-  });
-
-  document.getElementById('ig-conteudo').style.display = 'block';
 }
 
 async function carregarMeusPosts() {
