@@ -2601,6 +2601,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   loadCUTokenInput();
   carregarDashboardCRM();
   carregarNotionFinanceiro();
+  carregarOrganizze();
   minTipoChange();
 });
 
@@ -2818,14 +2819,14 @@ async function carregarOrganizze() {
     const txEl = document.getElementById('org-transacoes');
     if (txEl && res.recentTx && res.recentTx.length) {
       txEl.innerHTML = res.recentTx.slice(0, 15).map(t => {
-        const isEntrada = (t.amount_cents || t.valor || 0) > 0;
-        const val = Math.abs(t.amount_cents ? t.amount_cents / 100 : (t.valor || 0));
+        const isEntrada = (t.amount || 0) > 0;
+        const val = Math.abs(t.amount || 0);
         const d = t.date ? new Date(t.date+'T12:00:00') : null;
         const dt = d ? String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') : '—';
         return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f3f4f6;">
           <div>
-            <div style="color:#374151;font-size:12px;">${t.description || t.descricao || '—'}</div>
-            <div style="color:#94a3b8;font-size:11px;">${dt}${t.category_name ? ' · ' + t.category_name : ''}</div>
+            <div style="color:#374151;font-size:12px;">${t.description || '—'}</div>
+            <div style="color:#94a3b8;font-size:11px;">${dt}${t.category ? ' · ' + t.category : ''}</div>
           </div>
           <span style="font-weight:600;font-size:13px;color:${isEntrada?'#16a34a':'#dc2626'};white-space:nowrap;margin-left:12px;">${isEntrada?'+':'-'}${fmtBRL(val)}</span>
         </div>`;
