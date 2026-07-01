@@ -950,6 +950,55 @@ tbody tr:hover td{background:#f9fafb;}
     <div id="nf-detalhes" style="font-size:13px;"></div>
   </div>
 
+  <!-- Organizze — Saldo Real -->
+  <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">💰 Caixa Real — Organizze</div>
+  <div id="org-setup-banner" style="display:none;background:#fef3c7;border:1px solid #fbbf24;border-radius:10px;padding:14px 18px;margin-bottom:12px;font-size:13px;">
+    ⚙️ Configure o <strong>Organizze Email</strong> e <strong>API Key</strong> em <strong>Configurações → Integrações</strong> para ver seu saldo real aqui.
+  </div>
+  <div id="org-loading" style="display:none;text-align:center;padding:32px;color:#6b7280;font-size:13px;">
+    <svg width="24" height="24" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 10px;animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+    Carregando dados Organizze...
+  </div>
+  <div id="org-card" style="display:none;">
+    <!-- KPIs -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:12px;">
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:10px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Saldo Total</div>
+        <div id="org-saldo" style="font-size:18px;font-weight:700;color:#15803d;">—</div>
+      </div>
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:10px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Entradas</div>
+        <div id="org-entradas" style="font-size:18px;font-weight:700;color:#16a34a;">—</div>
+      </div>
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:10px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Saídas</div>
+        <div id="org-saidas" style="font-size:18px;font-weight:700;color:#dc2626;">—</div>
+      </div>
+      <div id="org-resultado-card" style="background:#fefce8;border:1px solid #fde68a;border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:10px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Resultado</div>
+        <div id="org-resultado" style="font-size:18px;font-weight:700;color:#92400e;">—</div>
+      </div>
+    </div>
+    <!-- Contas -->
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:12px;">
+      <h3 style="margin:0 0 10px;font-size:13px;font-weight:600;color:#374151;">Contas</h3>
+      <div id="org-contas" style="font-size:13px;display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+    <!-- Últimas transações -->
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:4px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+        <h3 style="margin:0;font-size:13px;font-weight:600;color:#374151;">Últimas Transações</h3>
+        <select id="org-days-select" onchange="carregarOrganizze()" style="font-size:12px;padding:5px 8px;border:1px solid #e5e7eb;border-radius:7px;background:#fff;">
+          <option value="30" selected>Últimos 30 dias</option>
+          <option value="60">Últimos 60 dias</option>
+          <option value="90">Últimos 90 dias</option>
+        </select>
+      </div>
+      <div id="org-transacoes" style="font-size:13px;"></div>
+    </div>
+    <p id="org-updated" style="font-size:11px;color:#94a3b8;margin:6px 0 0;"></p>
+  </div>
+
   <!-- Previsão de Faturamento -->
   <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">📈 Previsão de Faturamento</div>
   <div class="card" style="padding:20px;margin-bottom:4px;">
@@ -1307,6 +1356,43 @@ tbody tr:hover td{background:#f9fafb;}
           <button class="btn bp" style="font-size:12px;padding:7px 16px;" onclick="salvarNotionToken()">Salvar token</button>
           <div id="notion-cfg-status" style="font-size:12px;color:#6b7280;margin-top:8px;"></div>
         </div>
+
+        <!-- Windsor Instagram -->
+        <div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px;margin-bottom:4px;margin-top:12px;">
+          <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">📊 Windsor AI — Métricas Instagram</div>
+          <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:7px;padding:10px 12px;font-size:12px;color:#0369a1;margin-bottom:12px;line-height:1.6;">
+            <strong>Como obter a chave Windsor:</strong><br>
+            1. Acesse <strong>windsor.ai</strong> → Login → Settings<br>
+            2. Copie sua <strong>API Key</strong> (já configurada no servidor se vier de sessões anteriores)
+          </div>
+          <div class="fg" style="margin-bottom:10px;">
+            <label class="fl">Windsor API Key</label>
+            <input type="password" class="fi" id="windsor-key-input" placeholder="sua-chave-windsor"/>
+          </div>
+          <button class="btn bp" style="font-size:12px;padding:7px 16px;" onclick="salvarWindsorKey()">Salvar chave</button>
+          <div id="windsor-cfg-status" style="font-size:12px;color:#6b7280;margin-top:8px;"></div>
+        </div>
+
+        <!-- Organizze -->
+        <div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px;margin-top:12px;">
+          <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">💰 Organizze — Financeiro Real</div>
+          <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:7px;padding:10px 12px;font-size:12px;color:#0369a1;margin-bottom:12px;line-height:1.6;">
+            <strong>Como configurar:</strong><br>
+            1. Acesse <strong>app.organizze.com.br</strong> → Perfil → API<br>
+            2. Gere sua API Key (botão "Gerar nova chave")<br>
+            3. Use o mesmo e-mail do login do Organizze
+          </div>
+          <div class="fg" style="margin-bottom:10px;">
+            <label class="fl">E-mail do Organizze</label>
+            <input type="email" class="fi" id="organizze-email-input" placeholder="seu@email.com"/>
+          </div>
+          <div class="fg" style="margin-bottom:10px;">
+            <label class="fl">API Key do Organizze</label>
+            <input type="password" class="fi" id="organizze-key-input" placeholder="sua-api-key"/>
+          </div>
+          <button class="btn bp" style="font-size:12px;padding:7px 16px;" onclick="salvarOrganizze()">Salvar credenciais</button>
+          <div id="organizze-cfg-status" style="font-size:12px;color:#6b7280;margin-top:8px;"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1528,10 +1614,64 @@ tbody tr:hover td{background:#f9fafb;}
 </div>
 <div class="page" id="page-instagram">
   <div class="ph">
-    <div><h2>Instagram</h2><p>Análise de posts via Apify</p></div>
+    <div><h2>Instagram</h2><p>Métricas da conta e análise de posts</p></div>
   </div>
 
-  <div id="ig-posts-area" style="margin-top:24px;">
+  <!-- WINDSOR: Métricas da conta -->
+  <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">📊 Métricas da Conta — Windsor</div>
+  <div id="ig-windsor-setup" style="display:none;background:#fef3c7;border:1px solid #fbbf24;border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:13px;">
+    ⚙️ Configure sua <strong>Windsor API Key</strong> em <strong>Configurações → Integrações</strong> para ver métricas do Instagram aqui.
+  </div>
+  <div id="ig-windsor-loading" style="display:none;text-align:center;padding:32px;color:#6b7280;font-size:13px;">
+    <svg width="24" height="24" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 10px;animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+    Carregando métricas Windsor...
+  </div>
+  <div id="ig-windsor-content" style="display:none;">
+    <!-- KPIs -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:16px;">
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Seguidores</div>
+        <div id="ig-w-followers" style="font-size:20px;font-weight:700;color:#1e293b;">—</div>
+      </div>
+      <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:10px;font-weight:700;color:#0369a1;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Alcance</div>
+        <div id="ig-w-reach" style="font-size:20px;font-weight:700;color:#0369a1;">—</div>
+      </div>
+      <div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:10px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Impressões</div>
+        <div id="ig-w-impressions" style="font-size:20px;font-weight:700;color:#7c3aed;">—</div>
+      </div>
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:10px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Vis. Perfil</div>
+        <div id="ig-w-profile-views" style="font-size:20px;font-weight:700;color:#16a34a;">—</div>
+      </div>
+      <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:10px;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Engajamento</div>
+        <div id="ig-w-engaged" style="font-size:20px;font-weight:700;color:#c2410c;">—</div>
+      </div>
+      <div style="background:#fdf4ff;border:1px solid #f0abfc;border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:10px;font-weight:700;color:#a21caf;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Cliques Site</div>
+        <div id="ig-w-website-clicks" style="font-size:20px;font-weight:700;color:#a21caf;">—</div>
+      </div>
+    </div>
+    <!-- Gráfico trend -->
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+        <h3 style="margin:0;font-size:13px;font-weight:600;color:#374151;">Tendência — Alcance e Impressões</h3>
+        <select id="ig-windsor-days" onchange="carregarWindsorMetrics()" style="font-size:12px;padding:5px 8px;border:1px solid #e5e7eb;border-radius:7px;background:#fff;">
+          <option value="7">Últimos 7 dias</option>
+          <option value="30" selected>Últimos 30 dias</option>
+          <option value="90">Últimos 90 dias</option>
+        </select>
+      </div>
+      <div style="position:relative;height:160px;"><canvas id="chart-windsor"></canvas></div>
+    </div>
+    <p id="ig-windsor-updated" style="font-size:11px;color:#94a3b8;margin:0 0 16px;"></p>
+  </div>
+
+  <!-- APIFY: Análise de posts individuais -->
+  <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">📸 Análise de Posts Individuais — Apify</div>
+  <div id="ig-posts-area">
     <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
         <div><h3 style="font-size:14px;font-weight:600;color:#374151;margin:0 0 2px;">Analise de Posts</h3><p style="font-size:12px;color:#6b7280;margin:0;">Desempenho individual — curtidas, comentarios, views e engajamento</p><p style="font-size:11px;color:#94a3b8;margin:4px 0 0;">Posts do @felipesantiago.oficial via Apify (pode levar ~60s)</p></div>
@@ -1777,12 +1917,13 @@ function irPara(p,el){
     atualizarCharts(mes);
     carregarDashboardCRM();
     carregarNotionFinanceiro();
+    carregarOrganizze();
   }
-  if(p==='configuracoes') carregarCfgNotion();
+  if(p==='configuracoes'){ carregarCfgNotion(); carregarCfgIntegracoes(); }
   if(p==='crm')carregarCRM();
   if(p==='contratos')initContratos();
   if(p==='equipe')carregarEquipe();
-  if(p==='instagram'){/* posts carregados manualmente pelo botão */}
+  if(p==='instagram') carregarWindsorMetrics();
   if(p==='minerador'){
     fnCall('apify-leads',{plataforma:'instagram',tipo:'check'}).then(d=>{if(d.setup)document.getElementById('min-setup-banner').style.display='block';});
   }
@@ -2488,6 +2629,217 @@ async function salvarNotionToken() {
     await carregarNotionFinanceiro();
   } catch(e) {
     status.textContent = 'Erro: ' + e.message; status.style.color = '#dc2626';
+  }
+}
+
+// ══════════════════════════════════════════════
+// CONFIGURAÇÕES — Windsor + Organizze
+// ══════════════════════════════════════════════
+async function carregarCfgIntegracoes() {
+  try {
+    const { data } = await sb.from('app_config').select('chave,valor')
+      .in('chave', ['windsor_api_key','organizze_email','organizze_api_key']);
+    const map = {};
+    (data || []).forEach(r => map[r.chave] = r.valor);
+    const wEl = document.getElementById('windsor-key-input');
+    const wSt = document.getElementById('windsor-cfg-status');
+    if (wEl && map.windsor_api_key) { wEl.value = '••••••••••••••••'; }
+    if (wSt && map.windsor_api_key) { wSt.textContent = '✓ Chave configurada'; wSt.style.color = '#10b981'; }
+    const oEl = document.getElementById('organizze-email-input');
+    const okEl = document.getElementById('organizze-key-input');
+    const oSt = document.getElementById('organizze-cfg-status');
+    if (oEl && map.organizze_email) oEl.value = map.organizze_email;
+    if (okEl && map.organizze_api_key) okEl.value = '••••••••••••••••';
+    if (oSt && map.organizze_email && map.organizze_api_key) { oSt.textContent = '✓ Credenciais configuradas'; oSt.style.color = '#10b981'; }
+  } catch(e) {}
+}
+
+async function salvarWindsorKey() {
+  const key    = document.getElementById('windsor-key-input').value.trim();
+  const status = document.getElementById('windsor-cfg-status');
+  if (!key || key === '••••••••••••••••') { status.textContent = 'Cole a chave Windsor.'; status.style.color = '#dc2626'; return; }
+  status.textContent = 'Salvando...'; status.style.color = '#6b7280';
+  try {
+    await sb.from('app_config').upsert({ chave: 'windsor_api_key', valor: key, atualizado_em: new Date().toISOString() }, { onConflict: 'chave' });
+    status.textContent = '✓ Chave salva!'; status.style.color = '#10b981';
+    document.getElementById('windsor-key-input').value = '••••••••••••••••';
+  } catch(e) {
+    status.textContent = 'Erro: ' + e.message; status.style.color = '#dc2626';
+  }
+}
+
+async function salvarOrganizze() {
+  const email  = document.getElementById('organizze-email-input').value.trim();
+  const key    = document.getElementById('organizze-key-input').value.trim();
+  const status = document.getElementById('organizze-cfg-status');
+  if (!email) { status.textContent = 'Informe o e-mail do Organizze.'; status.style.color = '#dc2626'; return; }
+  if (!key || key === '••••••••••••••••') { status.textContent = 'Cole a API Key do Organizze.'; status.style.color = '#dc2626'; return; }
+  status.textContent = 'Salvando...'; status.style.color = '#6b7280';
+  try {
+    await Promise.all([
+      sb.from('app_config').upsert({ chave: 'organizze_email',   valor: email, atualizado_em: new Date().toISOString() }, { onConflict: 'chave' }),
+      sb.from('app_config').upsert({ chave: 'organizze_api_key', valor: key,   atualizado_em: new Date().toISOString() }, { onConflict: 'chave' }),
+    ]);
+    status.textContent = '✓ Credenciais salvas! Carregando dados...'; status.style.color = '#10b981';
+    document.getElementById('organizze-key-input').value = '••••••••••••••••';
+    await carregarOrganizze();
+  } catch(e) {
+    status.textContent = 'Erro: ' + e.message; status.style.color = '#dc2626';
+  }
+}
+
+// ══════════════════════════════════════════════
+// WINDSOR — Métricas Instagram
+// ══════════════════════════════════════════════
+let chartWindsor = null;
+async function carregarWindsorMetrics() {
+  const setup   = document.getElementById('ig-windsor-setup');
+  const loading = document.getElementById('ig-windsor-loading');
+  const content = document.getElementById('ig-windsor-content');
+  const updated = document.getElementById('ig-windsor-updated');
+  if (!setup || !loading || !content) return;
+  setup.style.display = 'none';
+  loading.style.display = 'block';
+  content.style.display = 'none';
+  try {
+    const days = parseInt(document.getElementById('ig-windsor-days')?.value || '30');
+    const res  = await fnCall('instagram-windsor', { days });
+    if (res.setup || res.error) {
+      loading.style.display = 'none';
+      setup.style.display = 'block';
+      return;
+    }
+    const rows = Array.isArray(res) ? res : (res.rows || res.data || []);
+    if (!rows.length) {
+      loading.style.display = 'none';
+      setup.style.display = 'block';
+      return;
+    }
+    // Aggregate totals (sum reach/impressions; last follower_count)
+    const totals = rows.reduce((acc, r) => {
+      acc.reach      += (r.reach || 0);
+      acc.impressions+= (r.impressions || 0);
+      acc.profile_views+= (r.profile_views || 0);
+      acc.accounts_engaged+= (r.accounts_engaged || 0);
+      acc.website_clicks+= (r.website_clicks || 0);
+      acc.follower_count = r.follower_count || acc.follower_count;
+      return acc;
+    }, { reach:0, impressions:0, profile_views:0, accounts_engaged:0, website_clicks:0, follower_count:0 });
+    const fmt = v => v >= 1000 ? (v/1000).toFixed(1)+'k' : String(v);
+    document.getElementById('ig-w-followers').textContent     = fmt(totals.follower_count);
+    document.getElementById('ig-w-reach').textContent         = fmt(totals.reach);
+    document.getElementById('ig-w-impressions').textContent   = fmt(totals.impressions);
+    document.getElementById('ig-w-profile-views').textContent = fmt(totals.profile_views);
+    document.getElementById('ig-w-engaged').textContent       = fmt(totals.accounts_engaged);
+    document.getElementById('ig-w-website-clicks').textContent= fmt(totals.website_clicks);
+    // Chart
+    const labels = rows.map(r => r.date ? r.date.slice(5) : '');
+    const reachData = rows.map(r => r.reach || 0);
+    const impData   = rows.map(r => r.impressions || 0);
+    const ctx = document.getElementById('chart-windsor').getContext('2d');
+    if (chartWindsor) { chartWindsor.destroy(); chartWindsor = null; }
+    chartWindsor = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Alcance', data: reachData, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.08)', tension: 0.4, pointRadius: 2, fill: true },
+          { label: 'Impressões', data: impData, borderColor: '#a855f7', backgroundColor: 'rgba(168,85,247,0.06)', tension: 0.4, pointRadius: 2, fill: true },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { font: { size: 11 } } } },
+        scales: {
+          y: { ticks: { callback: v => fmt(v), font: { size: 10 } }, grid: { color: '#f3f4f6' } },
+          x: { ticks: { font: { size: 10 }, maxTicksLimit: 10 }, grid: { display: false } }
+        }
+      }
+    });
+    loading.style.display = 'none';
+    content.style.display = 'block';
+    if (updated) updated.textContent = 'Atualizado agora — período: últimos ' + days + ' dias';
+  } catch(e) {
+    loading.style.display = 'none';
+    setup.style.display = 'block';
+    if (setup) setup.innerHTML = '⚠️ Erro ao carregar Windsor: ' + (e.message || 'tente novamente');
+  }
+}
+
+// ══════════════════════════════════════════════
+// ORGANIZZE — Saldo Real
+// ══════════════════════════════════════════════
+async function carregarOrganizze() {
+  const setupBanner = document.getElementById('org-setup-banner');
+  const loading     = document.getElementById('org-loading');
+  const card        = document.getElementById('org-card');
+  const updated     = document.getElementById('org-updated');
+  if (!setupBanner || !loading || !card) return;
+  setupBanner.style.display = 'none';
+  loading.style.display = 'block';
+  card.style.display = 'none';
+  try {
+    const days = parseInt(document.getElementById('org-days-select')?.value || '30');
+    const res  = await fnCall('organizze-data', { days });
+    if (res.setup || res.error) {
+      loading.style.display = 'none';
+      setupBanner.style.display = 'block';
+      return;
+    }
+    const fmtBRL = v => 'R$ ' + Math.abs(v||0).toLocaleString('pt-BR', { minimumFractionDigits:2 });
+    // KPIs
+    const saldoEl    = document.getElementById('org-saldo');
+    const entradasEl = document.getElementById('org-entradas');
+    const saidasEl   = document.getElementById('org-saidas');
+    const resEl      = document.getElementById('org-resultado');
+    const resCard    = document.getElementById('org-resultado-card');
+    if (saldoEl)    saldoEl.textContent    = fmtBRL(res.saldoTotal || 0);
+    if (entradasEl) entradasEl.textContent = fmtBRL(res.totalEntradas || 0);
+    if (saidasEl)   saidasEl.textContent   = fmtBRL(res.totalSaidas || 0);
+    const resultado = (res.resultado != null) ? res.resultado : ((res.totalEntradas||0) - (res.totalSaidas||0));
+    if (resEl) {
+      resEl.textContent = fmtBRL(resultado);
+      resEl.style.color = resultado >= 0 ? '#16a34a' : '#dc2626';
+    }
+    if (resCard) resCard.style.background = resultado >= 0 ? '#f0fdf4' : '#fef2f2';
+    // Contas
+    const contasEl = document.getElementById('org-contas');
+    if (contasEl && res.accounts && res.accounts.length) {
+      contasEl.innerHTML = res.accounts.map(a =>
+        `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#f8fafc;border-radius:7px;">
+          <span style="color:#374151;">${a.name || a.nome || '—'}</span>
+          <span style="font-weight:600;color:${(a.balance||a.saldo||0)>=0?'#16a34a':'#dc2626'};">${fmtBRL(a.balance||a.saldo||0)}</span>
+        </div>`
+      ).join('');
+    } else if (contasEl) {
+      contasEl.innerHTML = '<p style="color:#94a3b8;font-size:12px;">Nenhuma conta encontrada</p>';
+    }
+    // Transações
+    const txEl = document.getElementById('org-transacoes');
+    if (txEl && res.recentTx && res.recentTx.length) {
+      txEl.innerHTML = res.recentTx.slice(0, 15).map(t => {
+        const isEntrada = (t.amount_cents || t.valor || 0) > 0;
+        const val = Math.abs(t.amount_cents ? t.amount_cents / 100 : (t.valor || 0));
+        const d = t.date ? new Date(t.date+'T12:00:00') : null;
+        const dt = d ? String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') : '—';
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f3f4f6;">
+          <div>
+            <div style="color:#374151;font-size:12px;">${t.description || t.descricao || '—'}</div>
+            <div style="color:#94a3b8;font-size:11px;">${dt}${t.category_name ? ' · ' + t.category_name : ''}</div>
+          </div>
+          <span style="font-weight:600;font-size:13px;color:${isEntrada?'#16a34a':'#dc2626'};white-space:nowrap;margin-left:12px;">${isEntrada?'+':'-'}${fmtBRL(val)}</span>
+        </div>`;
+      }).join('');
+    } else if (txEl) {
+      txEl.innerHTML = '<p style="color:#94a3b8;font-size:12px;padding:8px 0;">Nenhuma transação no período</p>';
+    }
+    loading.style.display = 'none';
+    card.style.display = 'block';
+    if (updated) updated.textContent = 'Atualizado agora — últimos ' + days + ' dias';
+  } catch(e) {
+    loading.style.display = 'none';
+    setupBanner.style.display = 'block';
+    if (setupBanner) setupBanner.innerHTML = '⚠️ Erro ao carregar Organizze: ' + (e.message || 'tente novamente');
   }
 }
 
