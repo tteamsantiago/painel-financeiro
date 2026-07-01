@@ -3137,7 +3137,7 @@ function minTipoChange() {
   if (tipo === 'hashtag') {
     prefix.textContent = '#'; input.placeholder = 'hashtag (sem #)';
     input.style.paddingLeft = '28px';
-    if (filtros) filtros.style.display = 'none';
+    if (filtros) filtros.style.display = 'block';
   } else if (tipo === 'post-comentadores') {
     prefix.textContent = '';
     input.placeholder = 'https://www.instagram.com/reel/ABC.../';
@@ -3174,12 +3174,19 @@ async function minerarLeads() {
 
   const area = document.getElementById('min-resultado-area');
   const btn = document.getElementById('min-btn-buscar');
-  area.innerHTML = '<div style="text-align:center;padding:50px;color:#6b7280;"><svg width="32" height="32" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 12px;animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>Minerando dados... pode levar ate 2 minutos</div>';
+  const resetBtn = () => { btn.disabled = false; btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Minerar'; };
+  area.innerHTML = '<div style="text-align:center;padding:50px;color:#6b7280;"><svg width="32" height="32" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 12px;animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>Minerando dados...</div>';
   btn.disabled = true; btn.textContent = 'Minerando...';
 
-  const data = await fnCall('apify-leads', { plataforma: minAtualPlataforma, tipo, busca, limite: Math.min(Math.max(parseInt(limite) || 20, 1), 100), min_seguidores: minSeg, max_seguidores: maxSeg, palavras_bio: palavrasBio, genero });
-
-  btn.disabled = false; btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Minerar';
+  let data;
+  try {
+    data = await fnCall('apify-leads', { plataforma: minAtualPlataforma, tipo, busca, limite: Math.min(Math.max(parseInt(limite) || 20, 1), 100), min_seguidores: minSeg, max_seguidores: maxSeg, palavras_bio: palavrasBio, genero });
+  } catch (err) {
+    resetBtn();
+    area.innerHTML = '<div style="text-align:center;padding:40px;color:#ef4444;">Erro de conexao: ' + (err.message || err) + '</div>';
+    return;
+  }
+  resetBtn();
 
   if (data.setup || data.error) {
     if (data.setup) { document.getElementById('min-setup-banner').style.display = 'block'; area.innerHTML = ''; return; }
@@ -3223,19 +3230,6 @@ async function minerarLeads() {
         <td style="padding:10px 14px;text-align:right;font-weight:600;">${(item.followersCount || 0).toLocaleString('pt-BR')}</td>
         <td style="padding:10px 14px;text-align:right;">${(item.postsCount || 0).toLocaleString('pt-BR')}</td>
         <td style="padding:10px 14px;text-align:center;"><a href="https://instagram.com/${item.username}" target="_blank" style="color:#6366f1;font-size:12px;">Ver ↗</a></td>
-      </tr>`;
-    });
-  } else if (minAtualPlataforma === 'instagram' && tipo === 'hashtag') {
-    html += '<thead><tr style="background:#f9fafb;"><th style="text-align:left;padding:10px 14px;font-weight:600;color:#374151;">Post</th><th style="text-align:left;padding:10px 14px;font-weight:600;color:#374151;">Autor</th><th style="text-align:right;padding:10px 14px;font-weight:600;color:#374151;">Curtidas</th><th style="text-align:right;padding:10px 14px;font-weight:600;color:#374151;">Comentários</th><th style="text-align:left;padding:10px 14px;font-weight:600;color:#374151;">Link</th></tr></thead><tbody>';
-    items.forEach((item, i) => {
-      const bg = i % 2 === 0 ? '' : 'background:#fafafa;';
-      const desc = (item.caption || '').slice(0, 60) + (item.caption?.length > 60 ? '...' : '');
-      html += `<tr style="${bg}border-bottom:1px solid #f3f4f6;">
-        <td style="padding:10px 14px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${desc || '—'}</td>
-        <td style="padding:10px 14px;"><a href="https://instagram.com/${item.ownerUsername}" target="_blank" style="color:#6366f1;">@${item.ownerUsername || '—'}</a></td>
-        <td style="padding:10px 14px;text-align:right;font-weight:600;">${(item.likesCount || 0).toLocaleString('pt-BR')}</td>
-        <td style="padding:10px 14px;text-align:right;">${(item.commentsCount || 0).toLocaleString('pt-BR')}</td>
-        <td style="padding:10px 14px;"><a href="${item.url || '#'}" target="_blank" style="font-size:11px;color:#6b7280;">Ver post ↗</a></td>
       </tr>`;
     });
   } else if (minAtualPlataforma === 'tiktok') {
