@@ -1574,7 +1574,7 @@ tbody tr:hover td{background:#f9fafb;}
     <div><h2>Equipe</h2><p>Gerencie os colaboradores e seus níveis de acesso ao painel</p></div>
     <button class="btn bp" onclick="abrirConvidarColab()" style="display:flex;align-items:center;gap:6px;">
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-      Convidar Colaborador
+      Cadastrar Usuário
     </button>
   </div>
 
@@ -3118,6 +3118,7 @@ function showLogin(){
 // ══════════════════════════════════════════════
 let USUARIO_ROLE = 'admin';
 let USUARIO_EMAIL = '';
+let USUARIO_PAGINAS = null; // null = usa PERM_MAPA; array = páginas específicas deste usuário
 let COLABS = [];
 const SUPABASE_FN = 'https://fhuromvcoujzmikxxjnv.supabase.co/functions/v1';
 
@@ -3137,20 +3138,46 @@ const PERM_MAPA = {
   minerador:    ['admin','crm'],
 };
 
+const TODAS_PAGINAS = [
+  {key:'dashboard',    label:'Dashboard'},
+  {key:'lancamentos',  label:'Lançamentos'},
+  {key:'importar',     label:'Importar Extrato'},
+  {key:'pendentes',    label:'Pendentes'},
+  {key:'fechamentos',  label:'Fechamentos'},
+  {key:'categorias',   label:'Categorias'},
+  {key:'crm',          label:'CRM & Alunos'},
+  {key:'notion',       label:'Notion Hub'},
+  {key:'contratos',    label:'Contratos'},
+  {key:'equipe',       label:'Equipe'},
+  {key:'configuracoes',label:'Configurações'},
+  {key:'instagram',    label:'Instagram'},
+  {key:'minerador',    label:'Minerador de Leads'},
+];
+
+function paginasParaRole(role){
+  return TODAS_PAGINAS.filter(p=>(PERM_MAPA[p.key]||[]).includes(role)).map(p=>p.key);
+}
+
 async function carregarRoleUsuario(){
   const {data:{session}}=await sb.auth.getSession();
   if(!session) return;
   USUARIO_EMAIL=session.user.email;
-  const {data}=await sb.from('colaboradores').select('role,nome').eq('email',USUARIO_EMAIL).maybeSingle();
+  const {data}=await sb.from('colaboradores').select('role,nome,paginas_permitidas').eq('email',USUARIO_EMAIL).maybeSingle();
   USUARIO_ROLE=data?.role||'admin';
+  USUARIO_PAGINAS=data?.paginas_permitidas||null;
   aplicarPermissoes();
 }
 
 function aplicarPermissoes(){
   document.querySelectorAll('.nl[data-page]').forEach(el=>{
     const pg=el.getAttribute('data-page');
-    const allowed=PERM_MAPA[pg]||[];
-    el.style.display=allowed.includes(USUARIO_ROLE)?'':'none';
+    let ok;
+    if(USUARIO_PAGINAS&&Array.isArray(USUARIO_PAGINAS)){
+      ok=USUARIO_PAGINAS.includes(pg);
+    } else {
+      ok=(PERM_MAPA[pg]||[]).includes(USUARIO_ROLE);
+    }
+    el.style.display=ok?'':'none';
   });
 }
 
@@ -3165,7 +3192,7 @@ function renderizarEquipe(){
   const grid=document.getElementById('equipe-grid');
   if(!grid)return;
   if(COLABS.length===0){
-    grid.innerHTML='<div style="text-align:center;padding:40px;color:#94a3b8;grid-column:1/-1;">Nenhum colaborador cadastrado.</div>';
+    grid.innerHTML='<div style="text-align:center;padding:40px;color:#94a3b8;grid-column:1/-1;">Nenhum colaborador cadastrado ainda.</div>';
     return;
   }
   const RL={admin:'Admin',financeiro:'Financeiro',crm:'CRM',visualizador:'Visualizador'};
@@ -3175,102 +3202,184 @@ function renderizarEquipe(){
     const ini=c.nome.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
     const isSelf=c.email===USUARIO_EMAIL;
     const canEdit=USUARIO_ROLE==='admin'&&!isSelf;
-    return `<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;display:flex;align-items:center;gap:16px;">
-      <div style="width:44px;height:44px;border-radius:50%;background:${RB[c.role]};color:${RC[c.role]};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;">${ini}</div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-weight:600;color:#111827;font-size:14px;">${c.nome}${isSelf?' <span style="font-size:11px;color:#6b7280;">(você)</span>':''}</div>
-        <div style="color:#6b7280;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.email}</div>
-        <div style="margin-top:6px;display:flex;gap:6px;align-items:center;">
-          <span style="background:${RB[c.role]};color:${RC[c.role]};padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">${RL[c.role]}</span>
-          <span style="font-size:11px;color:#10b981;">● Ativo</span>
+    const pags=c.paginas_permitidas||paginasParaRole(c.role);
+    const pagLabels=TODAS_PAGINAS.filter(p=>pags.includes(p.key)).map(p=>p.label);
+    const rc=RC[c.role]||'#6b7280';
+    const rb=RB[c.role]||'#f3f4f6';
+    return `<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
+        <div style="width:44px;height:44px;border-radius:50%;background:${rb};color:${rc};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;">${ini}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;color:#111827;font-size:14px;">${c.nome}${isSelf?' <span style="font-size:11px;color:#6b7280;">(você)</span>':''}</div>
+          <div style="color:#6b7280;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.email}</div>
+          <div style="margin-top:5px;display:flex;gap:6px;align-items:center;">
+            <span style="background:${rb};color:${rc};padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">${RL[c.role]||c.role}</span>
+            <span style="font-size:11px;color:#10b981;">● Ativo</span>
+          </div>
         </div>
+        ${canEdit?`<div style="display:flex;gap:6px;flex-shrink:0;">
+          <button onclick="abrirEditarRole('${c.email}','${c.nome}','${c.role}')" style="padding:6px 10px;border:1px solid #e5e7eb;background:#fff;border-radius:6px;cursor:pointer;font-size:12px;color:#374151;">Editar</button>
+          <button onclick="desativarColab('${c.email}')" style="padding:6px 10px;border:1px solid #fecaca;background:#fff;border-radius:6px;cursor:pointer;font-size:12px;color:#ef4444;">Remover</button>
+        </div>`:''}
       </div>
-      ${canEdit?`<div style="display:flex;gap:6px;">
-        <button onclick="abrirEditarRole('${c.email}','${c.nome}','${c.role}')" style="padding:6px 10px;border:1px solid #e5e7eb;background:#fff;border-radius:6px;cursor:pointer;font-size:12px;color:#374151;">Editar</button>
-        <button onclick="desativarColab('${c.email}')" style="padding:6px 10px;border:1px solid #fecaca;background:#fff;border-radius:6px;cursor:pointer;font-size:12px;color:#ef4444;">Remover</button>
-      </div>`:''}
+      <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px;">Páginas com acesso (${pagLabels.length})</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;">
+        ${pagLabels.map(l=>`<span style="background:#f0f9ff;color:#0369a1;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:500;">${l}</span>`).join('')||'<span style="font-size:11px;color:#9ca3af;">Nenhuma página liberada</span>'}
+      </div>
     </div>`;
   }).join('');
 }
 
 function abrirConvidarColab(){
-  document.getElementById('modal-title').textContent='Convidar Colaborador';
+  document.getElementById('modal-title').textContent='Cadastrar Usuário';
   document.getElementById('modal-body').innerHTML=`
     <div style="display:flex;flex-direction:column;gap:14px;padding-top:4px;">
-      <div>
-        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Nome completo</label>
-        <input id="ci-nome" type="text" placeholder="Ex: João Silva" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Nome completo *</label>
+          <input id="ci-nome" type="text" placeholder="Ex: João Silva" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">E-mail *</label>
+          <input id="ci-email" type="email" placeholder="email@exemplo.com" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;">
+        </div>
       </div>
       <div>
-        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">E-mail</label>
-        <input id="ci-email" type="email" placeholder="email@exemplo.com" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;">
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Senha inicial *</label>
+        <input id="ci-senha" type="password" placeholder="Mínimo 6 caracteres" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;">
+        <p style="font-size:11px;color:#6b7280;margin:4px 0 0;">A pessoa usa essa senha para entrar. Pode ser alterada depois em Editar.</p>
       </div>
       <div>
-        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Nível de acesso</label>
-        <select id="ci-role" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;">
-          <option value="financeiro">Financeiro — acessa painel financeiro</option>
-          <option value="crm">CRM — acessa CRM e Alunos</option>
-          <option value="visualizador">Visualizador — somente leitura do dashboard</option>
-          <option value="admin">Admin — acesso completo</option>
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Perfil de acesso</label>
+        <select id="ci-role" onchange="ciRoleChange()" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;">
+          <option value="admin">Administrador — acesso completo</option>
+          <option value="financeiro">Financeiro — painel financeiro e lançamentos</option>
+          <option value="crm" selected>CRM — CRM, alunos e contratos</option>
+          <option value="visualizador">Visualizador — somente dashboard</option>
         </select>
       </div>
-      <p style="font-size:12px;color:#6b7280;background:#f9fafb;padding:10px;border-radius:6px;margin:0;">O colaborador receberá um e-mail com link para definir a senha de acesso.</p>
+      <div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span style="font-size:12px;font-weight:600;color:#374151;">Páginas com acesso</span>
+          <button type="button" onclick="ciToggleTodas()" style="font-size:11px;color:#6366f1;background:none;border:none;cursor:pointer;padding:0;font-weight:500;">Alternar todas</button>
+        </div>
+        <div id="ci-paginas" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+          ${TODAS_PAGINAS.map(p=>`<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;cursor:pointer;padding:4px 2px;">
+            <input type="checkbox" name="ci-pag" value="${p.key}" style="cursor:pointer;accent-color:#6366f1;"> ${p.label}
+          </label>`).join('')}
+        </div>
+      </div>
     </div>`;
-  document.getElementById('modal-footer').innerHTML=`<button class="btn bp" onclick="enviarConvite()" style="width:100%;">Enviar convite</button>`;
+  ciRoleChange();
+  document.getElementById('modal-footer').innerHTML=`<button class="btn bp" onclick="enviarConvite()" style="width:100%;">Criar Usuário</button>`;
   document.getElementById('modal-bg').style.display='flex';
+}
+
+function ciRoleChange(){
+  const role=document.getElementById('ci-role')?.value;
+  if(!role) return;
+  const padroes=paginasParaRole(role);
+  document.querySelectorAll('[name="ci-pag"]').forEach(cb=>{ cb.checked=padroes.includes(cb.value); });
+}
+
+function ciToggleTodas(){
+  const cbs=[...document.querySelectorAll('[name="ci-pag"]')];
+  const allOn=cbs.every(cb=>cb.checked);
+  cbs.forEach(cb=>{ cb.checked=!allOn; });
 }
 
 async function enviarConvite(){
   const nome=document.getElementById('ci-nome').value.trim();
   const email=document.getElementById('ci-email').value.trim();
+  const senha=document.getElementById('ci-senha').value;
   const role=document.getElementById('ci-role').value;
+  const paginas=[...document.querySelectorAll('[name="ci-pag"]:checked')].map(cb=>cb.value);
   if(!nome||!email){toast('Preencha nome e e-mail','erro');return;}
+  if(!senha||senha.length<6){toast('Senha deve ter pelo menos 6 caracteres','erro');return;}
+  if(!paginas.length){toast('Selecione ao menos uma página','erro');return;}
   const btn=document.querySelector('#modal-footer .btn');
-  btn.disabled=true;btn.textContent='Enviando...';
+  btn.disabled=true;btn.textContent='Criando...';
   try{
     const sess=(await sb.auth.getSession()).data.session;
     const res=await fetch(SUPABASE_FN+'/convidar-colaborador',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+sess.access_token,'x-user-email':USUARIO_EMAIL},
-      body:JSON.stringify({email,nome,role})
+      body:JSON.stringify({email,nome,role,senha,paginas_permitidas:paginas})
     });
     const json=await res.json();
     if(json.error)throw new Error(json.error);
     fecharModal();
-    toast('Convite enviado para '+email,'sucesso');
+    toast('Usuário criado: '+email,'sucesso');
     carregarEquipe();
   }catch(err){
     toast('Erro: '+err.message,'erro');
-    btn.disabled=false;btn.textContent='Enviar convite';
+    btn.disabled=false;btn.textContent='Criar Usuário';
   }
 }
 
 function abrirEditarRole(email,nome,roleAtual){
+  const colab=COLABS.find(c=>c.email===email);
+  const paginasAtuais=colab?.paginas_permitidas||paginasParaRole(roleAtual);
   document.getElementById('modal-title').textContent='Editar Acesso — '+nome;
   document.getElementById('modal-body').innerHTML=`
-    <div style="padding-top:4px;">
-      <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:8px;">Nível de acesso</label>
-      <select id="er-role" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;">
-        <option value="financeiro" ${roleAtual==='financeiro'?'selected':''}>Financeiro</option>
-        <option value="crm" ${roleAtual==='crm'?'selected':''}>CRM</option>
-        <option value="visualizador" ${roleAtual==='visualizador'?'selected':''}>Visualizador</option>
-        <option value="admin" ${roleAtual==='admin'?'selected':''}>Admin</option>
-      </select>
+    <div style="display:flex;flex-direction:column;gap:14px;padding-top:4px;">
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Perfil de acesso</label>
+        <select id="er-role" onchange="erRoleChange()" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;">
+          <option value="admin" ${roleAtual==='admin'?'selected':''}>Administrador — acesso completo</option>
+          <option value="financeiro" ${roleAtual==='financeiro'?'selected':''}>Financeiro — painel financeiro</option>
+          <option value="crm" ${roleAtual==='crm'?'selected':''}>CRM — CRM e alunos</option>
+          <option value="visualizador" ${roleAtual==='visualizador'?'selected':''}>Visualizador — somente dashboard</option>
+        </select>
+      </div>
+      <div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span style="font-size:12px;font-weight:600;color:#374151;">Páginas com acesso</span>
+          <button type="button" onclick="erToggleTodas()" style="font-size:11px;color:#6366f1;background:none;border:none;cursor:pointer;padding:0;font-weight:500;">Alternar todas</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+          ${TODAS_PAGINAS.map(p=>`<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;cursor:pointer;padding:4px 2px;">
+            <input type="checkbox" name="er-pag" value="${p.key}" ${paginasAtuais.includes(p.key)?'checked':''} style="cursor:pointer;accent-color:#6366f1;"> ${p.label}
+          </label>`).join('')}
+        </div>
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Nova senha <span style="font-weight:400;color:#6b7280;">(deixe vazio para não alterar)</span></label>
+        <input id="er-senha" type="password" placeholder="Mínimo 6 caracteres" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;">
+      </div>
     </div>`;
-  document.getElementById('modal-footer').innerHTML=`<button class="btn bp" onclick="salvarRole('${email}')" style="width:100%;">Salvar</button>`;
+  document.getElementById('modal-footer').innerHTML=`<button class="btn bp" onclick="salvarRole('${email}')" style="width:100%;">Salvar Alterações</button>`;
   document.getElementById('modal-bg').style.display='flex';
+}
+
+function erRoleChange(){
+  const role=document.getElementById('er-role')?.value;
+  if(!role) return;
+  const padroes=paginasParaRole(role);
+  document.querySelectorAll('[name="er-pag"]').forEach(cb=>{ cb.checked=padroes.includes(cb.value); });
+}
+
+function erToggleTodas(){
+  const cbs=[...document.querySelectorAll('[name="er-pag"]')];
+  const allOn=cbs.every(cb=>cb.checked);
+  cbs.forEach(cb=>{ cb.checked=!allOn; });
 }
 
 async function salvarRole(email){
   const role=document.getElementById('er-role').value;
+  const paginas=[...document.querySelectorAll('[name="er-pag"]:checked')].map(cb=>cb.value);
+  const senha=document.getElementById('er-senha')?.value||'';
+  if(!paginas.length){toast('Selecione ao menos uma página','erro');return;}
   const btn=document.querySelector('#modal-footer .btn');
   btn.disabled=true;btn.textContent='Salvando...';
   try{
     const sess=(await sb.auth.getSession()).data.session;
+    const body={email,role,paginas_permitidas:paginas,acao:'atualizar_permissoes'};
+    if(senha&&senha.length>=6) body.senha=senha;
     const res=await fetch(SUPABASE_FN+'/convidar-colaborador',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+sess.access_token},
-      body:JSON.stringify({email,role,acao:'atualizar_role'})
+      body:JSON.stringify(body)
     });
     const json=await res.json();
     if(json.error)throw new Error(json.error);
@@ -3279,7 +3388,7 @@ async function salvarRole(email){
     carregarEquipe();
   }catch(err){
     toast('Erro: '+err.message,'erro');
-    btn.disabled=false;btn.textContent='Salvar';
+    btn.disabled=false;btn.textContent='Salvar Alterações';
   }
 }
 
