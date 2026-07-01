@@ -3246,7 +3246,10 @@ function abrirConvidarColab(){
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Senha inicial *</label>
-        <input id="ci-senha" type="password" placeholder="Mínimo 6 caracteres" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;">
+        <div style="position:relative;">
+          <input id="ci-senha" type="password" placeholder="Mínimo 6 caracteres" style="width:100%;padding:8px 40px 8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;">
+          <button type="button" onclick="toggleSenha('ci-senha',this)" title="Mostrar senha" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;padding:2px;line-height:0;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
         <p style="font-size:11px;color:#6b7280;margin:4px 0 0;">A pessoa usa essa senha para entrar. Pode ser alterada depois em Editar.</p>
       </div>
       <div>
@@ -3345,7 +3348,10 @@ function abrirEditarRole(email,nome,roleAtual){
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Nova senha <span style="font-weight:400;color:#6b7280;">(deixe vazio para não alterar)</span></label>
-        <input id="er-senha" type="password" placeholder="Mínimo 6 caracteres" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;">
+        <div style="position:relative;">
+          <input id="er-senha" type="password" placeholder="Mínimo 6 caracteres" style="width:100%;padding:8px 40px 8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;">
+          <button type="button" onclick="toggleSenha('er-senha',this)" title="Mostrar senha" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;padding:2px;line-height:0;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
       </div>
     </div>`;
   document.getElementById('modal-footer').innerHTML=`<button class="btn bp" onclick="salvarRole('${email}')" style="width:100%;">Salvar Alterações</button>`;
@@ -3363,6 +3369,16 @@ function erToggleTodas(){
   const cbs=[...document.querySelectorAll('[name="er-pag"]')];
   const allOn=cbs.every(cb=>cb.checked);
   cbs.forEach(cb=>{ cb.checked=!allOn; });
+}
+
+function toggleSenha(id, btn){
+  const inp=document.getElementById(id);
+  const mostrar=inp.type==='password';
+  inp.type=mostrar?'text':'password';
+  btn.title=mostrar?'Ocultar senha':'Mostrar senha';
+  btn.innerHTML=mostrar
+    ?'<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+    :'<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
 }
 
 async function salvarRole(email){
