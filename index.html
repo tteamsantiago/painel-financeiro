@@ -3248,7 +3248,7 @@ function abrirConvidarColab(){
         <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Senha inicial *</label>
         <div style="position:relative;">
           <input id="ci-senha" type="password" placeholder="Mínimo 6 caracteres" style="width:100%;padding:8px 40px 8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;">
-          <button type="button" onclick="toggleSenha('ci-senha',this)" title="Mostrar senha" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;padding:2px;line-height:0;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button type="button" onclick="toggleModalSenha('ci-senha',this)" title="Mostrar senha" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;padding:2px;line-height:0;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
         </div>
         <p style="font-size:11px;color:#6b7280;margin:4px 0 0;">A pessoa usa essa senha para entrar. Pode ser alterada depois em Editar.</p>
       </div>
@@ -3350,7 +3350,7 @@ function abrirEditarRole(email,nome,roleAtual){
         <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Nova senha <span style="font-weight:400;color:#6b7280;">(deixe vazio para não alterar)</span></label>
         <div style="position:relative;">
           <input id="er-senha" type="password" placeholder="Mínimo 6 caracteres" style="width:100%;padding:8px 40px 8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;">
-          <button type="button" onclick="toggleSenha('er-senha',this)" title="Mostrar senha" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;padding:2px;line-height:0;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button type="button" onclick="toggleModalSenha('er-senha',this)" title="Mostrar senha" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;padding:2px;line-height:0;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
         </div>
       </div>
     </div>`;
@@ -3371,7 +3371,7 @@ function erToggleTodas(){
   cbs.forEach(cb=>{ cb.checked=!allOn; });
 }
 
-function toggleSenha(id, btn){
+function toggleModalSenha(id, btn){
   const inp=document.getElementById(id);
   const mostrar=inp.type==='password';
   inp.type=mostrar?'text':'password';
