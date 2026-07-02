@@ -3314,10 +3314,12 @@ const PERM_MAPA = {
   crm:          ['admin','crm'],
   notion:       ['admin','financeiro','crm'],
   contratos:    ['admin','crm'],
-  equipe:       ['admin'],
-  configuracoes:['admin'],
-  instagram:    ['admin','crm'],
-  minerador:    ['admin','crm'],
+  equipe:           ['admin'],
+  configuracoes:    ['admin'],
+  instagram:        ['admin','crm'],
+  minerador:        ['admin','crm'],
+  influenciadoras:  ['admin','financeiro'],
+  vendedoras:       ['admin','financeiro'],
 };
 
 const TODAS_PAGINAS = [
@@ -3332,8 +3334,10 @@ const TODAS_PAGINAS = [
   {key:'contratos',    label:'Contratos'},
   {key:'equipe',       label:'Equipe'},
   {key:'configuracoes',label:'Configurações'},
-  {key:'instagram',    label:'Instagram'},
-  {key:'minerador',    label:'Minerador de Leads'},
+  {key:'instagram',       label:'Instagram'},
+  {key:'minerador',       label:'Minerador de Leads'},
+  {key:'influenciadoras', label:'Influenciadoras'},
+  {key:'vendedoras',      label:'Vendedoras'},
 ];
 
 function paginasParaRole(role){
