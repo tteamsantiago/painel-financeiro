@@ -82,6 +82,7 @@ function renderizarCategorias(){
   };
   tbE.innerHTML=CAT_ENTRADA.map(c=>row(c,'entrada')).join('')||'<tr><td colspan="5" class="empty">Nenhuma categoria de entrada</td></tr>';
   tbS.innerHTML=CAT_SAIDA.map(c=>row(c,'saida')).join('')||'<tr><td colspan="5" class="empty">Nenhuma categoria de saída</td></tr>';
+  atualizarFiltrosCat();
 }
 async function excluirCategoria(id,nome){
   if(!confirm('Excluir categoria "'+nome+'"?')) return;
@@ -360,6 +361,7 @@ function renderizarCategorias(){
   };
   tbE.innerHTML=CAT_ENTRADA.map(c=>row(c,'entrada')).join('')||'<tr><td colspan="5" class="empty">Nenhuma categoria de entrada</td></tr>';
   tbS.innerHTML=CAT_SAIDA.map(c=>row(c,'saida')).join('')||'<tr><td colspan="5" class="empty">Nenhuma categoria de saída</td></tr>';
+  atualizarFiltrosCat();
 }
 async function excluirCategoria(id,nome){
   if(!confirm('Excluir categoria "'+nome+'"?')) return;
@@ -600,6 +602,7 @@ textarea:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.12);}
 /* ── KPIs ── */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;}
 @media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.kpi-grid{grid-template-columns:1fr;}.filtros{flex-direction:column;}.filtros>*{width:100%;}}
 .kpi{background:#fff;border-radius:12px;padding:20px;border-left:4px solid;box-shadow:0 1px 3px rgba(0,0,0,.06);}
 .kpi.verde{border-color:#10b981;background:#f0fdf4;} .kpi.verde .kv{color:#065f46;}
 .kpi.vermelho{border-color:#ef4444;background:#fef2f2;} .kpi.vermelho .kv{color:#991b1b;}
@@ -1094,15 +1097,6 @@ tbody tr:hover td{background:#f9fafb;}
     </select>
     <select id="f-cat" onchange="filtrarLanc()">
       <option value="">Todas as categorias</option>
-      <option>Mensalidade Presencial</option>
-      <option>Pagamento de Consultoria</option>
-      <option>Outros (entrada)</option>
-      <option>Custo de Equipe</option>
-      <option>Imposto</option>
-      <option>Cursos e Mentorias</option>
-      <option>Equipamento Audiovisual</option>
-      <option>Ferramentas Digitais</option>
-      <option>Anúncios</option>
     </select>
     <select id="f-mes" onchange="filtrarLanc()">
       <option value="2026-12">Dezembro 2026</option>
@@ -1120,6 +1114,7 @@ tbody tr:hover td{background:#f9fafb;}
       <option value="2025-12">Dezembro 2025</option>
       <option value="2025-11">Novembro 2025</option>
     </select>
+    <button class="btn bs" onclick="limparFiltros()" style="white-space:nowrap;">&#10005; Limpar</button>
   </div>
   <div class="card">
     <div class="tw"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th><th>Ações</th></tr></thead>
@@ -1413,7 +1408,7 @@ tbody tr:hover td{background:#f9fafb;}
       <div style="font-size:48px;margin-bottom:16px;">&#128279;</div>
       <h3 style="margin:0 0 8px;color:#1e293b;">Configure o ClickUp</h3>
       <p style="color:#64748b;font-size:14px;margin-bottom:24px;line-height:1.6;">Adicione seu Personal API Token do ClickUp nas <strong>Configura&#231;&#245;es</strong> para ver alunos e leads em tempo real.</p>
-      <button class="btn bp" onclick="document.querySelectorAll('.nl')[6].click()">Ir para Configura&#231;&#245;es</button>
+      <button class="btn bp" onclick="document.querySelector('.nl[data-page=configuracoes]').click()">Ir para Configura&#231;&#245;es</button>
       <p style="margin-top:16px;font-size:12px;color:#94a3b8;">ClickUp &#8594; Perfil &#8594; Apps &#8594; Personal API Token</p>
     </div>
   </div>
@@ -1975,15 +1970,15 @@ function renderLeg(id,cats){
 function atualizarKPIs(mes){
   const d=DADOS[mes],ant=MANT[mes]?DADOS[MANT[mes]]:null;
   if(!d)return;
-  const res=d.e-d.s,mrg=(res/d.e)*100,pct=(d.s/d.e)*100;
+  const res=d.e-d.s,mrg=d.e>0?(res/d.e)*100:0,pct=d.e>0?(d.s/d.e)*100:0;
   const $=id=>document.getElementById(id);
   if($('mes-label'))$('mes-label').textContent=MNOME[mes];
   if($('kpi-e'))$('kpi-e').textContent=fmt(d.e);
   if($('kpi-s'))$('kpi-s').textContent=fmt(d.s);
   if($('kpi-r'))$('kpi-r').textContent=fmt(res);
   if($('kpi-m'))$('kpi-m').textContent=mrg.toFixed(1)+'%';
-  const vE=ant?((d.e-ant.e)/ant.e*100):null;
-  const vS=ant?((d.s-ant.s)/ant.s*100):null;
+  const vE=(ant&&ant.e>0)?((d.e-ant.e)/ant.e*100):null;
+  const vS=(ant&&ant.s>0)?((d.s-ant.s)/ant.s*100):null;
   const eE=$('kpi-ev'),eS=$('kpi-sv');
   if(eE){eE.textContent=vE!=null?`${vE>0?'↑':'↓'} ${vE>0?'+':''}${vE.toFixed(1)}% vs mês anterior`:'';eE.className='kvar '+(vE>=0?'up':'dn');}
   if(eS){eS.textContent=vS!=null?`${vS>0?'↑':'↓'} ${vS>0?'+':''}${vS.toFixed(1)}% vs mês anterior`:'';eS.className='kvar '+(vS>=0?'up':'dn');}
@@ -2104,6 +2099,22 @@ function filtrarLanc(){
     (!mes||l.mes===mes)
   ));
 }
+function atualizarFiltrosCat(){
+  const sel=document.getElementById('f-cat');
+  if(!sel) return;
+  const atual=sel.value;
+  sel.innerHTML='<option value="">Todas as categorias</option>'+
+    [...CAT_ENTRADA,...CAT_SAIDA].map(c=>`<option value="${c.n}">${c.n}</option>`).join('');
+  if(atual) sel.value=atual;
+}
+function limparFiltros(){
+  const b=document.getElementById('f-busca');
+  const t=document.getElementById('f-tipo');
+  const c=document.getElementById('f-cat');
+  const m=document.getElementById('f-mes');
+  if(b)b.value='';if(t)t.value='';if(c)c.value='';if(m)m.value='';
+  filtrarLanc();
+}
 
 function catOptions(sel=''){
   return [...CAT_ENTRADA,...CAT_SAIDA].map(c=>`<option${sel===c.n?' selected':''}>${c.n}</option>`).join('');
@@ -2141,6 +2152,8 @@ async function salvarNovoLanc(){
   if(!valor||valor<=0){toast('Informe um valor válido','erro');return;}
   const dataRaw=document.getElementById('nl-data').value;
   const mes=document.getElementById('nl-mes').value;
+  const btn=document.querySelector('#modal-footer .btn.bp');
+  if(btn){btn.disabled=true;btn.textContent='Salvando...';}
   const {error}=await sb.from('lancamentos').insert({
     tipo:document.getElementById('nl-tipo').value,
     descricao:desc,
@@ -2149,7 +2162,7 @@ async function salvarNovoLanc(){
     mes,
     valor
   });
-  if(error){toast('Erro ao salvar','erro');return;}
+  if(error){toast('Erro ao salvar','erro');if(btn){btn.disabled=false;btn.textContent='Salvar';}return;}
   fecharModal();
   await carregarLancamentos();
   toast('Lançamento adicionado!','sucesso');
@@ -2180,6 +2193,8 @@ async function salvarEdicaoLanc(id){
   const valor=parseFloat(document.getElementById('el-valor').value);
   if(!desc||!valor){toast('Preencha todos os campos','erro');return;}
   const dataRaw=document.getElementById('el-data').value;
+  const btn=document.querySelector('#modal-footer .btn.bp');
+  if(btn){btn.disabled=true;btn.textContent='Salvando...';}
   const {error}=await sb.from('lancamentos').update({
     tipo:document.getElementById('el-tipo').value,
     descricao:desc,
@@ -2187,7 +2202,7 @@ async function salvarEdicaoLanc(id){
     categoria:document.getElementById('el-cat').value,
     data:dataRaw
   }).eq('id',id);
-  if(error){toast('Erro ao atualizar','erro');return;}
+  if(error){toast('Erro ao atualizar','erro');if(btn){btn.disabled=false;btn.textContent='Salvar';}return;}
   fecharModal();
   await carregarLancamentos();
   toast('Lançamento atualizado!','sucesso');
@@ -2424,7 +2439,7 @@ function abrirCategorizar(rowId,desc){
   const row=document.getElementById(rowId);
   const valorTxt=row?row.cells[2].textContent.replace(/[^\d,]/g,'').replace(',','.'):0;
   const valor=parseFloat(valorTxt)||0;
-  const isSaida=row?row.cells[2].textContent.includes('−'):false;
+  const isSaida=row?(row.cells[2].textContent.includes('−')||row.cells[2].textContent.includes('-')):false;
   const tipo=isSaida?'saida':'entrada';
   const dataTxt=row?row.cells[0].textContent:'01/04/2026';
   abrirModal('Categorizar Lançamento',`
@@ -3872,6 +3887,7 @@ function renderizarCategorias(){
   };
   tbE.innerHTML=CAT_ENTRADA.map(c=>row(c,'entrada')).join('')||'<tr><td colspan="5" class="empty">Nenhuma categoria de entrada</td></tr>';
   tbS.innerHTML=CAT_SAIDA.map(c=>row(c,'saida')).join('')||'<tr><td colspan="5" class="empty">Nenhuma categoria de saída</td></tr>';
+  atualizarFiltrosCat();
 }
 async function excluirCategoria(id,nome){
   if(!confirm('Excluir categoria "'+nome+'"?')) return;
