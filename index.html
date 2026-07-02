@@ -870,6 +870,9 @@ tbody tr:hover td{background:#f9fafb;}
     <div class="nl" data-page="vendedoras" onclick="irPara('vendedoras',this)" id="nav-vendedoras">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>Vendedoras
     </div>
+    <div class="nl" data-page="agenda" onclick="irPara('agenda',this)" id="nav-agenda">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>Agenda de Comissões
+    </div>
     <div class="nl" data-page="configuracoes" onclick="irPara('configuracoes',this)">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configurações
     </div>
@@ -1873,6 +1876,66 @@ tbody tr:hover td{background:#f9fafb;}
   </div>
 </div>
 
+<!-- ── AGENDA DE COMISSÕES ── -->
+<div class="page" id="page-agenda">
+  <div class="ph">
+    <div>
+      <h2>Agenda de Comissões</h2>
+      <p id="agenda-subtitulo">Carregando...</p>
+    </div>
+    <button onclick="sincronizarComissoes()" style="display:flex;align-items:center;gap:6px;background:#6366f1;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      Sincronizar
+    </button>
+  </div>
+
+  <!-- Navegação de mês -->
+  <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:24px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px;">
+    <button onclick="agendaMesAnterior()" style="background:#f3f4f6;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:18px;color:#374151;">‹</button>
+    <div style="text-align:center;min-width:160px;">
+      <div id="agenda-mes-label" style="font-size:18px;font-weight:700;color:#111827;"></div>
+      <div id="agenda-mes-tipo" style="font-size:11px;color:#6b7280;margin-top:2px;"></div>
+    </div>
+    <button onclick="agendaMesProximo()" style="background:#f3f4f6;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:18px;color:#374151;">›</button>
+  </div>
+
+  <!-- KPIs do mês -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px;" id="agenda-kpis">
+    <div class="card" style="text-align:center;padding:16px;">
+      <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;">Total a Pagar</div>
+      <div id="agenda-kpi-total" style="font-size:22px;font-weight:700;color:#111827;margin-top:4px;">R$ 0</div>
+    </div>
+    <div class="card" style="text-align:center;padding:16px;">
+      <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;">Pendente</div>
+      <div id="agenda-kpi-pendente" style="font-size:22px;font-weight:700;color:#ef4444;margin-top:4px;">R$ 0</div>
+    </div>
+    <div class="card" style="text-align:center;padding:16px;">
+      <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;">Já Pago</div>
+      <div id="agenda-kpi-pago" style="font-size:22px;font-weight:700;color:#22c55e;margin-top:4px;">R$ 0</div>
+    </div>
+    <div class="card" style="text-align:center;padding:16px;">
+      <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;">Comissões</div>
+      <div id="agenda-kpi-qtd" style="font-size:22px;font-weight:700;color:#6366f1;margin-top:4px;">0</div>
+    </div>
+  </div>
+
+  <!-- Influenciadoras -->
+  <div style="margin-bottom:28px;">
+    <h3 style="font-size:14px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Influenciadoras</h3>
+    <div id="agenda-inf-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;">
+      <div class="empty" style="grid-column:1/-1;">Sincronize para carregar</div>
+    </div>
+  </div>
+
+  <!-- Vendedoras -->
+  <div>
+    <h3 style="font-size:14px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Vendedoras</h3>
+    <div id="agenda-ven-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;">
+      <div class="empty" style="grid-column:1/-1;">Sincronize para carregar</div>
+    </div>
+  </div>
+</div>
+
 </main>
 
 <!-- ═══════ MODAL ═══════ -->
@@ -2083,6 +2146,7 @@ function irPara(p,el){
   if(p==='equipe')carregarEquipe();
   if(p==='influenciadoras')renderInfluenciadoras();
   if(p==='vendedoras')renderVendedoras();
+  if(p==='agenda')renderAgenda();
   if(p==='instagram') carregarWindsorMetrics();
   if(p==='minerador'){
     fnCall('apify-leads',{plataforma:'instagram',tipo:'check'},8000)
@@ -3320,6 +3384,7 @@ const PERM_MAPA = {
   minerador:        ['admin','crm'],
   influenciadoras:  ['admin','financeiro'],
   vendedoras:       ['admin','financeiro'],
+  agenda:           ['admin','financeiro'],
 };
 
 const TODAS_PAGINAS = [
@@ -3338,6 +3403,7 @@ const TODAS_PAGINAS = [
   {key:'minerador',       label:'Minerador de Leads'},
   {key:'influenciadoras', label:'Influenciadoras'},
   {key:'vendedoras',      label:'Vendedoras'},
+  {key:'agenda',          label:'Agenda de Comissões'},
 ];
 
 function paginasParaRole(role){
@@ -4766,6 +4832,149 @@ async function salvarClickUpToken(){
   toast('Token salvo! Sincronizando...','sucesso');
   if(inp)inp.value='';
   await sincronizarComissoes();
+}
+
+// ══════════════════════════════════════════════
+// AGENDA DE COMISSÕES — visão mensal
+// ══════════════════════════════════════════════
+let AGENDA_MES = '';  // formato YYYY-MM, default = mês anterior
+
+function agendaMesAtual(){
+  const d=new Date();
+  d.setMonth(d.getMonth()-1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+function agendaMesLabel(ym){
+  const [y,m]=ym.split('-');
+  const nomes=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  return `${nomes[parseInt(m)-1]} ${y}`;
+}
+
+function agendaMesAnterior(){
+  const [y,m]=AGENDA_MES.split('-').map(Number);
+  const d=new Date(y,m-2,1);
+  AGENDA_MES=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  renderAgendaConteudo();
+}
+
+function agendaMesProximo(){
+  const [y,m]=AGENDA_MES.split('-').map(Number);
+  const d=new Date(y,m,1);
+  AGENDA_MES=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  renderAgendaConteudo();
+}
+
+async function renderAgenda(){
+  if(!AGENDA_MES) AGENDA_MES=agendaMesAtual();
+  await renderAgendaConteudo();
+}
+
+async function renderAgendaConteudo(){
+  const label=document.getElementById('agenda-mes-label');
+  const tipo=document.getElementById('agenda-mes-tipo');
+  const subtitulo=document.getElementById('agenda-subtitulo');
+  if(label) label.textContent=agendaMesLabel(AGENDA_MES);
+
+  const mesAtualYM=(()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;})();
+  const mesAntYM=(()=>{const d=new Date();d.setMonth(d.getMonth()-1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;})();
+  if(tipo){
+    if(AGENDA_MES===mesAntYM) tipo.textContent='Mês de referência (anterior)';
+    else if(AGENDA_MES===mesAtualYM) tipo.textContent='Mês atual';
+    else if(AGENDA_MES>mesAtualYM) tipo.textContent='Mês futuro';
+    else tipo.textContent='Mês passado';
+  }
+  if(subtitulo) subtitulo.textContent=`Comissões a pagar em ${agendaMesLabel(AGENDA_MES)} · dia 5`;
+
+  const{data:rows,error}=await sb.from('comissoes').select('*').eq('mes_pagamento',AGENDA_MES).order('aluno_nome');
+  if(error){toast('Erro ao carregar agenda','erro');return;}
+
+  // KPIs
+  const total=(rows||[]).reduce((s,r)=>(s+(r.comissao_influencer||0)+(r.comissao_vendedora||0)),0);
+  const pendente=(rows||[]).filter(r=>r.status==='pendente').reduce((s,r)=>(s+(r.comissao_influencer||0)+(r.comissao_vendedora||0)),0);
+  const pago=total-pendente;
+  const R=v=>`R$ ${parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
+  const set=el=>(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  const S=set();
+  S('agenda-kpi-total',R(total));
+  S('agenda-kpi-pendente',R(pendente));
+  S('agenda-kpi-pago',R(pago));
+  S('agenda-kpi-qtd',String((rows||[]).length));
+
+  // Agrupar por influencer e vendedora
+  const infMap={}, venMap={};
+  for(const r of (rows||[])){
+    if(r.influencer_nome && (r.comissao_influencer||0)>0){
+      const n=r.influencer_nome.trim();
+      if(!infMap[n])infMap[n]={nome:n,linhas:[],total:0,pendente:0};
+      infMap[n].linhas.push(r);
+      infMap[n].total+=(r.comissao_influencer||0);
+      if(r.status==='pendente')infMap[n].pendente+=(r.comissao_influencer||0);
+    }
+    if(r.vendedora_nome && (r.comissao_vendedora||0)>0){
+      const n=r.vendedora_nome.trim();
+      if(!venMap[n])venMap[n]={nome:n,linhas:[],total:0,pendente:0};
+      venMap[n].linhas.push(r);
+      venMap[n].total+=(r.comissao_vendedora||0);
+      if(r.status==='pendente')venMap[n].pendente+=(r.comissao_vendedora||0);
+    }
+  }
+
+  const renderCard=(grupo,tipo)=>{
+    const comField=tipo==='inf'?'comissao_influencer':'comissao_vendedora';
+    const todoPago=grupo.pendente===0;
+    const ids=grupo.linhas.map(r=>r.id);
+    return`<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+        <div>
+          <div style="font-weight:700;font-size:15px;color:#111827;">${grupo.nome}</div>
+          <div style="font-size:12px;color:#6b7280;margin-top:2px;">${grupo.linhas.length} cliente${grupo.linhas.length!==1?'s':''}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:18px;font-weight:700;color:${todoPago?'#22c55e':'#111827'};">${R(grupo.total)}</div>
+          ${todoPago?'<div style="font-size:11px;color:#22c55e;font-weight:600;">✓ Pago</div>':'<div style="font-size:11px;color:#ef4444;">'+R(grupo.pendente)+' pendente</div>'}
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;">
+        <thead><tr style="border-bottom:1px solid #f3f4f6;">
+          <th style="text-align:left;padding:4px 0;color:#9ca3af;font-weight:600;">Aluno</th>
+          <th style="text-align:center;padding:4px 0;color:#9ca3af;font-weight:600;">Tipo</th>
+          <th style="text-align:right;padding:4px 0;color:#9ca3af;font-weight:600;">Valor</th>
+          <th style="text-align:right;padding:4px 0;color:#9ca3af;font-weight:600;">Status</th>
+        </tr></thead>
+        <tbody>
+          ${grupo.linhas.map(r=>`<tr style="border-bottom:1px solid #f9fafb;">
+            <td style="padding:5px 0;color:#374151;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.aluno_nome}</td>
+            <td style="padding:5px 0;text-align:center;"><span style="font-size:10px;background:${r.tipo==='avista'?'#dbeafe':'#fce7f3'};color:${r.tipo==='avista'?'#1d4ed8':'#9d174d'};padding:2px 6px;border-radius:10px;">${r.tipo==='avista'?'À vista':'Parcela'}</span></td>
+            <td style="padding:5px 0;text-align:right;font-weight:600;color:#111827;">${R(r[comField]||0)}</td>
+            <td style="padding:5px 0;text-align:right;">${r.status==='pago'?'<span style="color:#22c55e;font-size:11px;">✓ Pago</span>':'<span style="color:#f59e0b;font-size:11px;">⏳</span>'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+      ${!todoPago?`<button onclick="marcarAgendaPago('${ids.join(',')}','${tipo}')" style="width:100%;background:#22c55e;color:#fff;border:none;padding:8px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">✓ Marcar como Pago</button>`
+        :`<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:8px;text-align:center;font-size:12px;color:#16a34a;font-weight:600;">✓ Comissão paga</div>`}
+    </div>`;
+  };
+
+  const infGrid=document.getElementById('agenda-inf-grid');
+  const venGrid=document.getElementById('agenda-ven-grid');
+  if(infGrid){
+    const keys=Object.keys(infMap);
+    infGrid.innerHTML=keys.length?keys.map(k=>renderCard(infMap[k],'inf')).join(''):'<div class="empty" style="grid-column:1/-1;">Nenhuma comissão de influenciadora neste mês</div>';
+  }
+  if(venGrid){
+    const keys=Object.keys(venMap);
+    venGrid.innerHTML=keys.length?keys.map(k=>renderCard(venMap[k],'ven')).join(''):'<div class="empty" style="grid-column:1/-1;">Nenhuma comissão de vendedora neste mês</div>';
+  }
+}
+
+async function marcarAgendaPago(idsStr,tipo){
+  const ids=idsStr.split(',').filter(Boolean);
+  if(!ids.length)return;
+  const{error}=await sb.from('comissoes').update({status:'pago',pago_em:new Date().toISOString()}).in('id',ids).eq('status','pendente');
+  if(error){toast('Erro ao marcar como pago','erro');return;}
+  toast('Comissão marcada como paga!','sucesso');
+  await renderAgendaConteudo();
 }
 
 // ── CRUD Influenciadoras ──
