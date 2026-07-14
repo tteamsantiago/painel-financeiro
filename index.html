@@ -1743,8 +1743,7 @@ tbody tr:hover td{background:#f9fafb;}
       </label>
     </div>
 
-    <div id="min-filtros" style="display:none;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;margin-bottom:14px;">
-      <p style="font-size:12px;font-weight:600;color:#374151;margin:0 0 10px;">Filtros de Leads</p>
+    <div id="min-filtros" style="display:none;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 16px;margin-bottom:14px;">
       <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
         <label style="font-size:12px;color:#6b7280;display:flex;align-items:center;gap:6px;">Min. Seguidores
           <input type="number" id="min-min-seg" placeholder="0" style="width:75px;padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;">
@@ -1752,18 +1751,7 @@ tbody tr:hover td{background:#f9fafb;}
         <label style="font-size:12px;color:#6b7280;display:flex;align-items:center;gap:6px;">Max. Seguidores
           <input type="number" id="min-max-seg" placeholder="Sem limite" style="width:90px;padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;">
         </label>
-        <label style="font-size:12px;color:#6b7280;display:flex;align-items:center;gap:6px;">Palavras na Bio
-          <input type="text" id="min-palavras-bio" placeholder="fitness, treino, academia" style="width:200px;padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;">
-        </label>
-        <label style="font-size:12px;color:#6b7280;display:flex;align-items:center;gap:8px;">Genero
-          <div style="display:flex;gap:10px;">
-            <label style="cursor:pointer;display:flex;align-items:center;gap:4px;font-size:12px;"><input type="radio" name="min-genero" value="todos" checked> Todos</label>
-            <label style="cursor:pointer;display:flex;align-items:center;gap:4px;font-size:12px;"><input type="radio" name="min-genero" value="mulher"> Mulher</label>
-            <label style="cursor:pointer;display:flex;align-items:center;gap:4px;font-size:12px;"><input type="radio" name="min-genero" value="homem"> Homem</label>
-          </div>
-        </label>
       </div>
-      <p style="font-size:10px;color:#94a3b8;margin:8px 0 0;">Filtro de genero detecta palavras-chave na bio (mae, mulher, she/her, pai, homem, he/him, etc.)</p>
     </div>
 
     <div style="display:flex;gap:8px;align-items:center;">
@@ -3884,11 +3872,11 @@ function minTipoChange() {
     prefix.textContent = '';
     input.placeholder = 'https://www.instagram.com/reel/ABC.../';
     input.style.paddingLeft = '12px';
-    if (filtros) filtros.style.display = 'block';
+    if (filtros) filtros.style.display = 'none';
   } else {
     prefix.textContent = '@'; input.placeholder = 'username (sem @)';
     input.style.paddingLeft = '28px';
-    if (filtros) filtros.style.display = 'block';
+    if (filtros) filtros.style.display = 'none';
   }
 }
 
@@ -3910,9 +3898,6 @@ async function minerarLeads() {
 
   const minSeg = parseInt(document.getElementById('min-min-seg')?.value || 0) || 0;
   const maxSeg = parseInt(document.getElementById('min-max-seg')?.value || 0) || 0;
-  const palavrasBio = document.getElementById('min-palavras-bio')?.value?.trim() || '';
-  const generoEl = document.querySelector('input[name="min-genero"]:checked');
-  const genero = generoEl ? generoEl.value : 'todos';
 
   const area = document.getElementById('min-resultado-area');
   const btn = document.getElementById('min-btn-buscar');
@@ -3922,7 +3907,7 @@ async function minerarLeads() {
 
   let data;
   try {
-    data = await fnCall('apify-leads', { plataforma: minAtualPlataforma, tipo, busca, limite: Math.min(Math.max(parseInt(limite) || 20, 1), 100), min_seguidores: minSeg, max_seguidores: maxSeg, palavras_bio: palavrasBio, genero });
+    data = await fnCall('apify-leads', { plataforma: minAtualPlataforma, tipo, busca, limite: Math.min(Math.max(parseInt(limite) || 20, 1), 100), min_seguidores: minSeg, max_seguidores: maxSeg });
   } catch (err) {
     resetBtn();
     area.innerHTML = '<div style="text-align:center;padding:40px;color:#ef4444;">Erro de conexao: ' + (err.message || err) + '</div>';
