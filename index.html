@@ -4475,6 +4475,7 @@ function gerarCtrPdf(){
 
 // ══ ANIVERSÁRIOS ══════════════════════════════
 let ANIVERSARIOS_DATA = null;
+let ANIVERSARIOS_MODO = 'semana'; // 'semana' | 'mes'
 
 async function sincronizarAniversariosNotion() {
   const btn = document.getElementById('btn-sync-notion-aniv');
@@ -4496,13 +4497,16 @@ async function renderAniversarios() {
   const card = document.getElementById('aniversarios-card');
   if (!card) return;
   if (!ANIVERSARIOS_DATA) {
-    card.innerHTML = '<div id="aniversarios-loading" style="color:#94a3b8;font-size:13px;text-align:center;padding:16px;">Carregando...</div>';
+    card.innerHTML = '<div style="color:#94a3b8;font-size:13px;text-align:center;padding:16px;">Carregando...</div>';
     const { data } = await sb.from('aniversarios').select('nome,data_nascimento').order('nome');
     ANIVERSARIOS_DATA = data || [];
   }
 
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
+  const mesAtualNum = hoje.getMonth(); // 0-11
+  const MESES_NOMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const MESES_ABREV = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
 
   function diasAte(dataNasc) {
     const [, m, d] = dataNasc.split('-');
@@ -4511,79 +4515,121 @@ async function renderAniversarios() {
     return Math.round((prox - hoje) / 86400000);
   }
 
-  function idade(dataNasc, dias) {
-    const [ano] = dataNasc.split('-');
-    return hoje.getFullYear() + (dias > 0 ? 0 : 0) - +ano + (dias === 0 ? 0 : 0);
-  }
-
   function fmtData(dataNasc) {
     const [, m, d] = dataNasc.split('-');
-    const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-    return `${+d} ${meses[+m - 1]}`;
+    return `${+d} ${MESES_ABREV[+m - 1]}`;
   }
 
-  const lista = ANIVERSARIOS_DATA.map(a => ({
-    ...a,
-    dias: diasAte(a.data_nascimento),
-    idade: new Date().getFullYear() - +a.data_nascimento.split('-')[0],
-  })).sort((a, b) => a.dias - b.dias);
+  // Toggle buttons
+  const toggleHtml = `<div style="display:flex;gap:6px;margin-bottom:16px;">
+    <button onclick="ANIVERSARIOS_MODO='semana';renderAniversarios()" style="padding:5px 14px;border-radius:20px;border:1px solid ${ANIVERSARIOS_MODO==='semana'?'#6366f1':'#e2e8f0'};background:${ANIVERSARIOS_MODO==='semana'?'#6366f1':'#fff'};color:${ANIVERSARIOS_MODO==='semana'?'#fff':'#64748b'};font-size:12px;font-weight:600;cursor:pointer;">Esta semana</button>
+    <button onclick="ANIVERSARIOS_MODO='mes';renderAniversarios()" style="padding:5px 14px;border-radius:20px;border:1px solid ${ANIVERSARIOS_MODO==='mes'?'#6366f1':'#e2e8f0'};background:${ANIVERSARIOS_MODO==='mes'?'#6366f1':'#fff'};color:${ANIVERSARIOS_MODO==='mes'?'#fff':'#64748b'};font-size:12px;font-weight:600;cursor:pointer;">Este mês</button>
+  </div>`;
 
-  const hoje_list = lista.filter(a => a.dias === 0);
-  const semana = lista.filter(a => a.dias >= 1 && a.dias <= 7);
-  const mes = lista.filter(a => a.dias >= 8 && a.dias <= 30);
+  let html = toggleHtml;
 
-  let html = '';
+  if (ANIVERSARIOS_MODO === 'semana') {
+    const lista = ANIVERSARIOS_DATA.map(a => ({
+      ...a,
+      dias: diasAte(a.data_nascimento),
+      idade: hoje.getFullYear() - +a.data_nascimento.split('-')[0],
+    })).sort((a, b) => a.dias - b.dias);
 
-  // Hoje
-  if (hoje_list.length > 0) {
-    html += `<div style="background:#fef9c3;border:1px solid #fde047;border-radius:10px;padding:14px 18px;margin-bottom:16px;">
-      <div style="font-size:11px;font-weight:700;color:#a16207;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">🎂 Hoje</div>
-      ${hoje_list.map(a => `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #fde68a;">
-        <div style="width:36px;height:36px;border-radius:50%;background:#fbbf24;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🎉</div>
-        <div>
-          <div style="font-weight:600;font-size:14px;color:#78350f;">${a.nome}</div>
-          <div style="font-size:12px;color:#92400e;">Completa ${a.idade} anos hoje!</div>
-        </div>
-      </div>`).join('')}
-    </div>`;
-  }
+    const hoje_list = lista.filter(a => a.dias === 0);
+    const semana    = lista.filter(a => a.dias >= 1 && a.dias <= 7);
+    const proximos  = lista.filter(a => a.dias >= 8 && a.dias <= 30);
 
-  // Esta semana
-  if (semana.length > 0) {
-    html += `<div style="margin-bottom:16px;">
-      <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Esta semana</div>
-      ${semana.map(a => `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:30px;height:30px;border-radius:50%;background:#e0e7ff;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🎂</div>
+    if (hoje_list.length > 0) {
+      html += `<div style="background:#fef9c3;border:1px solid #fde047;border-radius:10px;padding:14px 18px;margin-bottom:16px;">
+        <div style="font-size:11px;font-weight:700;color:#a16207;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">🎂 Hoje</div>
+        ${hoje_list.map(a => `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #fde68a;">
+          <div style="width:36px;height:36px;border-radius:50%;background:#fbbf24;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🎉</div>
           <div>
-            <div style="font-weight:500;font-size:13px;color:#1e293b;">${a.nome}</div>
-            <div style="font-size:11px;color:#94a3b8;">${fmtData(a.data_nascimento)} · ${a.idade} anos</div>
+            <div style="font-weight:600;font-size:14px;color:#78350f;">${a.nome}</div>
+            <div style="font-size:12px;color:#92400e;">Completa ${a.idade} anos hoje!</div>
           </div>
-        </div>
-        <div style="font-size:12px;font-weight:600;color:#6366f1;background:#eef2ff;padding:3px 10px;border-radius:20px;white-space:nowrap;">em ${a.dias} dia${a.dias > 1 ? 's' : ''}</div>
-      </div>`).join('')}
-    </div>`;
-  }
-
-  // Próximos 30 dias
-  if (mes.length > 0) {
-    html += `<div>
-      <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Próximos 30 dias</div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;">
-        ${mes.map(a => `<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;font-size:12px;">
-          <span style="font-weight:500;color:#334155;">${a.nome.split(' ')[0]} ${a.nome.split(' ').slice(-1)[0]}</span>
-          <span style="color:#94a3b8;margin-left:6px;">${fmtData(a.data_nascimento)}</span>
-          <span style="color:#cbd5e1;margin-left:4px;">· ${a.dias}d</span>
         </div>`).join('')}
-      </div>
-    </div>`;
+      </div>`;
+    }
+
+    if (semana.length > 0) {
+      html += `<div style="margin-bottom:16px;">
+        <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Esta semana</div>
+        ${semana.map(a => `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:30px;height:30px;border-radius:50%;background:#e0e7ff;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🎂</div>
+            <div>
+              <div style="font-weight:500;font-size:13px;color:#1e293b;">${a.nome}</div>
+              <div style="font-size:11px;color:#94a3b8;">${fmtData(a.data_nascimento)} · ${a.idade} anos</div>
+            </div>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:#6366f1;background:#eef2ff;padding:3px 10px;border-radius:20px;white-space:nowrap;">em ${a.dias} dia${a.dias > 1 ? 's' : ''}</div>
+        </div>`).join('')}
+      </div>`;
+    }
+
+    if (proximos.length > 0) {
+      html += `<div>
+        <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Próximos 30 dias</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          ${proximos.map(a => `<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;font-size:12px;">
+            <span style="font-weight:500;color:#334155;">${a.nome.split(' ')[0]} ${a.nome.split(' ').slice(-1)[0]}</span>
+            <span style="color:#94a3b8;margin-left:6px;">${fmtData(a.data_nascimento)}</span>
+            <span style="color:#cbd5e1;margin-left:4px;">· ${a.dias}d</span>
+          </div>`).join('')}
+        </div>
+      </div>`;
+    }
+
+    if (!hoje_list.length && !semana.length && !proximos.length) {
+      html += '<div style="color:#94a3b8;font-size:13px;text-align:center;padding:16px;">Nenhum aniversário nos próximos 30 dias.</div>';
+    }
+
+  } else {
+    // Modo "Este mês"
+    const doMes = ANIVERSARIOS_DATA
+      .filter(a => +a.data_nascimento.split('-')[1] - 1 === mesAtualNum)
+      .map(a => {
+        const [ano, m, d] = a.data_nascimento.split('-');
+        const diaAniv = new Date(hoje.getFullYear(), +m - 1, +d);
+        diaAniv.setHours(0, 0, 0, 0);
+        const diff = Math.round((diaAniv - hoje) / 86400000);
+        return {
+          ...a,
+          dia: +d,
+          idade: hoje.getFullYear() - +ano,
+          diff, // negativo = já passou, 0 = hoje, positivo = ainda vem
+        };
+      })
+      .sort((a, b) => a.dia - b.dia);
+
+    if (doMes.length === 0) {
+      html += `<div style="color:#94a3b8;font-size:13px;text-align:center;padding:16px;">Nenhum aniversário em ${MESES_NOMES[mesAtualNum]}.</div>`;
+    } else {
+      html += `<div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;">🎂 ${MESES_NOMES[mesAtualNum]} — ${doMes.length} aniversariante${doMes.length > 1 ? 's' : ''}</div>`;
+      html += doMes.map(a => {
+        const isHoje = a.diff === 0;
+        const passou = a.diff < 0;
+        return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f1f5f9;opacity:${passou ? '0.45' : '1'};">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;border-radius:50%;background:${isHoje ? '#fbbf24' : passou ? '#f1f5f9' : '#e0e7ff'};display:flex;align-items:center;justify-content:center;font-size:${isHoje ? '18' : '13'}px;font-weight:700;color:${isHoje ? '#78350f' : '#64748b'};flex-shrink:0;">${isHoje ? '🎉' : a.dia}</div>
+            <div>
+              <div style="font-weight:${isHoje ? '700' : '500'};font-size:13px;color:${isHoje ? '#78350f' : passou ? '#94a3b8' : '#1e293b'};">${a.nome}</div>
+              <div style="font-size:11px;color:#94a3b8;">${fmtData(a.data_nascimento)} · ${a.idade} anos</div>
+            </div>
+          </div>
+          ${isHoje
+            ? `<div style="font-size:12px;font-weight:700;color:#d97706;background:#fef3c7;padding:3px 10px;border-radius:20px;">Hoje!</div>`
+            : passou
+            ? `<div style="font-size:11px;color:#cbd5e1;">há ${Math.abs(a.diff)} dia${Math.abs(a.diff) > 1 ? 's' : ''}</div>`
+            : `<div style="font-size:12px;font-weight:600;color:#6366f1;background:#eef2ff;padding:3px 10px;border-radius:20px;white-space:nowrap;">em ${a.diff} dia${a.diff > 1 ? 's' : ''}</div>`
+          }
+        </div>`;
+      }).join('');
+    }
   }
 
-  if (!html) {
-    html = '<div style="color:#94a3b8;font-size:13px;text-align:center;padding:16px;">Nenhum aniversário nos próximos 30 dias.</div>';
-  }
-
-  // Rodapé com contagem total
+  // Rodapé
   html += `<div style="margin-top:14px;padding-top:12px;border-top:1px solid #f1f5f9;font-size:11px;color:#94a3b8;display:flex;justify-content:space-between;align-items:center;">
     <span>${ANIVERSARIOS_DATA.length} alunos cadastrados</span>
     <div style="display:flex;gap:12px;">
