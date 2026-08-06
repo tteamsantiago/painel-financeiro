@@ -271,17 +271,8 @@ tbody tr:hover td{background:#f9fafb;}
     <div class="nl active" data-page="dashboard" onclick="irPara('dashboard',this)">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard
     </div>
-    <div class="nl" data-page="lancamentos" onclick="irPara('lancamentos',this)">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4 4 4M17 8v12m0 0 4-4m-4 4-4-4"/></svg>Lançamentos
-    </div>
     <div class="nl" data-page="importar" onclick="irPara('importar',this)">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1M12 12V4m0 8-3-3m3 3 3-3"/></svg>Importar
-    </div>
-    <div class="nl" data-page="pendentes" onclick="irPara('pendentes',this)">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Pendentes
-    </div>
-    <div class="nl" data-page="fechamentos" onclick="irPara('fechamentos',this)">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Fechamentos
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Notas Fiscais
     </div>
     <div class="nl" data-page="categorias" onclick="irPara('categorias',this)">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h18"/></svg>Categorias
@@ -470,8 +461,8 @@ tbody tr:hover td{background:#f9fafb;}
     </div>
   </div>
 
-  <!-- Linha: Parcelas + Últimos lançamentos -->
-  <div class="g2" style="margin-top:16px;">
+  <!-- Parcelas -->
+  <div style="margin-top:16px;">
     <div class="card">
       <h3 style="display:flex;align-items:center;justify-content:space-between;">
         ⏰ Próximas Parcelas (30 dias)
@@ -481,7 +472,6 @@ tbody tr:hover td{background:#f9fafb;}
         <div style="color:#94a3b8;text-align:center;padding:20px;">Carregando...</div>
       </div>
     </div>
-    <div class="card"><h3>📋 Últimos Lançamentos</h3><div id="dash-lanc"></div></div>
   </div>
 
   <!-- Gráficos -->
@@ -538,170 +528,33 @@ tbody tr:hover td{background:#f9fafb;}
   <div class="demo-footer">⚠ Dados fictícios — apenas para demonstração visual</div>
 </div>
 
-<!-- ── LANÇAMENTOS ── -->
-<div class="page" id="page-lancamentos">
-  <div class="ph">
-    <div><h2>Lançamentos</h2><p>Todos os registros financeiros</p></div>
-    <button class="btn bp" onclick="abrirModalNovoLanc()">+ Novo Lançamento</button>
-  </div>
-  <div class="filtros">
-    <input type="text" id="f-busca" placeholder="🔍 Buscar descrição..." style="min-width:200px;" oninput="filtrarLanc()">
-    <select id="f-tipo" onchange="filtrarLanc()">
-      <option value="">Todos os tipos</option>
-      <option value="entrada">Entradas</option>
-      <option value="saida">Saídas</option>
-    </select>
-    <select id="f-cat" onchange="filtrarLanc()">
-      <option value="">Todas as categorias</option>
-    </select>
-    <select id="f-mes" onchange="filtrarLanc()">
-      <option value="2026-12">Dezembro 2026</option>
-      <option value="2026-11">Novembro 2026</option>
-      <option value="2026-10">Outubro 2026</option>
-      <option value="2026-09">Setembro 2026</option>
-      <option value="2026-08">Agosto 2026</option>
-      <option value="2026-07">Julho 2026</option>
-      <option value="2026-06">Junho 2026</option>
-      <option value="2026-05">Maio 2026</option>
-      <option value="2026-04" selected>Abril 2026</option>
-      <option value="2026-03">Março 2026</option>
-      <option value="2026-02">Fevereiro 2026</option>
-      <option value="2026-01">Janeiro 2026</option>
-      <option value="2025-12">Dezembro 2025</option>
-      <option value="2025-11">Novembro 2025</option>
-    </select>
-    <button class="btn bs" onclick="limparFiltros()" style="white-space:nowrap;">&#10005; Limpar</button>
-  </div>
-  <div class="card">
-    <div class="tw"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th><th>Ações</th></tr></thead>
-      <tbody id="tbody-lanc"></tbody>
-    </table></div>
-  </div>
-  <div class="demo-footer" style="margin-top:16px;">⚠ Dados fictícios — apenas para demonstração visual</div>
-</div>
-
-<!-- ── IMPORTAR ── -->
+<!-- ── IMPORTAR / NOTAS FISCAIS ── -->
 <div class="page" id="page-importar">
-  <div class="ph"><div><h2>Importar Extrato</h2><p>Importe extratos do Mercado Pago ou Infinity Pay em CSV</p></div></div>
-
-  <!-- Seletor de plataforma -->
-  <div style="display:flex;gap:12px;margin-bottom:20px;">
-    <div id="btn-mp" onclick="selecionarPlataforma('mercadopago')" style="flex:1;border:2px solid #4f46e5;border-radius:12px;padding:16px;cursor:pointer;text-align:center;background:#f5f3ff;">
-      <div style="font-size:24px;margin-bottom:6px;">💳</div>
-      <div style="font-weight:700;font-size:14px;color:#4f46e5;">Mercado Pago</div>
-      <div style="font-size:11px;color:#6b7280;margin-top:3px;">Exporte em: Atividade → Exportar → CSV</div>
-    </div>
-    <div id="btn-ip" onclick="selecionarPlataforma('infinitypay')" style="flex:1;border:2px solid #e5e7eb;border-radius:12px;padding:16px;cursor:pointer;text-align:center;background:#fff;">
-      <div style="font-size:24px;margin-bottom:6px;">⚡</div>
-      <div style="font-weight:700;font-size:14px;color:#374151;">Infinity Pay</div>
-      <div style="font-size:11px;color:#6b7280;margin-top:3px;">Exporte em: Relatórios → Exportar → CSV</div>
-    </div>
-  </div>
-
-  <div class="g2">
-    <div class="card">
-      <h3 id="import-titulo">Upload do extrato — Mercado Pago</h3>
-      <input type="file" id="file-input" accept=".csv" style="display:none;" onchange="processarCSV(this)">
-      <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
-        <div class="upload-icon">📂</div>
-        <h4 id="upload-label">Clique para selecionar o CSV</h4>
-        <p>Formato aceito: .csv</p>
-        <p style="margin-top:6px;font-size:11px;color:#d1d5db;">Tamanho máximo: 10 MB</p>
-      </div>
-      <div id="import-progress" style="display:none;margin-top:12px;">
-        <div class="import-bar"><div class="import-fill" id="import-fill"></div></div>
-        <p id="import-status" style="font-size:12px;color:#6b7280;text-align:center;"></p>
-      </div>
-      <!-- Instrução de exportação -->
-      <div id="instrucao-export" style="margin-top:14px;background:#f9fafb;border-radius:8px;padding:12px;font-size:12px;color:#6b7280;border:1px solid #f3f4f6;">
-        <strong style="color:#374151;">Como exportar do Mercado Pago:</strong><br/>
-        1. Abra o app ou site do Mercado Pago<br/>
-        2. Vá em <strong>Atividade</strong> → <strong>Ver tudo</strong><br/>
-        3. Clique em <strong>Exportar</strong> e escolha <strong>CSV</strong><br/>
-        4. Selecione o período desejado e baixe o arquivo
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Histórico de importações</h3>
-      <div class="tw"><table>
-        <thead><tr><th>Data</th><th>Arquivo</th><th>Plataforma</th><th>Registros</th><th>Status</th></tr></thead>
-        <tbody id="tbody-import"><tr><td colspan="5" class="empty">Nenhuma importação ainda</td></tr></tbody>
-      </table></div>
-    </div>
-  </div>
-
-  <!-- Preview dos lançamentos detectados -->
-  <div id="preview-import" style="display:none;margin-top:20px;">
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-        <h3 id="preview-titulo">Lançamentos detectados</h3>
-        <div style="display:flex;gap:10px;">
-          <button class="btn bs" onclick="cancelarImport()">Cancelar</button>
-          <button class="btn bp" id="btn-confirmar-import" onclick="confirmarImport()">Salvar todos</button>
-        </div>
-      </div>
-      <div style="margin-bottom:12px;font-size:13px;color:#6b7280;">
-        Revise os lançamentos abaixo antes de salvar. Você pode editar a descrição, categoria ou excluir linhas.
-      </div>
-      <div class="tw"><table>
-        <thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor</th><th>Categoria</th><th></th></tr></thead>
-        <tbody id="tbody-preview"></tbody>
-      </table></div>
-    </div>
-  </div>
-</div>
-
-<!-- ── PENDENTES ── -->
-<div class="page" id="page-pendentes">
   <div class="ph">
-    <div><h2>Pendentes</h2><p>Lançamentos aguardando categorização ou confirmação</p></div>
-    <button class="btn bs" onclick="resolverTodos()">Resolver todos</button>
+    <div><h2>Notas Fiscais</h2><p>Gestão e importação de notas fiscais — em desenvolvimento</p></div>
   </div>
-  <div class="card">
-    <div class="tw"><table>
-      <thead><tr><th>Data</th><th>Descrição</th><th>Valor</th><th>Origem</th><th>Situação</th><th>Ações</th></tr></thead>
-      <tbody id="tbody-pend"><tr><td colspan="6" class="empty">Nenhum lançamento pendente</td></tr></tbody>
-    </table></div>
+  <div class="card" style="text-align:center;padding:60px 40px;">
+    <div style="font-size:56px;margin-bottom:20px;">🧾</div>
+    <h3 style="font-size:20px;font-weight:700;color:#1e293b;margin:0 0 10px;">Recurso Fiscal em Breve</h3>
+    <p style="font-size:14px;color:#64748b;max-width:480px;margin:0 auto 24px;line-height:1.6;">
+      Esta seção será o hub fiscal do painel: importação de notas fiscais, organização por período,
+      integração com emissores e facilitação na retirada e consulta de NFs emitidas pela empresa.
+    </p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;max-width:500px;margin:0 auto;">
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 20px;font-size:13px;color:#475569;text-align:left;flex:1;min-width:180px;">
+        <div style="font-weight:700;color:#1e293b;margin-bottom:4px;">📥 Importação</div>
+        Importe NFs em XML ou PDF direto no painel
+      </div>
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 20px;font-size:13px;color:#475569;text-align:left;flex:1;min-width:180px;">
+        <div style="font-weight:700;color:#1e293b;margin-bottom:4px;">📊 Organização</div>
+        Filtre por período, cliente ou valor
+      </div>
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 20px;font-size:13px;color:#475569;text-align:left;flex:1;min-width:180px;">
+        <div style="font-weight:700;color:#1e293b;margin-bottom:4px;">🔗 Integração</div>
+        Conecte com seu emissor de NF-e favorito
+      </div>
+    </div>
   </div>
-  <div class="demo-footer" style="margin-top:16px;">⚠ Dados fictícios — apenas para demonstração visual</div>
-</div>
-
-<!-- ── FECHAMENTOS ── -->
-<div class="page" id="page-fechamentos">
-  <div class="ph">
-    <div><h2>Fechamentos</h2><p>Resumo mensal de caixa</p></div>
-    <button class="btn bp" onclick="abrirModalFechamento()">+ Novo Fechamento</button>
-  </div>
-  <div class="card">
-    <div class="tw"><table>
-      <thead><tr><th>Mês</th><th>Entradas</th><th>Saídas</th><th>Resultado</th><th>Margem</th><th>Status</th><th>Ações</th></tr></thead>
-      <tbody id="tbody-fech">
-        <tr><td><strong>Dezembro 2026</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge cinza">Aguardando</span></td><td>—</td></tr>
-        <tr><td><strong>Novembro 2026</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge cinza">Aguardando</span></td><td>—</td></tr>
-        <tr><td><strong>Outubro 2026</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge cinza">Aguardando</span></td><td>—</td></tr>
-        <tr><td><strong>Setembro 2026</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge cinza">Aguardando</span></td><td>—</td></tr>
-        <tr><td><strong>Agosto 2026</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge cinza">Aguardando</span></td><td>—</td></tr>
-        <tr><td><strong>Julho 2026</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge cinza">Aguardando</span></td><td>—</td></tr>
-        <tr><td><strong>Junho 2026</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge cinza">Aguardando</span></td><td>—</td></tr>
-        <tr><td><strong>Maio 2026</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge cinza">Aguardando</span></td><td>—</td></tr>
-        <tr><td><strong>Abril 2026</strong></td><td class="ve">R$ 68.300,00</td><td class="vs">R$ 41.200,00</td><td class="ve">R$ 27.100,00</td><td>39,7%</td><td><span class="badge azul">Em aberto</span></td>
-          <td style="display:flex;gap:6px;"><button class="btn bs" style="padding:4px 10px;font-size:12px;" onclick="verFechamento('Abril 2026','68300','41200')">Ver</button>
-          <button class="btn bp" style="padding:4px 10px;font-size:12px;" onclick="fecharMes('Abril 2026')">Fechar mês</button></td></tr>
-        <tr><td><strong>Março 2026</strong></td><td class="ve">R$ 61.400,00</td><td class="vs">R$ 38.900,00</td><td class="ve">R$ 22.500,00</td><td>36,6%</td><td><span class="badge verde">✓ Fechado</span></td>
-          <td><button class="btn bs" style="padding:4px 10px;font-size:12px;" onclick="verFechamento('Março 2026','61400','38900')">Ver</button></td></tr>
-        <tr><td><strong>Fevereiro 2026</strong></td><td class="ve">R$ 57.800,00</td><td class="vs">R$ 36.200,00</td><td class="ve">R$ 21.600,00</td><td>37,4%</td><td><span class="badge verde">✓ Fechado</span></td>
-          <td><button class="btn bs" style="padding:4px 10px;font-size:12px;" onclick="verFechamento('Fevereiro 2026','57800','36200')">Ver</button></td></tr>
-        <tr><td><strong>Janeiro 2026</strong></td><td class="ve">R$ 53.100,00</td><td class="vs">R$ 34.700,00</td><td class="ve">R$ 18.400,00</td><td>34,7%</td><td><span class="badge verde">✓ Fechado</span></td>
-          <td><button class="btn bs" style="padding:4px 10px;font-size:12px;" onclick="verFechamento('Janeiro 2026','53100','34700')">Ver</button></td></tr>
-        <tr><td><strong>Dezembro 2025</strong></td><td class="ve">R$ 62.500,00</td><td class="vs">R$ 39.800,00</td><td class="ve">R$ 22.700,00</td><td>36,3%</td><td><span class="badge verde">✓ Fechado</span></td>
-          <td><button class="btn bs" style="padding:4px 10px;font-size:12px;" onclick="verFechamento('Dezembro 2025','62500','39800')">Ver</button></td></tr>
-        <tr><td><strong>Novembro 2025</strong></td><td class="ve">R$ 48.200,00</td><td class="vs">R$ 31.400,00</td><td class="ve">R$ 16.800,00</td><td>34,9%</td><td><span class="badge verde">✓ Fechado</span></td>
-          <td><button class="btn bs" style="padding:4px 10px;font-size:12px;" onclick="verFechamento('Novembro 2025','48200','31400')">Ver</button></td></tr>
-      </tbody>
-    </table></div>
-  </div>
-  <div class="demo-footer" style="margin-top:16px;">⚠ Dados fictícios — apenas para demonstração visual</div>
 </div>
 
 <!-- ── CATEGORIAS ── -->
@@ -2749,9 +2602,6 @@ function showApp(){
   document.getElementById('login-overlay').style.display='none';
   carregarRoleUsuario();
   carregarCategorias();
-  carregarFechamentos();
-  carregarPendentes();
-  carregarHistoricoImportacoes();
 }
 function showLogin(){
   document.getElementById('login-overlay').style.display='flex';
@@ -2768,10 +2618,7 @@ const SUPABASE_FN = 'https://fhuromvcoujzmikxxjnv.supabase.co/functions/v1';
 
 const PERM_MAPA = {
   dashboard:    ['admin','financeiro','crm','visualizador'],
-  lancamentos:  ['admin','financeiro'],
   importar:     ['admin','financeiro'],
-  pendentes:    ['admin','financeiro'],
-  fechamentos:  ['admin','financeiro'],
   categorias:   ['admin','financeiro'],
   crm:          ['admin','crm'],
   contratos:    ['admin','crm'],
@@ -2786,10 +2633,7 @@ const PERM_MAPA = {
 
 const TODAS_PAGINAS = [
   {key:'dashboard',    label:'Dashboard'},
-  {key:'lancamentos',  label:'Lançamentos'},
-  {key:'importar',     label:'Importar Extrato'},
-  {key:'pendentes',    label:'Pendentes'},
-  {key:'fechamentos',  label:'Fechamentos'},
+  {key:'importar',     label:'Notas Fiscais'},
   {key:'categorias',   label:'Categorias'},
   {key:'crm',          label:'CRM & Alunos'},
   {key:'contratos',    label:'Contratos'},
