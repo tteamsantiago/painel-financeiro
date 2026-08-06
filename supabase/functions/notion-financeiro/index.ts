@@ -115,18 +115,22 @@ serve(async (req) => {
 
       // Mantém o registro com a data mais recente (snapshot final do mês)
       if (!existing || data > existing.data) {
-        monthMap.set(key, {
+        const entrada = getNumber(p, 'Entrada Total')
+          const saida   = getNumber(p, 'Saída Total')
+          monthMap.set(key, {
           mes,
           data,
-          entrada:      getNumber(p, 'Entrada Total'),
-          saida:        getNumber(p, 'Saída Total'),
-          fluxo:        getNumber(p, 'Fluxo Caixa Team Santiago'),
+          entrada,
+          saida,
+          fluxo:        entrada - saida,
           consultoria:  getNumber(p, 'Consultoria Online'),
           personal:     getNumber(p, 'Personal Trainer'),
           gastos_fixo:  getNumber(p, 'Gastos Fixo'),
           gastos_var:   getNumber(p, 'Gastos Variáveis'),
           cartao:       getNumber(p, 'Cartão de Crédito'),
-          investimento: getNumber(p, 'Investimentos'),
+          carro_novo:   getNumber(p, 'Carro Novo'),
+          reserva_ts:   getNumber(p, 'Reserva TS'),
+          reserva_pessoal: getNumber(p, 'Reserva Pessoal'),
         })
       }
     }
