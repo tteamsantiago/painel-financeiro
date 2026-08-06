@@ -3682,13 +3682,14 @@ async function desativarColab(email){
 const FN = 'https://fhuromvcoujzmikxxjnv.supabase.co/functions/v1';
 
 async function fnCall(endpoint, body, timeoutMs=55000) {
-  const sess = (await sb.auth.getSession()).data.session;
+  const { data: { session } } = await sb.auth.getSession();
+  const token = session?.access_token || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZodXJvbXZjb3Vqem1pa3h4am52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxMjM5MTgsImV4cCI6MjA5NTY5OTkxOH0.yiKrzsiIsoekNlG0r6Qwn8YrDB1q2josRBVrJfiP4uc';
   const ctrl = new AbortController();
   const timer = setTimeout(()=>ctrl.abort(), timeoutMs);
   try {
     const res = await fetch(FN + '/' + endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sess.access_token },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify(body),
       signal: ctrl.signal
     });
