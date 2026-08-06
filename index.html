@@ -1472,8 +1472,10 @@ function atualizarKPIs(mes){
 }
 
 function renderDashLanc(mes){
+  const el=document.getElementById('dash-lanc');
+  if(!el) return;
   const lancs=LANCS.filter(l=>l.mes===mes).slice(0,8);
-  document.getElementById('dash-lanc').innerHTML=lancs.length
+  el.innerHTML=lancs.length
     ?lancs.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f3f4f6;">
       <div style="display:flex;align-items:center;gap:9px;">
         <span style="font-size:15px;">${l.tipo==='entrada'?'⬆':'⬇'}</span>
@@ -1554,7 +1556,9 @@ function atualizarCharts(mes){
 // LANÇAMENTOS
 // ══════════════════════════════════════════════
 function renderTabelaLanc(lista){
-  document.getElementById('tbody-lanc').innerHTML=lista.length
+  const tb=document.getElementById('tbody-lanc');
+  if(!tb) return;
+  tb.innerHTML=lista.length
     ?lista.map(l=>`<tr id="row-${l.id}">
         <td>${l.data}</td><td>${l.desc}</td>
         <td><span class="badge cinza">${l.cat}</span></td>
@@ -1569,6 +1573,7 @@ function renderTabelaLanc(lista){
 }
 
 function filtrarLanc(){
+  if(!document.getElementById('f-busca')) return;
   const busca=document.getElementById('f-busca').value.toLowerCase();
   const tipo=document.getElementById('f-tipo').value;
   const cat=document.getElementById('f-cat').value;
