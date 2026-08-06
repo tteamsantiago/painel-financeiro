@@ -5077,6 +5077,22 @@ function gerarCtrPdf(){
 // ══ ANIVERSÁRIOS ══════════════════════════════
 let ANIVERSARIOS_DATA = null;
 
+async function sincronizarAniversariosNotion() {
+  const btn = document.getElementById('btn-sync-notion-aniv');
+  if (btn) { btn.textContent = '⏳ Sincronizando...'; btn.style.pointerEvents = 'none'; }
+  try {
+    const data = await fnCall('notion-sync-aniversarios', {}, 30000);
+    if (data.error) { toast('Erro: ' + data.error, 'erro'); return; }
+    ANIVERSARIOS_DATA = null;
+    toast(`✓ ${data.total} alunos sincronizados do Notion!`, 'sucesso');
+    renderAniversarios();
+  } catch(e) {
+    toast('Erro ao sincronizar com Notion', 'erro');
+  } finally {
+    if (btn) { btn.textContent = '⬆ Sincronizar do Notion'; btn.style.pointerEvents = ''; }
+  }
+}
+
 async function renderAniversarios() {
   const card = document.getElementById('aniversarios-card');
   if (!card) return;
@@ -5169,9 +5185,12 @@ async function renderAniversarios() {
   }
 
   // Rodapé com contagem total
-  html += `<div style="margin-top:14px;padding-top:12px;border-top:1px solid #f1f5f9;font-size:11px;color:#cbd5e1;display:flex;justify-content:space-between;">
+  html += `<div style="margin-top:14px;padding-top:12px;border-top:1px solid #f1f5f9;font-size:11px;color:#94a3b8;display:flex;justify-content:space-between;align-items:center;">
     <span>${ANIVERSARIOS_DATA.length} alunos cadastrados</span>
-    <span style="cursor:pointer;color:#94a3b8;" onclick="ANIVERSARIOS_DATA=null;renderAniversarios()">↻ Atualizar</span>
+    <div style="display:flex;gap:12px;">
+      <span style="cursor:pointer;" onclick="ANIVERSARIOS_DATA=null;renderAniversarios()">↻ Recarregar</span>
+      <span id="btn-sync-notion-aniv" style="cursor:pointer;color:#6366f1;font-weight:600;" onclick="sincronizarAniversariosNotion()">⬆ Sincronizar do Notion</span>
+    </div>
   </div>`;
 
   card.innerHTML = html;
