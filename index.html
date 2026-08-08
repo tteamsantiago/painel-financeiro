@@ -189,7 +189,27 @@ main.bb-visible{padding-top:48px;}
 .login-btn:hover{background:#4338ca;}
 .login-btn:disabled{background:#374151;color:#6b7280;cursor:not-allowed;}
 .login-erro{color:#f87171;font-size:12px;text-align:center;margin-top:12px;min-height:18px;}
-@media print{aside,.ph,#toast,.modal-bg,.ctr-top-grid{display:none!important;}main{margin:0!important;padding:0!important;}.page{padding:0!important;}.page:not(#page-contratos){display:none!important;}.page#page-contratos{display:block!important;}#ctr-preview-section{box-shadow:none!important;border:none!important;}#ctr-preview-box{border:none!important;padding:0!important;}}</style>
+@media print{aside,.ph,#toast,.modal-bg,.ctr-top-grid{display:none!important;}main{margin:0!important;padding:0!important;}.page{padding:0!important;}.page:not(#page-contratos){display:none!important;}.page#page-contratos{display:block!important;}#ctr-preview-section{box-shadow:none!important;border:none!important;}#ctr-preview-box{border:none!important;padding:0!important;}}
+
+/* ── Vendas & Comissões Tabs ── */
+.vtabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid #e5e7eb;padding-bottom:0;}
+.vtab{background:none;border:none;border-bottom:2px solid transparent;padding:9px 16px;font-size:13px;font-weight:500;color:#6b7280;cursor:pointer;margin-bottom:-2px;border-radius:8px 8px 0 0;transition:color .15s,border-color .15s;}
+.vtab:hover{color:#374151;background:#f9fafb;}
+.vtab.active{color:#4f46e5;border-bottom-color:#4f46e5;font-weight:600;}
+.vtab-panel{display:none;}
+.vtab-panel.active{display:block;}
+.badge-status{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;}
+.badge-pendente{background:#fef3c7;color:#92400e;}
+.badge-recebido{background:#d1fae5;color:#065f46;}
+.badge-parcial{background:#dbeafe;color:#1e40af;}
+.com-card{background:#fff;border-radius:12px;padding:18px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.com-card-nome{font-weight:700;font-size:14px;color:#111827;margin-bottom:12px;}
+.com-card-row{display:flex;justify-content:space-between;font-size:12px;color:#6b7280;margin-bottom:6px;}
+.com-card-row span:last-child{font-weight:600;color:#374151;}
+.com-card-total{display:flex;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #f3f4f6;font-size:13px;font-weight:700;color:#059669;}
+.btn-marcar{padding:4px 10px;font-size:11px;font-weight:600;background:#d1fae5;color:#065f46;border:none;border-radius:6px;cursor:pointer;transition:background .15s;}
+.btn-marcar:hover{background:#a7f3d0;}
+</style>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pizzip@3.1.4/dist/pizzip.min.js"></script>
 </head>
@@ -302,15 +322,9 @@ main.bb-visible{padding-top:48px;}
     <div class="nl" data-page="equipe" onclick="irPara('equipe',this)" id="nav-equipe">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>Equipe
     </div>
-    <div style="font-size:10px;font-weight:700;color:#6b7280;letter-spacing:1px;padding:8px 14px 2px;text-transform:uppercase;">Comissões</div>
-    <div class="nl" data-page="influenciadoras" onclick="irPara('influenciadoras',this)" id="nav-influenciadoras">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M12 3l1.5 2.5L16 6l-2 2 .5 3L12 9.5 9.5 11l.5-3L8 6l2.5-.5z"/></svg>Influenciadoras
-    </div>
-    <div class="nl" data-page="vendedoras" onclick="irPara('vendedoras',this)" id="nav-vendedoras">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>Vendedoras
-    </div>
-    <div class="nl" data-page="agenda" onclick="irPara('agenda',this)" id="nav-agenda">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>Agenda de Comissões
+    <div style="font-size:10px;font-weight:700;color:#6b7280;letter-spacing:1px;padding:8px 14px 2px;text-transform:uppercase;">Vendas</div>
+    <div class="nl" data-page="vendas" onclick="irPara('vendas',this)" id="nav-vendas">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Vendas & Comissões
     </div>
     <div class="nl" data-page="configuracoes" onclick="irPara('configuracoes',this)">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configurações
@@ -1052,153 +1066,160 @@ main.bb-visible{padding-top:48px;}
 </div>
 
 
-<!-- ── INFLUENCIADORAS ── -->
-<div class="page" id="page-influenciadoras">
+<!-- ── VENDAS & COMISSÕES ── -->
+<div class="page" id="page-vendas">
   <div class="ph">
-    <div><h2>Influenciadoras</h2><p>Comissões vinculadas ao campo "Influencer Indicação" do ClickUp</p></div>
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <button id="btn-sync-com" onclick="sincronizarComissoes()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:#7c3aed;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
-        <span id="sync-com-label">Sincronizar ClickUp</span>
-      </button>
-      <button onclick="abrirModalInfluenciadora(null)" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:#059669;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">+ Cadastrar</button>
-    </div>
+    <div><h2>Vendas & Comissões</h2><p>Registre vendas, acompanhe parcelas e calcule comissões automaticamente</p></div>
+    <button class="btn bp" onclick="abrirModalVenda()">+ Nova Venda</button>
   </div>
-  <!-- Banner setup token ClickUp -->
-  <div id="inf-token-banner" style="display:none;background:#fef3c7;border:1px solid #fde68a;border-radius:10px;padding:16px 20px;margin-bottom:20px;">
-    <p style="font-weight:700;color:#92400e;margin:0 0 6px;">Token do ClickUp não configurado</p>
-    <p style="font-size:13px;color:#b45309;margin:0 0 12px;">Acesse <strong>ClickUp → Seu Perfil → Apps → API Token</strong> e cole abaixo para ativar a sincronização:</p>
-    <div style="display:flex;gap:8px;">
-      <input id="inf-clickup-token" type="password" placeholder="pk_xxxxx..." style="flex:1;padding:8px 12px;border:1px solid #fde68a;border-radius:6px;font-size:13px;background:#fffbeb;">
-      <button onclick="salvarClickUpToken()" style="background:#d97706;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">Salvar e Sincronizar</button>
+  <!-- Tabs -->
+  <div class="vtabs">
+    <button class="vtab active" onclick="mudarTabVendas('resumo',this)">Resumo</button>
+    <button class="vtab" onclick="mudarTabVendas('lista',this)">Vendas</button>
+    <button class="vtab" onclick="mudarTabVendas('pagamentos',this)">Pagamentos</button>
+    <button class="vtab" onclick="mudarTabVendas('comissoes',this)">Comissões</button>
+    <button class="vtab" onclick="mudarTabVendas('colaboradores',this)">Colaboradores</button>
+  </div>
+
+  <!-- Tab: Resumo -->
+  <div class="vtab-panel active" id="vtab-resumo">
+    <div class="kpi-grid">
+      <div class="kpi verde"><div class="kl">Vendas este mês</div><div class="kv" id="v-kpi-vendas-mes">—</div></div>
+      <div class="kpi azul"><div class="kl">Total Recebido (mês)</div><div class="kv" id="v-kpi-recebido">—</div></div>
+      <div class="kpi amarelo"><div class="kl">Pendente a Receber</div><div class="kv" id="v-kpi-pendente">—</div></div>
+      <div class="kpi cinza"><div class="kl">Comissões a Pagar</div><div class="kv" id="v-kpi-comissoes">—</div></div>
+    </div>
+    <div class="card">
+      <h3>Próximas Parcelas Pendentes</h3>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Aluno</th><th>Descrição</th><th>Valor</th><th>Data Prevista</th><th>Ação</th></tr></thead>
+          <tbody id="v-tbody-pendentes"><tr><td colspan="5" class="empty">Carregando...</td></tr></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <div class="kpi-grid" style="margin-bottom:24px;">
-    <div class="kpi-card"><div class="kpi-label">Clientes Indicados</div><div class="kpi-value" id="inf-kpi-clientes">—</div></div>
-    <div class="kpi-card"><div class="kpi-label">Valor Total Gerado</div><div class="kpi-value ve" id="inf-kpi-gerado">—</div></div>
-    <div class="kpi-card"><div class="kpi-label">Comissão Total</div><div class="kpi-value" id="inf-kpi-total">—</div></div>
-    <div class="kpi-card"><div class="kpi-label">Vence Este Mês</div><div class="kpi-value" style="color:#f59e0b;" id="inf-kpi-mes">—</div></div>
-  </div>
-  <div id="inf-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;margin-bottom:24px;">
-    <div style="grid-column:1/-1;text-align:center;padding:40px;color:#6b7280;font-size:14px;">Clique em "Sincronizar ClickUp" para carregar os dados de comissão</div>
-  </div>
-  <div class="card">
-    <h3 style="margin:0 0 16px;font-size:15px;color:#1e293b;">Parcelas com Comissão Pendente</h3>
-    <div style="overflow-x:auto;">
-      <table style="width:100%;border-collapse:collapse;font-size:13px;">
-        <thead><tr style="border-bottom:2px solid #e5e7eb;">
-          <th style="text-align:left;padding:8px 12px;color:#6b7280;font-weight:600;">Aluno</th>
-          <th style="text-align:left;padding:8px 12px;color:#6b7280;font-weight:600;">Tipo</th>
-          <th style="text-align:right;padding:8px 12px;color:#6b7280;font-weight:600;">Valor</th>
-          <th style="text-align:left;padding:8px 12px;color:#6b7280;font-weight:600;">Mês Pgto</th>
-          <th style="text-align:right;padding:8px 12px;color:#6b7280;font-weight:600;">Comissão</th>
-          <th style="text-align:center;padding:8px 12px;color:#6b7280;font-weight:600;">Status</th>
-        </tr></thead>
-        <tbody id="inf-tbody-parcelas"><tr><td colspan="6" class="empty">Sincronize o ClickUp para ver as comissões</td></tr></tbody>
-      </table>
+  <!-- Tab: Vendas -->
+  <div class="vtab-panel" id="vtab-lista">
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+      <input type="text" id="v-busca" placeholder="Buscar aluno..." style="flex:1;min-width:180px;" oninput="renderListaVendas()">
+      <select id="v-filtro-mes" onchange="renderListaVendas()" style="width:160px;"></select>
     </div>
-  </div>
-</div>
-
-<!-- ── VENDEDORAS ── -->
-<div class="page" id="page-vendedoras">
-  <div class="ph">
-    <div><h2>Vendedoras</h2><p>Comissões vinculadas ao campo "Indicação de Venda" do ClickUp</p></div>
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <button onclick="sincronizarComissoes()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:#7c3aed;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
-        Sincronizar ClickUp
-      </button>
-      <button onclick="abrirModalVendedora(null)" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:#059669;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">+ Cadastrar</button>
-    </div>
-  </div>
-  <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:13px;color:#1e40af;">
-    <strong>Campo ClickUp configurado:</strong> "Indicação de Venda" (ID: 37573fbd). Quando contratar uma vendedora, adicione o nome como opção nesse campo e a comissão será rastreada automaticamente ao sincronizar.
-  </div>
-  <div class="kpi-grid" style="margin-bottom:24px;">
-    <div class="kpi-card"><div class="kpi-label">Vendas Fechadas</div><div class="kpi-value" id="ven-kpi-clientes">—</div></div>
-    <div class="kpi-card"><div class="kpi-label">Comissão Total</div><div class="kpi-value ve" id="ven-kpi-total">—</div></div>
-    <div class="kpi-card"><div class="kpi-label">Vence Este Mês</div><div class="kpi-value" style="color:#f59e0b;" id="ven-kpi-mes">—</div></div>
-    <div class="kpi-card"><div class="kpi-label">Vendedoras Ativas</div><div class="kpi-value" id="ven-kpi-ativas">—</div></div>
-  </div>
-  <div id="ven-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;margin-bottom:24px;">
-    <div style="grid-column:1/-1;text-align:center;padding:40px;color:#6b7280;font-size:14px;">Nenhuma vendedora cadastrada ainda.<br><span style="font-size:12px;">Clique em "+ Cadastrar" para adicionar a primeira vendedora do time.</span></div>
-  </div>
-  <div class="card">
-    <h3 style="margin:0 0 16px;font-size:15px;color:#1e293b;">Parcelas com Comissão Pendente</h3>
-    <div style="overflow-x:auto;">
-      <table style="width:100%;border-collapse:collapse;font-size:13px;">
-        <thead><tr style="border-bottom:2px solid #e5e7eb;">
-          <th style="text-align:left;padding:8px 12px;color:#6b7280;font-weight:600;">Aluno</th>
-          <th style="text-align:left;padding:8px 12px;color:#6b7280;font-weight:600;">Tipo</th>
-          <th style="text-align:right;padding:8px 12px;color:#6b7280;font-weight:600;">Valor</th>
-          <th style="text-align:left;padding:8px 12px;color:#6b7280;font-weight:600;">Mês Pgto</th>
-          <th style="text-align:right;padding:8px 12px;color:#6b7280;font-weight:600;">Comissão</th>
-          <th style="text-align:center;padding:8px 12px;color:#6b7280;font-weight:600;">Status</th>
-        </tr></thead>
-        <tbody id="ven-tbody-parcelas"><tr><td colspan="6" class="empty">Sincronize o ClickUp para ver as comissões</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- ── AGENDA DE COMISSÕES ── -->
-<div class="page" id="page-agenda">
-  <div class="ph">
-    <div>
-      <h2>Agenda de Comissões</h2>
-      <p id="agenda-subtitulo">Carregando...</p>
-    </div>
-    <button onclick="sincronizarComissoes()" style="display:flex;align-items:center;gap:6px;background:#6366f1;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-      Sincronizar
-    </button>
-  </div>
-
-  <!-- Navegação de mês -->
-  <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:24px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px;">
-    <button onclick="agendaMesAnterior()" style="background:#f3f4f6;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:18px;color:#374151;">‹</button>
-    <div style="text-align:center;min-width:160px;">
-      <div id="agenda-mes-label" style="font-size:18px;font-weight:700;color:#111827;"></div>
-      <div id="agenda-mes-tipo" style="font-size:11px;color:#6b7280;margin-top:2px;"></div>
-    </div>
-    <button onclick="agendaMesProximo()" style="background:#f3f4f6;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:18px;color:#374151;">›</button>
-  </div>
-
-  <!-- KPIs do mês -->
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px;" id="agenda-kpis">
-    <div class="card" style="text-align:center;padding:16px;">
-      <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;">Total a Pagar</div>
-      <div id="agenda-kpi-total" style="font-size:22px;font-weight:700;color:#111827;margin-top:4px;">R$ 0</div>
-    </div>
-    <div class="card" style="text-align:center;padding:16px;">
-      <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;">Pendente</div>
-      <div id="agenda-kpi-pendente" style="font-size:22px;font-weight:700;color:#ef4444;margin-top:4px;">R$ 0</div>
-    </div>
-    <div class="card" style="text-align:center;padding:16px;">
-      <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;">Já Pago</div>
-      <div id="agenda-kpi-pago" style="font-size:22px;font-weight:700;color:#22c55e;margin-top:4px;">R$ 0</div>
-    </div>
-    <div class="card" style="text-align:center;padding:16px;">
-      <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;">Comissões</div>
-      <div id="agenda-kpi-qtd" style="font-size:22px;font-weight:700;color:#6366f1;margin-top:4px;">0</div>
+    <div class="card">
+      <div class="tw">
+        <table>
+          <thead><tr><th>Aluno</th><th>Data</th><th>Valor Total</th><th>Tipo</th><th>Influencer</th><th>Vendedora</th><th>Parcelas</th><th></th></tr></thead>
+          <tbody id="v-tbody-vendas"><tr><td colspan="8" class="empty">Carregando...</td></tr></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <!-- Influenciadoras -->
-  <div style="margin-bottom:28px;">
-    <h3 style="font-size:14px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Influenciadoras</h3>
-    <div id="agenda-inf-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;">
-      <div class="empty" style="grid-column:1/-1;">Sincronize para carregar</div>
+  <!-- Tab: Pagamentos -->
+  <div class="vtab-panel" id="vtab-pagamentos">
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+      <select id="p-filtro-status" onchange="renderListaPagamentos()" style="width:160px;">
+        <option value="">Todos</option>
+        <option value="pendente" selected>Pendentes</option>
+        <option value="recebido">Recebidos</option>
+      </select>
+      <select id="p-filtro-mes" onchange="renderListaPagamentos()" style="width:160px;"></select>
+      <input type="text" id="p-busca" placeholder="Buscar aluno..." style="flex:1;min-width:180px;" oninput="renderListaPagamentos()">
+    </div>
+    <div class="card">
+      <div class="tw">
+        <table>
+          <thead><tr><th>Aluno</th><th>Descrição</th><th>Valor</th><th>Data Prevista</th><th>Recebido em</th><th>Status</th><th>Ação</th></tr></thead>
+          <tbody id="v-tbody-pagamentos"><tr><td colspan="7" class="empty">Carregando...</td></tr></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <!-- Vendedoras -->
-  <div>
-    <h3 style="font-size:14px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Vendedoras</h3>
-    <div id="agenda-ven-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;">
-      <div class="empty" style="grid-column:1/-1;">Sincronize para carregar</div>
+  <!-- Tab: Comissões -->
+  <div class="vtab-panel" id="vtab-comissoes">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px 20px;width:fit-content;">
+      <button class="btn" onclick="mudarMesComissao(-1)" style="padding:6px 12px;">◀</button>
+      <span id="v-com-mes-label" style="font-weight:700;font-size:15px;min-width:140px;text-align:center;"></span>
+      <button class="btn" onclick="mudarMesComissao(1)" style="padding:6px 12px;">▶</button>
+    </div>
+    <div style="margin-bottom:10px;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.08em;">Influenciadoras</div>
+    <div id="v-com-inf-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:28px;"></div>
+    <div style="margin-bottom:10px;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.08em;">Vendedoras</div>
+    <div id="v-com-ven-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;"></div>
+  </div>
+
+  <!-- Tab: Colaboradores -->
+  <div class="vtab-panel" id="vtab-colaboradores">
+    <div class="g2">
+      <!-- Influenciadoras -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h3 style="margin:0;">Influenciadoras</h3>
+          <button class="btn bp" style="padding:6px 12px;font-size:12px;" onclick="abrirFormColaborador('inf')">+ Adicionar</button>
+        </div>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Nome</th><th>%</th><th>Status</th><th></th></tr></thead>
+            <tbody id="colab-tbody-inf"><tr><td colspan="4" class="empty">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+        <div id="form-inf" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid #f3f4f6;">
+          <div style="display:grid;grid-template-columns:1fr 80px auto;gap:8px;align-items:end;flex-wrap:wrap;">
+            <div>
+              <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:3px;">Nome</label>
+              <input type="text" id="inf-nome" placeholder="Nome da influenciadora" style="width:100%;">
+            </div>
+            <div>
+              <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:3px;">% Comissão</label>
+              <input type="number" id="inf-pct" value="10" min="0" max="100" step="0.5" style="width:100%;">
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn bp" onclick="salvarInfluenciadoraV()" style="padding:8px 12px;">Salvar</button>
+              <button class="btn" onclick="fecharFormColaborador('inf')" style="padding:8px 10px;">✕</button>
+            </div>
+          </div>
+          <input type="hidden" id="inf-editing-id">
+        </div>
+      </div>
+      <!-- Vendedoras -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h3 style="margin:0;">Vendedoras (Social Seller)</h3>
+          <button class="btn bp" style="padding:6px 12px;font-size:12px;" onclick="abrirFormColaborador('ven')">+ Adicionar</button>
+        </div>
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#1e40af;">
+          Comissão escalonada: % sobre os primeiros R$20.000 + % maior sobre o excedente, calculado mensalmente.
+        </div>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Nome</th><th>% até 20k</th><th>% acima</th><th>Status</th><th></th></tr></thead>
+            <tbody id="colab-tbody-ven"><tr><td colspan="5" class="empty">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+        <div id="form-ven" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid #f3f4f6;">
+          <div style="display:grid;grid-template-columns:1fr 80px 80px auto;gap:8px;align-items:end;">
+            <div>
+              <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:3px;">Nome</label>
+              <input type="text" id="ven-nome" placeholder="Nome da vendedora" style="width:100%;">
+            </div>
+            <div>
+              <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:3px;">% até 20k</label>
+              <input type="number" id="ven-pct1" value="2" min="0" max="100" step="0.5" style="width:100%;">
+            </div>
+            <div>
+              <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:3px;">% acima 20k</label>
+              <input type="number" id="ven-pct2" value="5" min="0" max="100" step="0.5" style="width:100%;">
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn bp" onclick="salvarVendedoraV()" style="padding:8px 12px;">Salvar</button>
+              <button class="btn" onclick="fecharFormColaborador('ven')" style="padding:8px 10px;">✕</button>
+            </div>
+          </div>
+          <input type="hidden" id="ven-editing-id">
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1217,72 +1238,75 @@ main.bb-visible{padding-top:48px;}
   </div>
 </div>
 
-<!-- ═══════ MODAL INFLUENCIADORA ═══════ -->
-<div class="modal-bg" id="modal-inf" onclick="if(event.target===this)fecharModalInf()">
-  <div class="modal" id="modal-inf-box">
+<!-- ═══════ MODAL VENDA ═══════ -->
+<div class="modal-bg" id="modal-venda" onclick="if(event.target===this)fecharModalVenda()">
+  <div class="modal" style="max-width:640px;">
     <div class="modal-hdr">
-      <h4 id="modal-inf-titulo">Cadastrar Influenciadora</h4>
-      <button class="modal-close" onclick="fecharModalInf()">✕</button>
+      <h4 id="modal-venda-titulo">Nova Venda</h4>
+      <button class="modal-close" onclick="fecharModalVenda()">✕</button>
     </div>
     <div class="modal-body">
       <div style="display:flex;flex-direction:column;gap:14px;">
-        <div><label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Nome</label>
-          <input id="inf-nome" type="text" placeholder="Nome da influenciadora" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div><label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Comissão (%)</label>
-            <input id="inf-percentual" type="number" min="0" max="100" step="0.5" value="10" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;"></div>
-          <div><label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Status</label>
-            <select id="inf-status" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;">
-              <option value="ativa">Ativa</option>
-              <option value="pausada">Pausada</option>
-              <option value="inativa">Inativa</option>
-            </select></div>
+          <div>
+            <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Aluno</label>
+            <input id="mv-aluno" type="text" placeholder="Nome do aluno" style="width:100%;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Data da Venda</label>
+            <input id="mv-data" type="date" style="width:100%;">
+          </div>
         </div>
-        <div><label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Notas</label>
-          <textarea id="inf-notas" rows="2" placeholder="Observações sobre a parceria..." style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;resize:vertical;font-family:inherit;"></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Valor Total (R$)</label>
+            <input id="mv-valor" type="number" min="0" step="0.01" placeholder="0,00" style="width:100%;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Tipo de Pagamento</label>
+            <select id="mv-tipo" onchange="atualizarParcelasForm()" style="width:100%;">
+              <option value="avista">À Vista (recebido na hora)</option>
+              <option value="credito">Cartão de Crédito (~30 dias)</option>
+              <option value="sinal_parcelas">Sinal + Parcelas</option>
+              <option value="parcelado_pix">Parcelado no Pix</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Influenciadora</label>
+            <select id="mv-influencer" style="width:100%;">
+              <option value="">— Nenhuma —</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Vendedora</label>
+            <select id="mv-vendedora" style="width:100%;">
+              <option value="">— Nenhuma —</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Observações</label>
+          <textarea id="mv-obs" rows="2" placeholder="Detalhes adicionais..." style="width:100%;"></textarea>
+        </div>
+        <!-- Parcelas dinâmicas -->
+        <div id="mv-parcelas-section" style="border-top:1px solid #f3f4f6;padding-top:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <span style="font-size:12px;font-weight:700;color:#374151;">Parcelas</span>
+            <button type="button" class="btn" style="padding:4px 10px;font-size:12px;" onclick="adicionarLinhaParcela()">+ Parcela</button>
+          </div>
+          <div id="mv-parcelas-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn" onclick="excluirInfluenciadora()" id="btn-del-inf" style="color:#ef4444;border:1px solid #fca5a5;border-radius:6px;padding:7px 14px;font-size:13px;cursor:pointer;display:none;">Excluir</button>
-      <button class="btn bs" onclick="fecharModalInf()">Cancelar</button>
-      <button class="btn bp" onclick="salvarInfluenciadora()">Salvar</button>
+      <button class="btn" onclick="excluirVendaModal()" id="btn-del-venda" style="display:none;color:#ef4444;border:1px solid #fca5a5;padding:7px 14px;font-size:13px;border-radius:6px;cursor:pointer;background:none;margin-right:auto;">Excluir</button>
+      <button class="btn bs" onclick="fecharModalVenda()">Cancelar</button>
+      <button class="btn bp" onclick="salvarVenda()">Salvar</button>
     </div>
   </div>
 </div>
-
-<!-- ═══════ MODAL VENDEDORA ═══════ -->
-<div class="modal-bg" id="modal-ven" onclick="if(event.target===this)fecharModalVen()">
-  <div class="modal" id="modal-ven-box">
-    <div class="modal-hdr">
-      <h4 id="modal-ven-titulo">Cadastrar Vendedora</h4>
-      <button class="modal-close" onclick="fecharModalVen()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div style="display:flex;flex-direction:column;gap:14px;">
-        <div><label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Nome</label>
-          <input id="ven-nome" type="text" placeholder="Nome da vendedora" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div><label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Comissão (%)</label>
-            <input id="ven-percentual" type="number" min="0" max="100" step="0.5" value="10" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;"></div>
-          <div><label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Status</label>
-            <select id="ven-status" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;">
-              <option value="ativa">Ativa</option>
-              <option value="pausada">Pausada</option>
-              <option value="inativa">Inativa</option>
-            </select></div>
-        </div>
-        <div><label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Notas</label>
-          <textarea id="ven-notas" rows="2" placeholder="Observações..." style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;box-sizing:border-box;resize:vertical;font-family:inherit;"></textarea></div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" onclick="excluirVendedora()" id="btn-del-ven" style="color:#ef4444;border:1px solid #fca5a5;border-radius:6px;padding:7px 14px;font-size:13px;cursor:pointer;display:none;">Excluir</button>
-      <button class="btn bs" onclick="fecharModalVen()">Cancelar</button>
-      <button class="btn bp" onclick="salvarVendedora()">Salvar</button>
-    </div>
-  </div>
-</div>
-
 <!-- ═══════ TOAST ═══════ -->
 <div id="toast"></div>
 
@@ -1412,9 +1436,7 @@ function irPara(p,el){
   if(p==='crm')carregarCRM();
   if(p==='contratos')initContratos();
   if(p==='equipe')carregarEquipe();
-  if(p==='influenciadoras')renderInfluenciadoras();
-  if(p==='vendedoras')renderVendedoras();
-  if(p==='agenda')renderAgenda();
+  if(p==='vendas')renderVendas();
   if(p==='instagram') carregarWindsorMetrics();
   if(p==='minerador'){
     fnCall('apify-leads',{plataforma:'instagram',tipo:'check'},8000)
@@ -2652,9 +2674,7 @@ const PERM_MAPA = {
   configuracoes:    ['admin'],
   instagram:        ['admin','crm'],
   minerador:        ['admin','crm'],
-  influenciadoras:  ['admin','financeiro'],
-  vendedoras:       ['admin','financeiro'],
-  agenda:           ['admin','financeiro'],
+  vendas:           ['admin','financeiro'],
 };
 
 const TODAS_PAGINAS = [
@@ -2667,9 +2687,7 @@ const TODAS_PAGINAS = [
   {key:'configuracoes',label:'Configurações'},
   {key:'instagram',       label:'Instagram'},
   {key:'minerador',       label:'Minerador de Leads'},
-  {key:'influenciadoras', label:'Influenciadoras'},
-  {key:'vendedoras',      label:'Vendedoras'},
-  {key:'agenda',          label:'Agenda de Comissões'},
+  {key:'vendas',          label:'Vendas & Comissões'},
 ];
 
 function paginasParaRole(role){
@@ -3882,447 +3900,380 @@ function limparCtrForm(){
 // ══════════════════════════════════════════════
 // INFLUENCIADORAS & VENDEDORAS — Comissões
 // ══════════════════════════════════════════════
-let INF_LIST=[], VEN_LIST=[], COM_ALUNOS=[], COM_COMISSOES=[];
-let editingInfId=null, editingVenId=null;
-const FN_COM='https://fhuromvcoujzmikxxjnv.supabase.co/functions/v1/comissoes-sync';
+// ═��� VENDAS & COMISSÕES ══
+let VENDAS_DATA=[], PAGAMENTOS_DATA=[], INF_LIST_V=[], VEN_LIST_V=[];
+let VENDAS_TAB='resumo';
+let VENDAS_MES_COM='';
+let VENDA_EDITING_ID=null;
+let parcelaCounter=0;
 
-async function carregarDadosComissoes(){
+async function carregarDadosVendas(){
   const [r1,r2,r3,r4]=await Promise.all([
+    sb.from('vendas').select('*,influenciadoras(nome),vendedoras(nome)').order('data_venda',{ascending:false}),
+    sb.from('pagamentos').select('*,vendas(aluno_nome,influencer_id,vendedora_id)').order('data_prevista'),
     sb.from('influenciadoras').select('*').order('nome'),
     sb.from('vendedoras').select('*').order('nome'),
-    sb.from('crm_alunos').select('id,nome,influencer_nome,vendedora_nome,valor_plano,forma_pagamento,tipo_plano'),
-    sb.from('comissoes').select('*').order('mes_pagamento'),
   ]);
-  INF_LIST=r1.data||[]; VEN_LIST=r2.data||[];
-  COM_ALUNOS=r3.data||[]; COM_COMISSOES=r4.data||[];
+  VENDAS_DATA=r1.data||[]; PAGAMENTOS_DATA=r2.data||[];
+  INF_LIST_V=r3.data||[]; VEN_LIST_V=r4.data||[];
 }
 
-function calcComissoes(nome,isInfluencer){
-  const campo=isInfluencer?'influencer_nome':'vendedora_nome';
-  const comField=isInfluencer?'comissao_influencer':'comissao_vendedora';
-  const lista=isInfluencer?INF_LIST:VEN_LIST;
-  const pessoa=lista.find(p=>p.nome.trim()===nome.trim());
-  if(!pessoa)return{clientes:0,comissao_total:0,comissao_mes:0,comissao_futura:0,gerado:0};
-  const minhas=COM_COMISSOES.filter(c=>(c[campo]||'').trim()===nome.trim());
+async function renderVendas(){
+  await carregarDadosVendas();
+  if(!VENDAS_MES_COM){const d=new Date();VENDAS_MES_COM=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
+  popularSelectMeses();
+  renderTabVendas(VENDAS_TAB);
+}
+
+function popularSelectMeses(){
+  const todos=[...new Set([...VENDAS_DATA.map(v=>v.data_venda?.substring(0,7)),...PAGAMENTOS_DATA.map(p=>p.data_prevista?.substring(0,7))].filter(Boolean))].sort().reverse();
+  const lbl=m=>{const[y,mo]=m.split('-');return new Date(+y,+mo-1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});};
+  const opts='<option value="">Todos os meses</option>'+todos.map(m=>`<option value="${m}">${lbl(m)}</option>`).join('');
+  ['v-filtro-mes','p-filtro-mes'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
+}
+
+function mudarTabVendas(tab,btn){
+  VENDAS_TAB=tab;
+  document.querySelectorAll('#page-vendas .vtab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.vtab-panel').forEach(c=>c.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  const panel=document.getElementById('vtab-'+tab);
+  if(panel)panel.classList.add('active');
+  renderTabVendas(tab);
+}
+
+function renderTabVendas(tab){
+  if(tab==='resumo')renderResumoVendas();
+  if(tab==='lista')renderListaVendas();
+  if(tab==='pagamentos')renderListaPagamentos();
+  if(tab==='comissoes')renderComissoesVendas();
+  if(tab==='colaboradores')renderColaboradoresVendas();
+}
+
+function renderResumoVendas(){
   const hoje=new Date();
-  const mesAtualYM=`${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
-  const alunosUnicos=new Set(minhas.map(c=>c.aluno_id));
-  const total=minhas.reduce((s,c)=>s+(parseFloat(c[comField])||0),0);
-  const mes=minhas.filter(c=>c.mes_pagamento===mesAtualYM).reduce((s,c)=>s+(parseFloat(c[comField])||0),0);
-  const futuro=minhas.filter(c=>c.mes_pagamento>mesAtualYM).reduce((s,c)=>s+(parseFloat(c[comField])||0),0);
-  const gerado=minhas.reduce((s,c)=>s+(parseFloat(c.valor_parcela)||0),0);
-  return{clientes:alunosUnicos.size,comissao_total:total,comissao_mes:mes,comissao_futura:futuro,gerado};
-}
-
-function renderComCard(pessoa,stats,tipo){
-  const fn=tipo==='inf'?'editarInfluenciadora':'editarVendedora';
-  const sCls=pessoa.status==='ativa'?'verde':pessoa.status==='pausada'?'amarelo':'cinza';
-  const sLbl=pessoa.status==='ativa'?'Ativa':pessoa.status==='pausada'?'Pausada':'Inativa';
-  const term=Math.min(100,stats.clientes*25);
-  const tCor=term>=60?'#22c55e':term>=25?'#f59e0b':'#ef4444';
-  const tLbl=term>=60?'Indo bem':term>=25?'Regular':'Precisa atenção';
-  const geradoLabel=tipo==='inf'?'Gerado (clientes)':'Vendas Geradas';
-  const clientesLabel=tipo==='inf'?'Clientes':'Vendas';
-  return`<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
-      <div>
-        <div style="font-weight:700;font-size:16px;color:#1e293b;">${pessoa.nome}</div>
-        <div style="font-size:12px;color:#6b7280;margin-top:2px;">Comissão: <strong>${pessoa.percentual}%</strong></div>
-      </div>
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-        <span class="badge ${sCls}">${sLbl}</span>
-        <button onclick="${fn}('${pessoa.id}')" style="padding:3px 10px;border-radius:6px;border:1px solid #e5e7eb;background:#f9fafb;font-size:11px;color:#374151;cursor:pointer;">Editar</button>
-      </div>
-    </div>
-    <div style="margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-        <span style="font-size:12px;font-weight:600;color:#374151;">Termômetro</span>
-        <span style="font-size:12px;color:${tCor};font-weight:700;">${tLbl}</span>
-      </div>
-      <div style="background:#f3f4f6;border-radius:6px;height:10px;overflow:hidden;">
-        <div style="background:${tCor};height:100%;width:${term}%;border-radius:6px;transition:width .6s;"></div>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-      <div style="background:#f8fafc;border-radius:8px;padding:10px;text-align:center;">
-        <div style="font-size:22px;font-weight:700;color:#1e293b;">${stats.clientes}</div>
-        <div style="font-size:11px;color:#6b7280;">${clientesLabel}</div>
-      </div>
-      <div style="background:#f0fdf4;border-radius:8px;padding:10px;text-align:center;">
-        <div style="font-size:14px;font-weight:700;color:#16a34a;">${fmt(stats.gerado)}</div>
-        <div style="font-size:11px;color:#6b7280;">${geradoLabel}</div>
-      </div>
-      <div style="background:#fefce8;border-radius:8px;padding:10px;text-align:center;">
-        <div style="font-size:14px;font-weight:700;color:#ca8a04;">${fmt(stats.comissao_mes)}</div>
-        <div style="font-size:11px;color:#6b7280;">Vence Este Mês</div>
-      </div>
-      <div style="background:#f0f9ff;border-radius:8px;padding:10px;text-align:center;">
-        <div style="font-size:14px;font-weight:700;color:#0369a1;">${fmt(stats.comissao_futura)}</div>
-        <div style="font-size:11px;color:#6b7280;">A Receber</div>
-      </div>
-    </div>${pessoa.notas?`<div style="margin-top:10px;padding:8px;background:#f8fafc;border-radius:6px;font-size:12px;color:#6b7280;font-style:italic;">${pessoa.notas}</div>`:''}
-  </div>`;
-}
-
-function renderParcelasTable(lista,campo,comField,tbodyId){
-  const tbody=document.getElementById(tbodyId);
+  const mesAtual=`${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
+  const vendasMes=VENDAS_DATA.filter(v=>v.data_venda?.startsWith(mesAtual));
+  const totalRecebido=PAGAMENTOS_DATA.filter(p=>p.recebido&&p.data_prevista?.startsWith(mesAtual)).reduce((s,p)=>s+(p.valor||0),0);
+  const totalPendente=PAGAMENTOS_DATA.filter(p=>!p.recebido).reduce((s,p)=>s+(p.valor||0),0);
+  const pgRecMes=PAGAMENTOS_DATA.filter(p=>p.recebido&&(p.data_recebido||'').startsWith(mesAtual));
+  let comTotal=0;
+  pgRecMes.forEach(pg=>{
+    const venda=VENDAS_DATA.find(v=>v.id===pg.venda_id);
+    if(!venda)return;
+    if(venda.influencer_id){const inf=INF_LIST_V.find(i=>i.id===venda.influencer_id);if(inf)comTotal+=(pg.valor||0)*(inf.percentual||0)/100;}
+  });
+  VEN_LIST_V.forEach(ven=>{
+    const pgVen=pgRecMes.filter(p=>VENDAS_DATA.find(v=>v.id===p.venda_id)?.vendedora_id===ven.id);
+    comTotal+=calcComissaoVendedora(pgVen.reduce((s,p)=>s+(p.valor||0),0),ven);
+  });
+  const g=id=>document.getElementById(id);
+  if(g('v-kpi-vendas-mes'))g('v-kpi-vendas-mes').textContent=vendasMes.length;
+  if(g('v-kpi-recebido'))g('v-kpi-recebido').textContent=fmt(totalRecebido);
+  if(g('v-kpi-pendente'))g('v-kpi-pendente').textContent=fmt(totalPendente);
+  if(g('v-kpi-comissoes'))g('v-kpi-comissoes').textContent=fmt(comTotal);
+  const pendentes=PAGAMENTOS_DATA.filter(p=>!p.recebido).sort((a,b)=>(a.data_prevista||'').localeCompare(b.data_prevista||'')).slice(0,8);
+  const tbody=document.getElementById('v-tbody-pendentes');
   if(!tbody)return;
-  const rows=[];
-  for(const p of lista){
-    const minhas=COM_COMISSOES.filter(c=>(c[campo]||'').trim()===p.nome.trim());
-    for(const c of minhas){
-      const venc=c.data_vencimento?new Date(c.data_vencimento).toLocaleDateString('pt-BR'):'—';
-      const mes=c.mes_pagamento||'—';
-      const statusBadge=c.status==='pago'
-        ?'<span style="color:#22c55e;font-size:11px;font-weight:600;">✓ Pago</span>'
-        :'<span style="color:#f59e0b;font-size:11px;">⏳ Pendente</span>';
-      rows.push(`<tr>
-        <td style="padding:8px 12px;">${c.aluno_nome||'—'}</td>
-        <td style="padding:8px 12px;"><span style="font-size:10px;background:${c.tipo==='avista'?'#dbeafe':'#fce7f3'};color:${c.tipo==='avista'?'#1d4ed8':'#9d174d'};padding:2px 6px;border-radius:10px;">${c.tipo==='avista'?'À vista':'Parcela'}</span></td>
-        <td style="padding:8px 12px;text-align:right;">${fmt(parseFloat(c.valor_parcela)||0)}</td>
-        <td style="padding:8px 12px;">${mes}</td>
-        <td style="padding:8px 12px;text-align:right;color:#059669;font-weight:600;">${fmt(parseFloat(c[comField])||0)}</td>
-        <td style="padding:8px 12px;text-align:center;">${statusBadge}</td>
-      </tr>`);
-    }
-  }
-  tbody.innerHTML=rows.length?rows.join(''):'<tr><td colspan="6" class="empty">Nenhuma comissão encontrada — sincronize o ClickUp primeiro</td></tr>';
+  if(!pendentes.length){tbody.innerHTML='<tr><td colspan="5" class="empty">Nenhuma parcela pendente</td></tr>';return;}
+  tbody.innerHTML=pendentes.map(p=>{
+    const aluno=VENDAS_DATA.find(v=>v.id===p.venda_id)?.aluno_nome||'—';
+    const vencido=new Date(p.data_prevista)<new Date()?'color:#ef4444;font-weight:600;':'';
+    return`<tr><td>${aluno}</td><td>${p.descricao||'—'}</td><td>${fmt(p.valor)}</td><td style="${vencido}">${fmtDataV(p.data_prevista)}</td><td><button class="btn-marcar" onclick="marcarPagamentoRecebido('${p.id}')">✓ Recebido</button></td></tr>`;
+  }).join('');
 }
 
-async function renderInfluenciadoras(){
-  await carregarDadosComissoes();
-  const grid=document.getElementById('inf-cards-grid');
-  if(!grid)return;
-  if(!INF_LIST.length){
-    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:#6b7280;">Nenhuma influenciadora cadastrada.</div>';
-    return;
-  }
-  let tCli=0,tGer=0,tCom=0,tMes=0;
-  const cards=INF_LIST.map(inf=>{
-    const s=calcComissoes(inf.nome,true);
-    tCli+=s.clientes; tGer+=s.gerado; tCom+=s.comissao_total; tMes+=s.comissao_mes;
-    return renderComCard(inf,s,'inf');
-  });
-  grid.innerHTML=cards.join('');
-  const g=id=>document.getElementById(id);
-  if(g('inf-kpi-clientes'))g('inf-kpi-clientes').textContent=tCli;
-  if(g('inf-kpi-gerado'))g('inf-kpi-gerado').textContent=fmt(tGer);
-  if(g('inf-kpi-total'))g('inf-kpi-total').textContent=fmt(tCom);
-  if(g('inf-kpi-mes'))g('inf-kpi-mes').textContent=fmt(tMes);
-  renderParcelasTable(INF_LIST,'influencer_nome','comissao_influencer','inf-tbody-parcelas');
+function renderListaVendas(){
+  const busca=(document.getElementById('v-busca')?.value||'').toLowerCase();
+  const mes=document.getElementById('v-filtro-mes')?.value||'';
+  let dados=VENDAS_DATA;
+  if(busca)dados=dados.filter(v=>v.aluno_nome?.toLowerCase().includes(busca));
+  if(mes)dados=dados.filter(v=>v.data_venda?.startsWith(mes));
+  const tbody=document.getElementById('v-tbody-vendas');
+  if(!tbody)return;
+  if(!dados.length){tbody.innerHTML='<tr><td colspan="8" class="empty">Nenhuma venda encontrada</td></tr>';return;}
+  const tipoLabel=t=>({avista:'À Vista',credito:'Cartão',sinal_parcelas:'Sinal+Parc.',parcelado_pix:'Parc.Pix'})[t]||t;
+  tbody.innerHTML=dados.map(v=>{
+    const pgtos=PAGAMENTOS_DATA.filter(p=>p.venda_id===v.id);
+    const rec=pgtos.filter(p=>p.recebido).reduce((s,p)=>s+(p.valor||0),0);
+    const tot=pgtos.reduce((s,p)=>s+(p.valor||0),0);
+    const sc=rec>=tot&&tot>0?'badge-recebido':rec>0?'badge-parcial':'badge-pendente';
+    const sl=rec>=tot&&tot>0?'Recebido':rec>0?'Parcial':'Pendente';
+    return`<tr><td><strong>${v.aluno_nome}</strong></td><td>${fmtDataV(v.data_venda)}</td><td>${fmt(v.valor_total)}</td><td>${tipoLabel(v.tipo_pagamento)}</td><td>${v.influenciadoras?.nome||'—'}</td><td>${v.vendedoras?.nome||'—'}</td><td><span class="badge-status ${sc}">${sl}</span><small style="color:#9ca3af;margin-left:6px;">${pgtos.filter(p=>p.recebido).length}/${pgtos.length}</small></td><td><button class="btn" style="padding:3px 8px;font-size:11px;" onclick="editarVenda('${v.id}')">Editar</button></td></tr>`;
+  }).join('');
 }
 
-async function renderVendedoras(){
-  if(!INF_LIST.length&&!VEN_LIST.length)await carregarDadosComissoes();
-  const grid=document.getElementById('ven-cards-grid');
-  if(!grid)return;
-  if(!VEN_LIST.length){
-    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:#6b7280;">Nenhuma vendedora cadastrada ainda.<br><span style="font-size:12px;">Clique em "+ Cadastrar" para adicionar.</span></div>';
-    const g=id=>document.getElementById(id);
-    if(g('ven-kpi-clientes'))g('ven-kpi-clientes').textContent='0';
-    if(g('ven-kpi-total'))g('ven-kpi-total').textContent=fmt(0);
-    if(g('ven-kpi-mes'))g('ven-kpi-mes').textContent=fmt(0);
-    if(g('ven-kpi-ativas'))g('ven-kpi-ativas').textContent='0';
-    return;
-  }
-  let tCli=0,tCom=0,tMes=0;
-  const cards=VEN_LIST.map(ven=>{
-    const s=calcComissoes(ven.nome,false);
-    tCli+=s.clientes; tCom+=s.comissao_total; tMes+=s.comissao_mes;
-    return renderComCard(ven,s,'ven');
-  });
-  grid.innerHTML=cards.join('');
-  const g=id=>document.getElementById(id);
-  if(g('ven-kpi-clientes'))g('ven-kpi-clientes').textContent=tCli;
-  if(g('ven-kpi-total'))g('ven-kpi-total').textContent=fmt(tCom);
-  if(g('ven-kpi-mes'))g('ven-kpi-mes').textContent=fmt(tMes);
-  if(g('ven-kpi-ativas'))g('ven-kpi-ativas').textContent=VEN_LIST.filter(v=>v.status==='ativa').length;
-  renderParcelasTable(VEN_LIST,'vendedora_nome','comissao_vendedora','ven-tbody-parcelas');
+function renderListaPagamentos(){
+  const busca=(document.getElementById('p-busca')?.value||'').toLowerCase();
+  const mes=document.getElementById('p-filtro-mes')?.value||'';
+  const status=document.getElementById('p-filtro-status')?.value||'';
+  let dados=PAGAMENTOS_DATA;
+  if(status==='pendente')dados=dados.filter(p=>!p.recebido);
+  if(status==='recebido')dados=dados.filter(p=>p.recebido);
+  if(mes)dados=dados.filter(p=>p.data_prevista?.startsWith(mes));
+  if(busca)dados=dados.filter(p=>{const a=VENDAS_DATA.find(v=>v.id===p.venda_id)?.aluno_nome||'';return a.toLowerCase().includes(busca)||(p.descricao||'').toLowerCase().includes(busca);});
+  const tbody=document.getElementById('v-tbody-pagamentos');
+  if(!tbody)return;
+  if(!dados.length){tbody.innerHTML='<tr><td colspan="7" class="empty">Nenhuma parcela encontrada</td></tr>';return;}
+  tbody.innerHTML=dados.map(p=>{
+    const aluno=VENDAS_DATA.find(v=>v.id===p.venda_id)?.aluno_nome||'—';
+    const venc=!p.recebido&&new Date(p.data_prevista)<new Date();
+    return`<tr><td><strong>${aluno}</strong></td><td>${p.descricao||'—'}</td><td>${fmt(p.valor)}</td><td style="${venc?'color:#ef4444;font-weight:600;':''}">${fmtDataV(p.data_prevista)}</td><td>${p.data_recebido?fmtDataV(p.data_recebido):'—'}</td><td><span class="badge-status ${p.recebido?'badge-recebido':'badge-pendente'}">${p.recebido?'Recebido':'Pendente'}</span></td><td>${!p.recebido?`<button class="btn-marcar" onclick="marcarPagamentoRecebido('${p.id}')">✓ Recebido</button>`:`<button class="btn" style="padding:3px 8px;font-size:11px;color:#6b7280;" onclick="desmarcarPagamento('${p.id}')">Desfazer</button>`}</td></tr>`;
+  }).join('');
 }
 
-async function sincronizarComissoes(){
-  const btn=document.getElementById('btn-sync-com');
-  const lbl=document.getElementById('sync-com-label');
-  const banner=document.getElementById('inf-token-banner');
-  if(btn)btn.disabled=true;
-  if(lbl)lbl.textContent='Sincronizando...';
-  try{
-    const sess=(await sb.auth.getSession()).data.session;
-    const res=await fetch(FN_COM,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+sess.access_token}
-    });
-    const data=await res.json();
-    if(data.error&&data.error.includes('Token')){
-      if(banner)banner.style.display='block';
-      toast('Configure o token do ClickUp','erro');
-      return;
-    }
-    if(data.error){toast('Erro: '+data.error,'erro');return;}
-    if(banner)banner.style.display='none';
-    await renderInfluenciadoras();
-    await renderVendedoras();
-    toast(`Sincronizado! ${data.records_updated||0} alunos atualizados`,'sucesso');
-  }catch(e){
-    toast('Erro ao sincronizar com ClickUp','erro');
-  }finally{
-    if(btn)btn.disabled=false;
-    if(lbl)lbl.textContent='Sincronizar ClickUp';
-  }
+function calcComissaoVendedora(totalRec,ven){
+  const p1=(ven.percentual||2)/100,p2=(ven.percentual_bonus||5)/100,teto=ven.teto_base||20000;
+  if(totalRec<=0)return 0;
+  return totalRec<=teto?totalRec*p1:(teto*p1)+((totalRec-teto)*p2);
 }
 
-async function salvarClickUpToken(){
-  const inp=document.getElementById('inf-clickup-token');
-  const token=(inp?.value||'').trim();
-  if(!token){toast('Cole o token do ClickUp','erro');return;}
-  const{error}=await sb.from('app_config').upsert({chave:'clickup_token',valor:token},{onConflict:'chave'});
-  if(error){toast('Erro ao salvar token','erro');return;}
-  toast('Token salvo! Sincronizando...','sucesso');
-  if(inp)inp.value='';
-  await sincronizarComissoes();
-}
-
-// ══════════════════════════════════════════════
-// AGENDA DE COMISSÕES — visão mensal
-// ══════════════════════════════════════════════
-let AGENDA_MES = '';  // formato YYYY-MM, default = mês anterior
-
-function agendaMesAtual(){
-  const d=new Date();
-  d.setMonth(d.getMonth()-1);
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-}
-
-function agendaMesLabel(ym){
-  const [y,m]=ym.split('-');
-  const nomes=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  return `${nomes[parseInt(m)-1]} ${y}`;
-}
-
-function agendaMesAnterior(){
-  const [y,m]=AGENDA_MES.split('-').map(Number);
-  const d=new Date(y,m-2,1);
-  AGENDA_MES=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-  renderAgendaConteudo();
-}
-
-function agendaMesProximo(){
-  const [y,m]=AGENDA_MES.split('-').map(Number);
-  const d=new Date(y,m,1);
-  AGENDA_MES=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-  renderAgendaConteudo();
-}
-
-async function renderAgenda(){
-  if(!AGENDA_MES) AGENDA_MES=agendaMesAtual();
-  await renderAgendaConteudo();
-}
-
-async function renderAgendaConteudo(){
-  const label=document.getElementById('agenda-mes-label');
-  const tipo=document.getElementById('agenda-mes-tipo');
-  const subtitulo=document.getElementById('agenda-subtitulo');
-  if(label) label.textContent=agendaMesLabel(AGENDA_MES);
-
-  const mesAtualYM=(()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;})();
-  const mesAntYM=(()=>{const d=new Date();d.setMonth(d.getMonth()-1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;})();
-  if(tipo){
-    if(AGENDA_MES===mesAntYM) tipo.textContent='Mês de referência (anterior)';
-    else if(AGENDA_MES===mesAtualYM) tipo.textContent='Mês atual';
-    else if(AGENDA_MES>mesAtualYM) tipo.textContent='Mês futuro';
-    else tipo.textContent='Mês passado';
-  }
-  if(subtitulo) subtitulo.textContent=`Comissões a pagar em ${agendaMesLabel(AGENDA_MES)} · dia 5`;
-
-  const{data:rows,error}=await sb.from('comissoes').select('*').eq('mes_pagamento',AGENDA_MES).order('aluno_nome');
-  if(error){toast('Erro ao carregar agenda','erro');return;}
-
-  // KPIs
-  const total=(rows||[]).reduce((s,r)=>(s+(r.comissao_influencer||0)+(r.comissao_vendedora||0)),0);
-  const pendente=(rows||[]).filter(r=>r.status==='pendente').reduce((s,r)=>(s+(r.comissao_influencer||0)+(r.comissao_vendedora||0)),0);
-  const pago=total-pendente;
-  const R=v=>`R$ ${parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
-  const set=el=>(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
-  const S=set();
-  S('agenda-kpi-total',R(total));
-  S('agenda-kpi-pendente',R(pendente));
-  S('agenda-kpi-pago',R(pago));
-  S('agenda-kpi-qtd',String((rows||[]).length));
-
-  // Agrupar por influencer e vendedora
-  const infMap={}, venMap={};
-  for(const r of (rows||[])){
-    if(r.influencer_nome && (r.comissao_influencer||0)>0){
-      const n=r.influencer_nome.trim();
-      if(!infMap[n])infMap[n]={nome:n,linhas:[],total:0,pendente:0};
-      infMap[n].linhas.push(r);
-      infMap[n].total+=(r.comissao_influencer||0);
-      if(r.status==='pendente')infMap[n].pendente+=(r.comissao_influencer||0);
-    }
-    if(r.vendedora_nome && (r.comissao_vendedora||0)>0){
-      const n=r.vendedora_nome.trim();
-      if(!venMap[n])venMap[n]={nome:n,linhas:[],total:0,pendente:0};
-      venMap[n].linhas.push(r);
-      venMap[n].total+=(r.comissao_vendedora||0);
-      if(r.status==='pendente')venMap[n].pendente+=(r.comissao_vendedora||0);
-    }
-  }
-
-  const renderCard=(grupo,tipo)=>{
-    const comField=tipo==='inf'?'comissao_influencer':'comissao_vendedora';
-    const todoPago=grupo.pendente===0;
-    const ids=grupo.linhas.map(r=>r.id);
-    return`<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
-        <div>
-          <div style="font-weight:700;font-size:15px;color:#111827;">${grupo.nome}</div>
-          <div style="font-size:12px;color:#6b7280;margin-top:2px;">${grupo.linhas.length} cliente${grupo.linhas.length!==1?'s':''}</div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:18px;font-weight:700;color:${todoPago?'#22c55e':'#111827'};">${R(grupo.total)}</div>
-          ${todoPago?'<div style="font-size:11px;color:#22c55e;font-weight:600;">✓ Pago</div>':'<div style="font-size:11px;color:#ef4444;">'+R(grupo.pendente)+' pendente</div>'}
-        </div>
-      </div>
-      <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;">
-        <thead><tr style="border-bottom:1px solid #f3f4f6;">
-          <th style="text-align:left;padding:4px 0;color:#9ca3af;font-weight:600;">Aluno</th>
-          <th style="text-align:center;padding:4px 0;color:#9ca3af;font-weight:600;">Tipo</th>
-          <th style="text-align:right;padding:4px 0;color:#9ca3af;font-weight:600;">Valor</th>
-          <th style="text-align:right;padding:4px 0;color:#9ca3af;font-weight:600;">Status</th>
-        </tr></thead>
-        <tbody>
-          ${grupo.linhas.map(r=>`<tr style="border-bottom:1px solid #f9fafb;">
-            <td style="padding:5px 0;color:#374151;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.aluno_nome}</td>
-            <td style="padding:5px 0;text-align:center;"><span style="font-size:10px;background:${r.tipo==='avista'?'#dbeafe':'#fce7f3'};color:${r.tipo==='avista'?'#1d4ed8':'#9d174d'};padding:2px 6px;border-radius:10px;">${r.tipo==='avista'?'À vista':'Parcela'}</span></td>
-            <td style="padding:5px 0;text-align:right;font-weight:600;color:#111827;">${R(r[comField]||0)}</td>
-            <td style="padding:5px 0;text-align:right;">${r.status==='pago'?'<span style="color:#22c55e;font-size:11px;">✓ Pago</span>':'<span style="color:#f59e0b;font-size:11px;">⏳</span>'}</td>
-          </tr>`).join('')}
-        </tbody>
-      </table>
-      ${!todoPago?`<button onclick="marcarAgendaPago('${ids.join(',')}','${tipo}')" style="width:100%;background:#22c55e;color:#fff;border:none;padding:8px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">✓ Marcar como Pago</button>`
-        :`<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:8px;text-align:center;font-size:12px;color:#16a34a;font-weight:600;">✓ Comissão paga</div>`}
-    </div>`;
-  };
-
-  const infGrid=document.getElementById('agenda-inf-grid');
-  const venGrid=document.getElementById('agenda-ven-grid');
+function renderComissoesVendas(){
+  const lbl=document.getElementById('v-com-mes-label');
+  if(lbl){const[y,m]=VENDAS_MES_COM.split('-');lbl.textContent=new Date(+y,+m-1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});}
+  const pgRec=PAGAMENTOS_DATA.filter(p=>p.recebido&&(p.data_recebido||'').startsWith(VENDAS_MES_COM));
+  const infGrid=document.getElementById('v-com-inf-grid');
   if(infGrid){
-    const keys=Object.keys(infMap);
-    infGrid.innerHTML=keys.length?keys.map(k=>renderCard(infMap[k],'inf')).join(''):'<div class="empty" style="grid-column:1/-1;">Nenhuma comissão de influenciadora neste mês</div>';
+    const ativos=INF_LIST_V.filter(i=>i.status==='ativa');
+    infGrid.innerHTML=!ativos.length?'<div class="empty" style="grid-column:1/-1;">Nenhuma influenciadora ativa</div>':ativos.map(inf=>{
+      const pgs=pgRec.filter(p=>VENDAS_DATA.find(v=>v.id===p.venda_id)?.influencer_id===inf.id);
+      const tot=pgs.reduce((s,p)=>s+(p.valor||0),0);
+      const com=tot*(inf.percentual||0)/100;
+      const nv=[...new Set(pgs.map(p=>p.venda_id))].length;
+      return`<div class="com-card"><div class="com-card-nome">${inf.nome}</div><div class="com-card-row"><span>Vendas recebidas</span><span>${nv}</span></div><div class="com-card-row"><span>Total recebido</span><span>${fmt(tot)}</span></div><div class="com-card-row"><span>Comissão (${inf.percentual}%)</span><span>${fmt(com)}</span></div><div class="com-card-total"><span>A pagar</span><span>${fmt(com)}</span></div></div>`;
+    }).join('');
   }
+  const venGrid=document.getElementById('v-com-ven-grid');
   if(venGrid){
-    const keys=Object.keys(venMap);
-    venGrid.innerHTML=keys.length?keys.map(k=>renderCard(venMap[k],'ven')).join(''):'<div class="empty" style="grid-column:1/-1;">Nenhuma comissão de vendedora neste mês</div>';
+    const ativos=VEN_LIST_V.filter(v=>v.status==='ativa');
+    venGrid.innerHTML=!ativos.length?'<div class="empty" style="grid-column:1/-1;">Nenhuma vendedora ativa</div>':ativos.map(ven=>{
+      const pgs=pgRec.filter(p=>VENDAS_DATA.find(v=>v.id===p.venda_id)?.vendedora_id===ven.id);
+      const tot=pgs.reduce((s,p)=>s+(p.valor||0),0);
+      const com=calcComissaoVendedora(tot,ven);
+      const teto=ven.teto_base||20000;const p1=ven.percentual||2;const p2=ven.percentual_bonus||5;
+      const det=tot>teto?`${fmt(teto)}×${p1}% + ${fmt(tot-teto)}×${p2}%`:`${fmt(tot)}×${p1}%`;
+      const nv=[...new Set(pgs.map(p=>p.venda_id))].length;
+      return`<div class="com-card"><div class="com-card-nome">${ven.nome}</div><div class="com-card-row"><span>Vendas recebidas</span><span>${nv}</span></div><div class="com-card-row"><span>Total recebido</span><span>${fmt(tot)}</span></div><div class="com-card-row"><span>Cálculo</span><span style="font-size:11px;">${det}</span></div><div class="com-card-total"><span>A pagar</span><span>${fmt(com)}</span></div></div>`;
+    }).join('');
   }
 }
 
-async function marcarAgendaPago(idsStr,tipo){
-  const ids=idsStr.split(',').filter(Boolean);
-  if(!ids.length)return;
-  const{error}=await sb.from('comissoes').update({status:'pago',pago_em:new Date().toISOString()}).in('id',ids).eq('status','pendente');
-  if(error){toast('Erro ao marcar como pago','erro');return;}
-  toast('Comissão marcada como paga!','sucesso');
-  await renderAgendaConteudo();
+function mudarMesComissao(delta){
+  const[y,m]=VENDAS_MES_COM.split('-').map(Number);
+  const d=new Date(y,m-1+delta,1);
+  VENDAS_MES_COM=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  renderComissoesVendas();
 }
 
-// ── CRUD Influenciadoras ──
-function abrirModalInfluenciadora(id){
-  editingInfId=id||null;
-  const delBtn=document.getElementById('btn-del-inf');
-  document.getElementById('modal-inf-titulo').textContent=id?'Editar Influenciadora':'Cadastrar Influenciadora';
-  if(delBtn)delBtn.style.display=id?'inline-flex':'none';
-  if(id){
-    const inf=INF_LIST.find(i=>i.id===id); if(!inf)return;
-    document.getElementById('inf-nome').value=inf.nome;
-    document.getElementById('inf-percentual').value=inf.percentual;
-    document.getElementById('inf-status').value=inf.status;
-    document.getElementById('inf-notas').value=inf.notas||'';
-  } else {
-    document.getElementById('inf-nome').value='';
-    document.getElementById('inf-percentual').value='10';
-    document.getElementById('inf-status').value='ativa';
-    document.getElementById('inf-notas').value='';
-  }
-  document.getElementById('modal-inf').classList.add('open');
+function renderColaboradoresVendas(){
+  const ti=document.getElementById('colab-tbody-inf');
+  if(ti){ti.innerHTML=!INF_LIST_V.length?'<tr><td colspan="4" class="empty">Nenhuma cadastrada</td></tr>':INF_LIST_V.map(inf=>`<tr><td><strong>${inf.nome}</strong></td><td>${inf.percentual}%</td><td><span class="badge-status ${inf.status==='ativa'?'badge-recebido':'badge-pendente'}">${inf.status}</span></td><td style="text-align:right;"><button class="btn" style="padding:3px 8px;font-size:11px;" onclick="editarInfluenciadoraV('${inf.id}')">Editar</button> <button class="btn" style="padding:3px 8px;font-size:11px;color:#ef4444;" onclick="excluirInfluenciadoraV('${inf.id}','${inf.nome.replace(/'/g,'')}')">✕</button></td></tr>`).join('');}
+  const tv=document.getElementById('colab-tbody-ven');
+  if(tv){tv.innerHTML=!VEN_LIST_V.length?'<tr><td colspan="5" class="empty">Nenhuma cadastrada</td></tr>':VEN_LIST_V.map(ven=>`<tr><td><strong>${ven.nome}</strong></td><td>${ven.percentual||2}%</td><td>${ven.percentual_bonus||5}%</td><td><span class="badge-status ${ven.status==='ativa'?'badge-recebido':'badge-pendente'}">${ven.status}</span></td><td style="text-align:right;"><button class="btn" style="padding:3px 8px;font-size:11px;" onclick="editarVendedoraV('${ven.id}')">Editar</button> <button class="btn" style="padding:3px 8px;font-size:11px;color:#ef4444;" onclick="excluirVendedoraV('${ven.id}','${ven.nome.replace(/'/g,'')}')">✕</button></td></tr>`).join('');}
 }
-function editarInfluenciadora(id){abrirModalInfluenciadora(id);}
-function fecharModalInf(){document.getElementById('modal-inf').classList.remove('open');}
 
-async function salvarInfluenciadora(){
+function abrirFormColaborador(tipo){
+  fecharFormColaborador('inf');fecharFormColaborador('ven');
+  const form=document.getElementById('form-'+tipo);if(form)form.style.display='block';
+  if(tipo==='inf'){document.getElementById('inf-editing-id').value='';document.getElementById('inf-nome').value='';document.getElementById('inf-pct').value=10;}
+  if(tipo==='ven'){document.getElementById('ven-editing-id').value='';document.getElementById('ven-nome').value='';document.getElementById('ven-pct1').value=2;document.getElementById('ven-pct2').value=5;}
+}
+function fecharFormColaborador(tipo){const f=document.getElementById('form-'+tipo);if(f)f.style.display='none';}
+
+function editarInfluenciadoraV(id){
+  const inf=INF_LIST_V.find(i=>i.id===id);if(!inf)return;
+  fecharFormColaborador('ven');
+  document.getElementById('form-inf').style.display='block';
+  document.getElementById('inf-editing-id').value=id;
+  document.getElementById('inf-nome').value=inf.nome;
+  document.getElementById('inf-pct').value=inf.percentual;
+}
+async function salvarInfluenciadoraV(){
+  const editId=document.getElementById('inf-editing-id').value;
   const nome=document.getElementById('inf-nome').value.trim();
-  const pct=parseFloat(document.getElementById('inf-percentual').value);
-  const status=document.getElementById('inf-status').value;
-  const notas=document.getElementById('inf-notas').value.trim();
+  const pct=parseFloat(document.getElementById('inf-pct').value);
   if(!nome){toast('Informe o nome','erro');return;}
   if(isNaN(pct)||pct<0||pct>100){toast('Percentual inválido','erro');return;}
-  const btn=document.querySelector('#modal-inf-box .btn.bp');
-  if(btn){btn.disabled=true;btn.textContent='Salvando...';}
-  const dados={nome,percentual:pct,status,notas:notas||null};
+  const dados={nome,percentual:pct};
   let error;
-  if(editingInfId){({error}=await sb.from('influenciadoras').update(dados).eq('id',editingInfId));}
-  else{({error}=await sb.from('influenciadoras').insert(dados));}
-  if(btn){btn.disabled=false;btn.textContent='Salvar';}
+  if(editId){({error}=await sb.from('influenciadoras').update(dados).eq('id',editId));}
+  else{({error}=await sb.from('influenciadoras').insert({...dados,status:'ativa'}));}
   if(error){toast('Erro ao salvar','erro');return;}
-  fecharModalInf(); await renderInfluenciadoras();
-  toast(editingInfId?'Influenciadora atualizada!':'Influenciadora cadastrada!','sucesso');
+  toast(editId?'Atualizada!':'Influenciadora cadastrada!','sucesso');
+  fecharFormColaborador('inf');
+  await renderVendas();
+  mudarTabVendas('colaboradores',document.querySelector('.vtab[onclick*="colaboradores"]'));
 }
-async function excluirInfluenciadora(){
-  if(!editingInfId)return;
-  if(!confirm('Excluir esta influenciadora?'))return;
-  const{error}=await sb.from('influenciadoras').delete().eq('id',editingInfId);
+async function excluirInfluenciadoraV(id,nome){
+  if(!confirm(`Excluir "${nome}"?`))return;
+  const{error}=await sb.from('influenciadoras').delete().eq('id',id);
   if(error){toast('Erro ao excluir','erro');return;}
-  fecharModalInf(); await renderInfluenciadoras();
-  toast('Influenciadora removida!','sucesso');
+  toast('Removida!','sucesso');await renderVendas();
+  mudarTabVendas('colaboradores',document.querySelector('.vtab[onclick*="colaboradores"]'));
 }
 
-// ── CRUD Vendedoras ──
-function abrirModalVendedora(id){
-  editingVenId=id||null;
-  const delBtn=document.getElementById('btn-del-ven');
-  document.getElementById('modal-ven-titulo').textContent=id?'Editar Vendedora':'Cadastrar Vendedora';
-  if(delBtn)delBtn.style.display=id?'inline-flex':'none';
-  if(id){
-    const ven=VEN_LIST.find(v=>v.id===id); if(!ven)return;
-    document.getElementById('ven-nome').value=ven.nome;
-    document.getElementById('ven-percentual').value=ven.percentual;
-    document.getElementById('ven-status').value=ven.status;
-    document.getElementById('ven-notas').value=ven.notas||'';
-  } else {
-    document.getElementById('ven-nome').value='';
-    document.getElementById('ven-percentual').value='10';
-    document.getElementById('ven-status').value='ativa';
-    document.getElementById('ven-notas').value='';
-  }
-  document.getElementById('modal-ven').classList.add('open');
+function editarVendedoraV(id){
+  const ven=VEN_LIST_V.find(v=>v.id===id);if(!ven)return;
+  fecharFormColaborador('inf');
+  document.getElementById('form-ven').style.display='block';
+  document.getElementById('ven-editing-id').value=id;
+  document.getElementById('ven-nome').value=ven.nome;
+  document.getElementById('ven-pct1').value=ven.percentual||2;
+  document.getElementById('ven-pct2').value=ven.percentual_bonus||5;
 }
-function editarVendedora(id){abrirModalVendedora(id);}
-function fecharModalVen(){document.getElementById('modal-ven').classList.remove('open');}
-
-async function salvarVendedora(){
+async function salvarVendedoraV(){
+  const editId=document.getElementById('ven-editing-id').value;
   const nome=document.getElementById('ven-nome').value.trim();
-  const pct=parseFloat(document.getElementById('ven-percentual').value);
-  const status=document.getElementById('ven-status').value;
-  const notas=document.getElementById('ven-notas').value.trim();
+  const pct1=parseFloat(document.getElementById('ven-pct1').value);
+  const pct2=parseFloat(document.getElementById('ven-pct2').value);
   if(!nome){toast('Informe o nome','erro');return;}
-  if(isNaN(pct)||pct<0||pct>100){toast('Percentual inválido','erro');return;}
-  const btn=document.querySelector('#modal-ven-box .btn.bp');
-  if(btn){btn.disabled=true;btn.textContent='Salvando...';}
-  const dados={nome,percentual:pct,status,notas:notas||null};
+  if(isNaN(pct1)||isNaN(pct2)){toast('Percentuais inválidos','erro');return;}
+  const dados={nome,percentual:pct1,percentual_bonus:pct2,teto_base:20000};
   let error;
-  if(editingVenId){({error}=await sb.from('vendedoras').update(dados).eq('id',editingVenId));}
-  else{({error}=await sb.from('vendedoras').insert(dados));}
-  if(btn){btn.disabled=false;btn.textContent='Salvar';}
+  if(editId){({error}=await sb.from('vendedoras').update(dados).eq('id',editId));}
+  else{({error}=await sb.from('vendedoras').insert({...dados,status:'ativa'}));}
   if(error){toast('Erro ao salvar','erro');return;}
-  fecharModalVen(); await renderVendedoras();
-  toast(editingVenId?'Vendedora atualizada!':'Vendedora cadastrada!','sucesso');
+  toast(editId?'Atualizada!':'Vendedora cadastrada!','sucesso');
+  fecharFormColaborador('ven');
+  await renderVendas();
+  mudarTabVendas('colaboradores',document.querySelector('.vtab[onclick*="colaboradores"]'));
 }
-async function excluirVendedora(){
-  if(!editingVenId)return;
-  if(!confirm('Excluir esta vendedora?'))return;
-  const{error}=await sb.from('vendedoras').delete().eq('id',editingVenId);
+async function excluirVendedoraV(id,nome){
+  if(!confirm(`Excluir "${nome}"?`))return;
+  const{error}=await sb.from('vendedoras').delete().eq('id',id);
   if(error){toast('Erro ao excluir','erro');return;}
-  fecharModalVen(); await renderVendedoras();
-  toast('Vendedora removida!','sucesso');
+  toast('Removida!','sucesso');await renderVendas();
+  mudarTabVendas('colaboradores',document.querySelector('.vtab[onclick*="colaboradores"]'));
+}
+
+function abrirModalVenda(){
+  VENDA_EDITING_ID=null;
+  const titulo=document.getElementById('modal-venda-titulo');const btnDel=document.getElementById('btn-del-venda');
+  if(titulo)titulo.textContent='Nova Venda';if(btnDel)btnDel.style.display='none';
+  const hoje=new Date().toISOString().split('T')[0];
+  document.getElementById('mv-aluno').value='';document.getElementById('mv-data').value=hoje;
+  document.getElementById('mv-valor').value='';document.getElementById('mv-tipo').value='avista';
+  document.getElementById('mv-influencer').value='';document.getElementById('mv-vendedora').value='';
+  document.getElementById('mv-obs').value='';
+  const si=document.getElementById('mv-influencer');const sv=document.getElementById('mv-vendedora');
+  if(si)si.innerHTML='<option value="">— Nenhuma —</option>'+INF_LIST_V.filter(i=>i.status==='ativa').map(i=>`<option value="${i.id}">${i.nome}</option>`).join('');
+  if(sv)sv.innerHTML='<option value="">— Nenhuma —</option>'+VEN_LIST_V.filter(v=>v.status==='ativa').map(v=>`<option value="${v.id}">${v.nome}</option>`).join('');
+  atualizarParcelasForm();
+  document.getElementById('modal-venda').classList.add('open');
+}
+function editarVenda(id){
+  const venda=VENDAS_DATA.find(v=>v.id===id);if(!venda)return;
+  VENDA_EDITING_ID=id;
+  const titulo=document.getElementById('modal-venda-titulo');const btnDel=document.getElementById('btn-del-venda');
+  if(titulo)titulo.textContent='Editar Venda';if(btnDel)btnDel.style.display='block';
+  const si=document.getElementById('mv-influencer');const sv=document.getElementById('mv-vendedora');
+  if(si)si.innerHTML='<option value="">— Nenhuma —</option>'+INF_LIST_V.filter(i=>i.status==='ativa').map(i=>`<option value="${i.id}">${i.nome}</option>`).join('');
+  if(sv)sv.innerHTML='<option value="">— Nenhuma —</option>'+VEN_LIST_V.filter(v=>v.status==='ativa').map(v=>`<option value="${v.id}">${v.nome}</option>`).join('');
+  document.getElementById('mv-aluno').value=venda.aluno_nome||'';
+  document.getElementById('mv-data').value=venda.data_venda||'';
+  document.getElementById('mv-valor').value=venda.valor_total||'';
+  document.getElementById('mv-tipo').value=venda.tipo_pagamento||'avista';
+  document.getElementById('mv-influencer').value=venda.influencer_id||'';
+  document.getElementById('mv-vendedora').value=venda.vendedora_id||'';
+  document.getElementById('mv-obs').value=venda.observacoes||'';
+  const parcelas=PAGAMENTOS_DATA.filter(p=>p.venda_id===id);
+  const lista=document.getElementById('mv-parcelas-list');
+  if(lista){lista.innerHTML='';parcelas.forEach(p=>adicionarLinhaParcela(p.descricao,p.valor,p.data_prevista,p.id,p.recebido));}
+  document.getElementById('modal-venda').classList.add('open');
+}
+function fecharModalVenda(){document.getElementById('modal-venda').classList.remove('open');}
+
+function atualizarParcelasForm(){
+  const tipo=document.getElementById('mv-tipo')?.value;
+  const valor=parseFloat(document.getElementById('mv-valor')?.value)||0;
+  const dataStr=document.getElementById('mv-data')?.value;
+  const lista=document.getElementById('mv-parcelas-list');
+  if(!lista)return;
+  lista.innerHTML='';
+  const hoje=dataStr||new Date().toISOString().split('T')[0];
+  const add=(d,dias)=>{const dt=new Date(d+'T12:00:00');dt.setDate(dt.getDate()+dias);return dt.toISOString().split('T')[0];};
+  if(tipo==='avista'){adicionarLinhaParcela('Pagamento à vista',valor,hoje,null,true);}
+  else if(tipo==='credito'){adicionarLinhaParcela('Crédito (parcela 1)',valor,add(hoje,30));}
+  else if(tipo==='sinal_parcelas'){adicionarLinhaParcela('Sinal',valor*0.5,hoje);adicionarLinhaParcela('Restante',valor*0.5,add(hoje,30));}
+  else if(tipo==='parcelado_pix'){adicionarLinhaParcela('Parcela 1',valor,hoje);adicionarLinhaParcela('Parcela 2',0,add(hoje,30));}
+}
+
+function adicionarLinhaParcela(desc='',valor=0,data='',id=null,recebido=false){
+  const lista=document.getElementById('mv-parcelas-list');if(!lista)return;
+  parcelaCounter++;
+  const el=document.createElement('div');
+  el.style.cssText='display:grid;grid-template-columns:1fr 100px 130px auto auto;gap:6px;align-items:center;';
+  el.dataset.parcelaId=id||'';
+  el.innerHTML=`<input type="text" placeholder="Descrição" value="${(desc||'').replace(/"/g,'&quot;')}" style="padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;"><input type="number" placeholder="R$" value="${valor||''}" min="0" step="0.01" style="padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;"><input type="date" value="${data}" style="padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;"><label style="display:flex;align-items:center;gap:4px;font-size:12px;white-space:nowrap;cursor:pointer;"><input type="checkbox" ${recebido?'checked':''}> Recebido</label><button type="button" onclick="this.closest('div').remove()" style="background:#fee2e2;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;color:#dc2626;font-size:12px;">✕</button>`;
+  lista.appendChild(el);
+}
+
+async function salvarVenda(){
+  const aluno=document.getElementById('mv-aluno').value.trim();
+  const data=document.getElementById('mv-data').value;
+  const valor=parseFloat(document.getElementById('mv-valor').value);
+  const tipo=document.getElementById('mv-tipo').value;
+  const influencer_id=document.getElementById('mv-influencer').value||null;
+  const vendedora_id=document.getElementById('mv-vendedora').value||null;
+  const obs=document.getElementById('mv-obs').value.trim()||null;
+  if(!aluno){toast('Informe o nome do aluno','erro');return;}
+  if(!data){toast('Informe a data','erro');return;}
+  if(!valor||valor<=0){toast('Informe o valor','erro');return;}
+  const vendaDados={aluno_nome:aluno,data_venda:data,valor_total:valor,tipo_pagamento:tipo,influencer_id,vendedora_id,observacoes:obs};
+  let vendaId=VENDA_EDITING_ID,error;
+  if(vendaId){
+    ({error}=await sb.from('vendas').update(vendaDados).eq('id',vendaId));
+    if(error){toast('Erro ao salvar','erro');return;}
+    await sb.from('pagamentos').delete().eq('venda_id',vendaId);
+  } else {
+    const{data:nv,error:ei}=await sb.from('vendas').insert(vendaDados).select('id').single();
+    if(ei||!nv){toast('Erro ao criar venda','erro');return;}
+    vendaId=nv.id;
+  }
+  const linhas=document.querySelectorAll('#mv-parcelas-list > div');
+  const parcelas=[];const hoje=new Date().toISOString().split('T')[0];
+  linhas.forEach(linha=>{
+    const inputs=linha.querySelectorAll('input');
+    const d=inputs[0].value.trim()||'Parcela';
+    const v=parseFloat(inputs[1].value)||0;
+    const dp=inputs[2].value||hoje;
+    const rec=inputs[3].checked;
+    if(v>0)parcelas.push({venda_id:vendaId,descricao:d,valor:v,data_prevista:dp,recebido:rec,data_recebido:rec?hoje:null});
+  });
+  if(parcelas.length){const{error:ep}=await sb.from('pagamentos').insert(parcelas);if(ep)toast('Venda salva mas erro nas parcelas','aviso');}
+  toast(VENDA_EDITING_ID?'Venda atualizada!':'Venda registrada!','sucesso');
+  fecharModalVenda();
+  await carregarDadosVendas();popularSelectMeses();renderTabVendas(VENDAS_TAB);
+}
+
+async function excluirVendaModal(){
+  if(!VENDA_EDITING_ID)return;
+  if(!confirm('Excluir esta venda e todas as parcelas?'))return;
+  const{error}=await sb.from('vendas').delete().eq('id',VENDA_EDITING_ID);
+  if(error){toast('Erro ao excluir','erro');return;}
+  toast('Venda excluída!','sucesso');fecharModalVenda();
+  await renderVendas();
+}
+
+async function marcarPagamentoRecebido(id){
+  const hoje=new Date().toISOString().split('T')[0];
+  const{error}=await sb.from('pagamentos').update({recebido:true,data_recebido:hoje}).eq('id',id);
+  if(error){toast('Erro ao marcar','erro');return;}
+  toast('Marcado como recebido!','sucesso');
+  await carregarDadosVendas();renderTabVendas(VENDAS_TAB);
+}
+
+async function desmarcarPagamento(id){
+  const{error}=await sb.from('pagamentos').update({recebido:false,data_recebido:null}).eq('id',id);
+  if(error){toast('Erro ao desfazer','erro');return;}
+  toast('Desfeito!','sucesso');
+  await carregarDadosVendas();renderTabVendas(VENDAS_TAB);
+}
+
+function fmtDataV(d){
+  if(!d)return'—';
+  const[y,m,dia]=String(d).split('T')[0].split('-');
+  return`${dia}/${m}/${y}`;
 }
 
 function gerarCtrPdf(){
