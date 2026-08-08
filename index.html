@@ -355,193 +355,56 @@ main.bb-visible{padding-top:48px;}
 <!-- ── DASHBOARD ── -->
 <div class="page active" id="page-dashboard">
   <div class="ph">
-    <div><h2>Dashboard</h2><p id="mes-label">Abril 2026</p></div>
+    <div><h2>Dashboard</h2><p id="mes-label">Agosto 2026</p></div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <button id="btn-sync-clickup" onclick="sincronizarClickUp()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:#7c3aed;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
-        <svg id="sync-icon" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-        <span id="sync-label">Sincronizar ClickUp</span>
-      </button>
       <select id="mes-select" onchange="trocarMes(this.value)">
-      <option value="2026-12">Dezembro 2026</option>
-      <option value="2026-11">Novembro 2026</option>
-      <option value="2026-10">Outubro 2026</option>
-      <option value="2026-09">Setembro 2026</option>
-      <option value="2026-08">Agosto 2026</option>
-      <option value="2026-07">Julho 2026</option>
-      <option value="2026-06">Junho 2026</option>
-      <option value="2026-05">Maio 2026</option>
-      <option value="2026-04" selected>Abril 2026</option>
-      <option value="2026-03">Março 2026</option>
-      <option value="2026-02">Fevereiro 2026</option>
-      <option value="2026-01">Janeiro 2026</option>
-      <option value="2025-12">Dezembro 2025</option>
-      <option value="2025-11">Novembro 2025</option>
-    </select>
-    </div>
-  </div>
-  <!-- Notion Financeiro -->
-  <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">📒 Controle Financeiro — Notion</div>
-  <div id="notion-fin-setup-banner" style="display:none;background:#fef3c7;border:1px solid #fbbf24;border-radius:10px;padding:14px 18px;margin-bottom:12px;font-size:13px;">
-    ⚙️ Configure o token do Notion em <strong>Configurações → Integrações</strong> para ver seus dados financeiros aqui.
-  </div>
-  <div id="notion-fin-card" class="card" style="padding:20px;display:none;">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
-      <div>
-        <h3 style="margin:0 0 2px;font-size:14px;">Fluxo de Caixa — Team Santiago</h3>
-        <p id="notion-fin-periodo" style="font-size:12px;color:#6b7280;margin:0;">Últimos meses</p>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <select id="notion-fin-meses" onchange="carregarNotionFinanceiro()" style="font-size:12px;padding:5px 8px;border:1px solid #e5e7eb;border-radius:7px;background:#fff;">
-          <option value="3">Últimos 3 meses</option>
-          <option value="6" selected>Últimos 6 meses</option>
-          <option value="12">Últimos 12 meses</option>
-        </select>
-      </div>
-    </div>
-    <!-- KPIs do mês mais recente -->
-    <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;" id="notion-fin-mes-label">Mês mais recente</div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;">
-      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px;text-align:center;">
-        <div style="font-size:10px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Entradas</div>
-        <div id="nf-entradas" style="font-size:16px;font-weight:700;color:#15803d;">—</div>
-      </div>
-      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px;text-align:center;">
-        <div style="font-size:10px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Saídas</div>
-        <div id="nf-saidas" style="font-size:16px;font-weight:700;color:#dc2626;">—</div>
-      </div>
-      <div id="nf-lucro-card" style="background:#fefce8;border:1px solid #fde68a;border-radius:10px;padding:12px;text-align:center;">
-        <div style="font-size:10px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Lucro do Mês</div>
-        <div id="nf-lucro" style="font-size:16px;font-weight:700;color:#92400e;">—</div>
-      </div>
-      <div id="nf-resultado-card" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:12px;text-align:center;">
-        <div style="font-size:10px;font-weight:700;color:#0369a1;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Fluxo de Caixa</div>
-        <div id="nf-resultado" style="font-size:16px;font-weight:700;color:#0369a1;">—</div>
-      </div>
-    </div>
-    <!-- Gráfico histórico -->
-    <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Histórico mensal</div>
-    <div style="position:relative;height:180px;margin-bottom:20px;">
-      <canvas id="chart-notion-fin"></canvas>
-    </div>
-    <!-- Detalhamento do mês -->
-    <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Detalhamento — mês mais recente</div>
-    <div id="nf-detalhes" style="font-size:13px;"></div>
-  </div>
-
-  <!-- Organizze — Saldo Real -->
-  <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">💰 Caixa Real — Organizze</div>
-  <div id="org-setup-banner" style="display:none;background:#fef3c7;border:1px solid #fbbf24;border-radius:10px;padding:14px 18px;margin-bottom:12px;font-size:13px;">
-    ⚙️ Configure o <strong>Organizze Email</strong> e <strong>API Key</strong> em <strong>Configurações → Integrações</strong> para ver seu saldo real aqui.
-  </div>
-  <div id="org-loading" style="display:none;text-align:center;padding:32px;color:#6b7280;font-size:13px;">
-    <svg width="24" height="24" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 10px;animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
-    Carregando dados Organizze...
-  </div>
-  <div id="org-card" style="display:none;">
-    <!-- KPIs -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:12px;">
-      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:10px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Saldo Total</div>
-        <div id="org-saldo" style="font-size:18px;font-weight:700;color:#15803d;">—</div>
-      </div>
-      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:10px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Entradas</div>
-        <div id="org-entradas" style="font-size:18px;font-weight:700;color:#16a34a;">—</div>
-      </div>
-      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:10px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Saídas</div>
-        <div id="org-saidas" style="font-size:18px;font-weight:700;color:#dc2626;">—</div>
-      </div>
-      <div id="org-resultado-card" style="background:#fefce8;border:1px solid #fde68a;border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:10px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Resultado</div>
-        <div id="org-resultado" style="font-size:18px;font-weight:700;color:#92400e;">—</div>
-      </div>
-    </div>
-    <!-- Contas -->
-    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:12px;">
-      <h3 style="margin:0 0 10px;font-size:13px;font-weight:600;color:#374151;">Contas</h3>
-      <div id="org-contas" style="font-size:13px;display:flex;flex-direction:column;gap:6px;"></div>
-    </div>
-    <!-- Últimas transações -->
-    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:4px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
-        <h3 style="margin:0;font-size:13px;font-weight:600;color:#374151;">Últimas Transações</h3>
-        <select id="org-days-select" onchange="carregarOrganizze()" style="font-size:12px;padding:5px 8px;border:1px solid #e5e7eb;border-radius:7px;background:#fff;">
-          <option value="30" selected>Últimos 30 dias</option>
-          <option value="60">Últimos 60 dias</option>
-          <option value="90">Últimos 90 dias</option>
-        </select>
-      </div>
-      <div id="org-transacoes" style="font-size:13px;"></div>
-    </div>
-    <p id="org-updated" style="font-size:11px;color:#94a3b8;margin:6px 0 0;"></p>
-  </div>
-
-  <!-- Previsão de Faturamento -->
-  <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">📈 Previsão de Faturamento</div>
-  <div class="card" style="padding:20px;margin-bottom:4px;">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
-      <div>
-        <h3 style="margin:0 0 2px;font-size:14px;">Receitas futuras mês a mês</h3>
-        <p style="font-size:12px;color:#6b7280;margin:0;">Parcelas do ClickUp — o que você tem a receber</p>
-      </div>
-      <div id="dash-prev-total" style="text-align:right;">
-        <div style="font-size:22px;font-weight:700;color:#10b981;">—</div>
-        <div style="font-size:11px;color:#6b7280;">total previsto</div>
-      </div>
-    </div>
-    <div id="dash-prev-meses" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;">
-      <div style="color:#94a3b8;text-align:center;padding:20px;grid-column:1/-1;">Carregando...</div>
+        <option value="2026-12">Dezembro 2026</option>
+        <option value="2026-11">Novembro 2026</option>
+        <option value="2026-10">Outubro 2026</option>
+        <option value="2026-09">Setembro 2026</option>
+        <option value="2026-08" selected>Agosto 2026</option>
+        <option value="2026-07">Julho 2026</option>
+        <option value="2026-06">Junho 2026</option>
+        <option value="2026-05">Maio 2026</option>
+        <option value="2026-04">Abril 2026</option>
+        <option value="2026-03">Março 2026</option>
+        <option value="2026-02">Fevereiro 2026</option>
+        <option value="2026-01">Janeiro 2026</option>
+        <option value="2025-12">Dezembro 2025</option>
+        <option value="2025-11">Novembro 2025</option>
+      </select>
     </div>
   </div>
 
-  <!-- Parcelas -->
-  <div style="margin-top:16px;">
-    <div class="card">
-      <h3 style="display:flex;align-items:center;justify-content:space-between;">
-        ⏰ Próximas Parcelas (30 dias)
-        <span id="dash-parcelas-count" style="font-size:11px;font-weight:400;color:#94a3b8;"></span>
-      </h3>
-      <div id="dash-parcelas-list" style="font-size:13px;">
-        <div style="color:#94a3b8;text-align:center;padding:20px;">Carregando...</div>
-      </div>
+  <!-- KPIs Vendas -->
+  <div class="kpi-grid" style="margin-bottom:20px;">
+    <div class="kpi verde" style="cursor:pointer;" onclick="irPara('vendas',document.getElementById('nav-vendas'))">
+      <div class="kl">Vendas este mês</div>
+      <div class="kv" id="dash-kpi-vendas">—</div>
+      <div class="kvar" id="dash-kpi-vendas-qt" style="font-size:11px;color:#94a3b8;"></div>
     </div>
-  </div>
-
-  <!-- Gráficos -->
-  <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">📊 Análise Financeira</div>
-  <div class="g3">
-    <div class="card"><h3>Entradas vs Saídas (últimos 6 meses)</h3><canvas id="chart-barras" height="120"></canvas></div>
-    <div class="card"><h3>Saídas por Categoria</h3>
-      <div class="pz-wrap"><div class="pz-canvas"><canvas id="chart-ps"></canvas></div><div id="leg-s"></div></div>
+    <div class="kpi azul" style="cursor:pointer;" onclick="irPara('vendas',document.getElementById('nav-vendas'))">
+      <div class="kl">Recebido</div>
+      <div class="kv" id="dash-kpi-recebido">—</div>
     </div>
-  </div>
-  <div class="g2">
-    <div class="card"><h3>Entradas por Categoria</h3>
-      <div class="pz-wrap"><div class="pz-canvas"><canvas id="chart-pe"></canvas></div><div id="leg-e"></div></div>
+    <div class="kpi amarelo" style="cursor:pointer;" onclick="irPara('vendas',document.getElementById('nav-vendas'))">
+      <div class="kl">A Receber</div>
+      <div class="kv" id="dash-kpi-areceber">—</div>
     </div>
-    <div class="card">
-      <h3>🔴 Alertas</h3>
-      <div id="dash-alertas" style="font-size:13px;">
-        <div style="color:#94a3b8;text-align:center;padding:20px;">Carregando...</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- KPIs CRM -->
-  <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">👥 CRM — Visão Geral</div>
-  <div class="kpi-grid">
-    <div class="kpi azul" style="cursor:pointer;" onclick="irPara('crm',document.getElementById('nav-crm'))">
+    <div class="kpi cinza" style="cursor:pointer;" onclick="irPara('crm',document.getElementById('nav-crm'))">
       <div class="kl">Alunos Ativos</div>
       <div class="kv" id="dash-kpi-alunos">—</div>
       <div class="kvar" id="dash-kpi-alunos-sub" style="font-size:11px;color:#94a3b8;"></div>
     </div>
+  </div>
+
+  <!-- KPIs CRM -->
+  <div class="kpi-grid" style="margin-bottom:20px;">
     <div class="kpi amarelo" style="cursor:pointer;" onclick="irPara('crm',document.getElementById('nav-crm'))">
       <div class="kl">Leads em Pipeline</div>
       <div class="kv" id="dash-kpi-leads">—</div>
-      <div class="kvar" style="font-size:11px;color:#94a3b8;">CRM · Leads</div>
     </div>
-    <div class="kpi vermelho" style="cursor:pointer;" onclick="irPara('crm',document.getElementById('nav-crm'))">
+    <div class="kpi vermelho" style="cursor:pointer;" onclick="irPara('vendas',document.getElementById('nav-vendas'))">
       <div class="kl">Parcelas em Aberto</div>
       <div class="kv" id="dash-kpi-parcelas">—</div>
       <div class="kvar" id="dash-kpi-parcelas-val" style="font-size:11px;color:#94a3b8;"></div>
@@ -553,13 +416,24 @@ main.bb-visible{padding-top:48px;}
     </div>
   </div>
 
+  <!-- Próximas Parcelas -->
+  <div style="margin-bottom:20px;">
+    <div class="card">
+      <h3 style="display:flex;align-items:center;justify-content:space-between;">
+        Próximas Parcelas (30 dias)
+        <span id="dash-parcelas-count" style="font-size:11px;font-weight:400;color:#94a3b8;"></span>
+      </h3>
+      <div id="dash-parcelas-list" style="font-size:13px;">
+        <div style="color:#94a3b8;text-align:center;padding:20px;">Carregando...</div>
+      </div>
+    </div>
+  </div>
+
   <!-- Aniversários -->
-  <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:28px 0 10px;">🎂 Aniversários dos Alunos</div>
+  <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;">Aniversários dos Alunos</div>
   <div id="aniversarios-card" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;">
     <div id="aniversarios-loading" style="color:#94a3b8;font-size:13px;text-align:center;padding:16px;">Carregando...</div>
   </div>
-
-  <div class="demo-footer">⚠ Dados fictícios — apenas para demonstração visual</div>
 </div>
 
 <!-- ── IMPORTAR / NOTAS FISCAIS ── -->
@@ -1421,15 +1295,8 @@ function irPara(p,el){
   document.getElementById('page-'+p).classList.add('active');
   el.classList.add('active');
   if(p==='dashboard'){
-    if(!chartBarras)initCharts();
-    const mes=mesAtual();
-    recalcularDados();
-    atualizarKPIs(mes);
-    renderDashLanc(mes);
-    atualizarCharts(mes);
     carregarDashboardCRM();
-    carregarNotionFinanceiro();
-    carregarOrganizze();
+    carregarDashboardVendas();
     renderAniversarios();
   }
   if(p==='configuracoes'){ carregarCfgNotion(); carregarCfgIntegracoes(); }
@@ -1530,9 +1397,8 @@ function renderDashLanc(mes){
 }
 
 function trocarMes(mes){
-  atualizarKPIs(mes);
-  atualizarCharts(mes);
-  renderDashLanc(mes);
+  carregarDashboardCRM();
+  carregarDashboardVendas();
 }
 
 function mesAtual(){
@@ -2139,12 +2005,10 @@ async function carregarLancamentos(){
 }
 
 window.addEventListener('DOMContentLoaded',()=>{
-  initCharts();
   initAuth();
   loadCUTokenInput();
   carregarDashboardCRM();
-  carregarNotionFinanceiro();
-  carregarOrganizze();
+  carregarDashboardVendas();
   renderAniversarios();
   minTipoChange();
 });
@@ -2519,126 +2383,83 @@ async function carregarDashboardCRM(){
       sb.from('crm_alunos').select('id,status,upsell'),
       sb.from('crm_leads').select('id,status'),
       sb.from('crm_adormecidos').select('id'),
-      sb.from('crm_parcelas').select('*').order('due_date',{nullsFirst:false})
+      sb.from('pagamentos').select('*,vendas(aluno)').eq('recebido',false).order('data_prevista',{nullsFirst:false})
     ]);
 
     // KPIs CRM
-    const ativos  = (ra.data||[]).filter(a=>a.status==='alunos ativos');
+    const ativos = (ra.data||[]).filter(a=>a.status==='alunos ativos');
     const upsells = ativos.filter(a=>a.upsell).length;
     document.getElementById('dash-kpi-alunos').textContent = ativos.length;
     document.getElementById('dash-kpi-alunos-sub').textContent = upsells+' Upsell';
-    document.getElementById('dash-kpi-leads').textContent  = (rl.data||[]).length;
-    document.getElementById('dash-kpi-adorm').textContent  = (rd.data||[]).length;
+    document.getElementById('dash-kpi-leads').textContent = (rl.data||[]).length;
+    document.getElementById('dash-kpi-adorm').textContent = (rd.data||[]).length;
 
+    // KPI Parcelas em aberto (pagamentos não recebidos)
     const parcelas = rp.data||[];
-    const totalVal = parcelas.reduce((s,p)=>s+(parseFloat(p.valor)||0),0);
+    const totalAberto = parcelas.reduce((s,p)=>s+(parseFloat(p.valor)||0),0);
     document.getElementById('dash-kpi-parcelas').textContent = parcelas.length;
-    document.getElementById('dash-kpi-parcelas-val').textContent = 'R$ '+totalVal.toLocaleString('pt-BR',{minimumFractionDigits:2});
+    document.getElementById('dash-kpi-parcelas-val').textContent = 'R$ '+totalAberto.toLocaleString('pt-BR',{minimumFractionDigits:2});
 
-    // Parcelas próximas 30 dias
+    // Próximas parcelas (30 dias)
     const proximas = parcelas.filter(p=>{
-      if(!p.due_date) return false;
-      const d = new Date(p.due_date);
+      if(!p.data_prevista) return false;
+      const d = new Date(p.data_prevista+'T00:00:00');
       return d >= hoje && d <= em30;
-    }).sort((a,b)=>new Date(a.due_date)-new Date(b.due_date));
+    }).sort((a,b)=>new Date(a.data_prevista)-new Date(b.data_prevista));
 
     const listEl = document.getElementById('dash-parcelas-list');
     const countEl = document.getElementById('dash-parcelas-count');
     const valProx = proximas.reduce((s,p)=>s+(parseFloat(p.valor)||0),0);
-    countEl.textContent = proximas.length+' parcelas · R$ '+valProx.toLocaleString('pt-BR',{minimumFractionDigits:2});
+    if(countEl) countEl.textContent = proximas.length ? proximas.length+' parcela'+(proximas.length>1?'s':'')+' · R$ '+valProx.toLocaleString('pt-BR',{minimumFractionDigits:2}) : '';
 
+    if(!listEl) return;
     if(!proximas.length){
       listEl.innerHTML='<div style="color:#94a3b8;text-align:center;padding:20px;">Nenhuma parcela nos próximos 30 dias</div>';
     } else {
       listEl.innerHTML = proximas.slice(0,8).map(p=>{
-        const d = new Date(p.due_date);
+        const d = new Date(p.data_prevista+'T00:00:00');
         const ds = String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
-        const diasRestantes = Math.ceil((d-hoje)/(1000*60*60*24));
-        const urgente = diasRestantes<=7;
+        const dias = Math.ceil((d-hoje)/(1000*60*60*24));
+        const urgente = dias<=7;
+        const aluno = p.vendas?.aluno||'—';
         const val = p.valor?'R$ '+parseFloat(p.valor).toLocaleString('pt-BR',{minimumFractionDigits:2}):'';
         return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9;">'
-          +'<div>'
-          +'<div style="font-weight:500;font-size:13px;">'+(p.aluno||'—')+'</div>'
-          +'<div style="font-size:11px;color:#94a3b8;">'+(p.descricao||'')+'</div>'
-          +'</div>'
+          +'<div><div style="font-weight:500;font-size:13px;">'+aluno+'</div>'
+          +'<div style="font-size:11px;color:#94a3b8;">'+(p.descricao||'')+'</div></div>'
           +'<div style="text-align:right;">'
           +'<div style="font-size:12px;font-weight:600;color:#10b981;">'+val+'</div>'
-          +'<div style="font-size:11px;color:'+(urgente?'#ef4444':'#94a3b8')+';">'+ds+(urgente?' ⚠ '+diasRestantes+'d':'')+'</div>'
+          +'<div style="font-size:11px;color:'+(urgente?'#ef4444':'#94a3b8')+';">'+ds+(urgente?' ⚠ '+dias+'d':'')+'</div>'
           +'</div></div>';
       }).join('');
     }
-
-    // Alertas
-    const vencidas = parcelas.filter(p=>p.due_date && new Date(p.due_date)<hoje);
-    const alertasEl = document.getElementById('dash-alertas');
-    const items=[];
-    if(vencidas.length){
-      const totalVenc = vencidas.reduce((s,p)=>s+(parseFloat(p.valor)||0),0);
-      items.push('<div style="display:flex;gap:10px;align-items:center;padding:10px;background:#fef2f2;border-radius:8px;margin-bottom:8px;">'
-        +'<span style="font-size:18px;">⚠️</span>'
-        +'<div><div style="font-weight:600;font-size:13px;color:#991b1b;">'+vencidas.length+' parcelas vencidas</div>'
-        +'<div style="font-size:11px;color:#b91c1c;">Total: R$ '+totalVenc.toLocaleString('pt-BR',{minimumFractionDigits:2})+'</div></div></div>');
-    }
-    if(proximas.length){
-      items.push('<div style="display:flex;gap:10px;align-items:center;padding:10px;background:#fffbeb;border-radius:8px;margin-bottom:8px;">'
-        +'<span style="font-size:18px;">⏰</span>'
-        +'<div><div style="font-weight:600;font-size:13px;color:#92400e;">'+proximas.length+' parcelas vencem em 30 dias</div>'
-        +'<div style="font-size:11px;color:#b45309;">R$ '+valProx.toLocaleString('pt-BR',{minimumFractionDigits:2})+' a receber</div></div></div>');
-    }
-    if((rl.data||[]).length){
-      items.push('<div style="display:flex;gap:10px;align-items:center;padding:10px;background:#eff6ff;border-radius:8px;margin-bottom:8px;">'
-        +'<span style="font-size:18px;">📞</span>'
-        +'<div><div style="font-weight:600;font-size:13px;color:#1e40af;">'+(rl.data||[]).length+' leads aguardando retorno</div>'
-        +'<div style="font-size:11px;color:#1d4ed8;">Acesse CRM & Alunos → Pipeline</div></div></div>');
-    }
-    if(!items.length){
-      items.push('<div style="color:#10b981;text-align:center;padding:20px;font-weight:500;">✓ Nenhum alerta no momento</div>');
-    }
-    alertasEl.innerHTML = items.join('');
-
-    // Previsão de faturamento mês a mês
-    const mesesMap = {};
-    parcelas.forEach(p => {
-      if (!p.due_date) return;
-      const d = new Date(p.due_date);
-      const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
-      if (!mesesMap[key]) {
-        const nomeMes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][d.getMonth()];
-        mesesMap[key] = { total: 0, qtd: 0, label: nomeMes+'/'+String(d.getFullYear()).slice(2) };
-      }
-      mesesMap[key].total += parseFloat(p.valor) || 0;
-      mesesMap[key].qtd++;
-    });
-
-    const sorted = Object.entries(mesesMap).sort(([a],[b]) => a.localeCompare(b));
-    const maxVal = Math.max(...sorted.map(([,m]) => m.total), 1);
-    const totalGeral = sorted.reduce((s,[,m]) => s+m.total, 0);
-    const totalParcs = sorted.reduce((s,[,m]) => s+m.qtd, 0);
-    const mesAtualKey = hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0');
-
-    document.getElementById('dash-prev-total').innerHTML =
-      '<div style="font-size:22px;font-weight:700;color:#10b981;">R$ '+totalGeral.toLocaleString('pt-BR',{minimumFractionDigits:2})+'</div>'+
-      '<div style="font-size:11px;color:#6b7280;">'+totalParcs+' parcelas previstas</div>';
-
-    document.getElementById('dash-prev-meses').innerHTML = sorted.map(([key,m]) => {
-      const pct = Math.round((m.total/maxVal)*100);
-      const isAtual = key === mesAtualKey;
-      const isPast = key < mesAtualKey;
-      const cor = isPast ? '#94a3b8' : (isAtual ? '#10b981' : '#6366f1');
-      const bg  = isPast ? '#f8fafc'  : (isAtual ? '#f0fdf4' : '#f5f3ff');
-      const border = isAtual ? '2px solid #10b981' : '1px solid #e5e7eb';
-      return `<div style="background:${bg};border:${border};border-radius:10px;padding:12px;text-align:center;">
-        <div style="font-size:10px;font-weight:700;color:${cor};text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">${m.label}${isAtual?' ◀':''}</div>
-        <div style="font-size:15px;font-weight:700;color:#111827;">R$ ${m.total.toLocaleString('pt-BR',{minimumFractionDigits:0})}</div>
-        <div style="font-size:11px;color:#6b7280;margin:2px 0 8px;">${m.qtd} parcela${m.qtd>1?'s':''}</div>
-        <div style="background:#e5e7eb;border-radius:4px;height:5px;overflow:hidden;">
-          <div style="background:${cor};width:${pct}%;height:100%;border-radius:4px;"></div>
-        </div>
-      </div>`;
-    }).join('') || '<div style="color:#94a3b8;text-align:center;padding:20px;grid-column:1/-1;">Nenhuma parcela cadastrada</div>';
-
   }catch(e){
     console.warn('Erro ao carregar CRM no dashboard:',e.message);
+  }
+}
+
+async function carregarDashboardVendas(){
+  try{
+    const mes = document.getElementById('mes-select')?.value || new Date().toISOString().slice(0,7);
+    const [yr,mo] = mes.split('-').map(Number);
+    const proxMes = mo===12 ? `${yr+1}-01-01` : `${yr}-${String(mo+1).padStart(2,'0')}-01`;
+    const [rv,rp] = await Promise.all([
+      sb.from('vendas').select('id,valor').gte('data',mes+'-01').lt('data',proxMes),
+      sb.from('pagamentos').select('valor,recebido,data_prevista,data_recebido')
+    ]);
+    const vendas = rv.data||[];
+    const pagamentos = rp.data||[];
+
+    const totalVendas = vendas.reduce((s,v)=>s+(parseFloat(v.valor)||0),0);
+    document.getElementById('dash-kpi-vendas').textContent = totalVendas>0?'R$ '+totalVendas.toLocaleString('pt-BR',{minimumFractionDigits:2}):'R$ 0,00';
+    document.getElementById('dash-kpi-vendas-qt').textContent = vendas.length+' venda'+(vendas.length!==1?'s':'');
+
+    const recebidoMes = pagamentos.filter(p=>p.recebido && p.data_recebido && p.data_recebido.startsWith(mes)).reduce((s,p)=>s+(parseFloat(p.valor)||0),0);
+    document.getElementById('dash-kpi-recebido').textContent = 'R$ '+recebidoMes.toLocaleString('pt-BR',{minimumFractionDigits:2});
+
+    const aReceber = pagamentos.filter(p=>!p.recebido).reduce((s,p)=>s+(parseFloat(p.valor)||0),0);
+    document.getElementById('dash-kpi-areceber').textContent = 'R$ '+aReceber.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  }catch(e){
+    console.warn('Erro ao carregar vendas no dashboard:',e.message);
   }
 }
 
