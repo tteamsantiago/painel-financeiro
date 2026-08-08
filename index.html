@@ -416,6 +416,22 @@ main.bb-visible{padding-top:48px;}
     </div>
   </div>
 
+  <!-- Metas Comerciais -->
+  <div style="margin-bottom:20px;">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:8px;">
+        <div>
+          <h3 style="margin:0 0 2px;font-size:14px;font-weight:700;">Metas Comerciais do Mês</h3>
+          <p style="font-size:12px;color:#6b7280;margin:0;" id="dash-metas-periodo">—</p>
+        </div>
+        <span style="font-size:11px;color:#94a3b8;" id="dash-metas-subtitle"></span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" id="dash-metas-grid">
+        <div style="color:#94a3b8;text-align:center;padding:20px;grid-column:1/-1;">Carregando...</div>
+      </div>
+    </div>
+  </div>
+
   <!-- Próximas Parcelas -->
   <div style="margin-bottom:20px;">
     <div class="card">
@@ -1297,6 +1313,7 @@ function irPara(p,el){
   if(p==='dashboard'){
     carregarDashboardCRM();
     carregarDashboardVendas();
+    carregarMetasComerciais();
     renderAniversarios();
   }
   if(p==='configuracoes'){ carregarCfgNotion(); carregarCfgIntegracoes(); }
@@ -1399,6 +1416,7 @@ function renderDashLanc(mes){
 function trocarMes(mes){
   carregarDashboardCRM();
   carregarDashboardVendas();
+  carregarMetasComerciais();
 }
 
 function mesAtual(){
@@ -2009,6 +2027,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   loadCUTokenInput();
   carregarDashboardCRM();
   carregarDashboardVendas();
+  carregarMetasComerciais();
   renderAniversarios();
   minTipoChange();
 });
@@ -2460,6 +2479,63 @@ async function carregarDashboardVendas(){
     document.getElementById('dash-kpi-areceber').textContent = 'R$ '+aReceber.toLocaleString('pt-BR',{minimumFractionDigits:2});
   }catch(e){
     console.warn('Erro ao carregar vendas no dashboard:',e.message);
+  }
+}
+
+// Metas Comerciais (funil: Leads → Reuniões → Vendas → Faturamento)
+const METAS = { faturamento:60000, vendas:17, ticketMedio:3500, leads:692, agendamentos:83, realizadas:58 };
+
+async function carregarMetasComerciais(){
+  try{
+    const mes = document.getElementById('mes-select')?.value || new Date().toISOString().slice(0,7);
+    const [yr,mo] = mes.split('-').map(Number);
+    const proxMes = mo===12 ? `${yr+1}-01-01` : `${yr}-${String(mo+1).padStart(2,'0')}-01`;
+    const nomesMes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+    const [rv,rl] = await Promise.all([
+      sb.from('vendas').select('id,valor').gte('data',mes+'-01').lt('data',proxMes),
+      sb.from('crm_leads').select('id,status')
+    ]);
+
+    const vendasMes = rv.data||[];
+    const totalFat = vendasMes.reduce((s,v)=>s+(parseFloat(v.valor)||0),0);
+    const totalVen = vendasMes.length;
+    const ticketReal = totalVen>0 ? totalFat/totalVen : 0;
+    const totalLeads = (rl.data||[]).length;
+
+    const periodo = `${nomesMes[mo-1]} ${yr}`;
+    const el = document.getElementById('dash-metas-periodo');
+    if(el) el.textContent = periodo;
+    const sub = document.getElementById('dash-metas-subtitle');
+    if(sub) sub.textContent = 'Meta mensal · Funil comercial';
+
+    const metaBar = (label, real, meta, fmt, cor) => {
+      const pct = meta>0 ? Math.min(Math.round((real/meta)*100),100) : 0;
+      const over = meta>0 && real>=meta;
+      const barColor = over ? '#10b981' : (pct>=70 ? '#f59e0b' : (pct>=40 ? '#6366f1' : '#e5e7eb'));
+      return `<div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;">
+          <span style="font-size:12px;font-weight:600;color:#374151;">${label}</span>
+          <span style="font-size:11px;color:#6b7280;">${fmt(real)} <span style="color:#9ca3af;">/ ${fmt(meta)}</span></span>
+        </div>
+        <div style="background:#f3f4f6;border-radius:6px;height:8px;overflow:hidden;margin-bottom:4px;">
+          <div style="background:${over?'#10b981':cor};width:${pct}%;height:100%;border-radius:6px;transition:width .4s;"></div>
+        </div>
+        <div style="font-size:10px;font-weight:700;color:${over?'#059669':pct>=70?'#92400e':'#4f46e5'};">${pct}% atingido${over?' ✓':''}</div>
+      </div>`;
+    };
+
+    const fmtBRL = v => 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+    const fmtNum = v => Math.round(v).toLocaleString('pt-BR');
+
+    const grid = document.getElementById('dash-metas-grid');
+    if(grid) grid.innerHTML =
+      metaBar('Faturamento', totalFat, METAS.faturamento, fmtBRL, '#10b981') +
+      metaBar('Vendas fechadas', totalVen, METAS.vendas, fmtNum, '#6366f1') +
+      metaBar('Ticket médio', ticketReal, METAS.ticketMedio, fmtBRL, '#f59e0b') +
+      metaBar('Leads no pipeline', totalLeads, METAS.leads, fmtNum, '#3b82f6');
+  }catch(e){
+    console.warn('Erro metas comerciais:',e.message);
   }
 }
 
