@@ -528,7 +528,7 @@ main.bb-visible{padding-top:48px;}
     <div class="card mb16">
       <div class="fs">
         <div class="fst">Acesso</div>
-        <div class="fg"><label class="fl">E-mail de acesso</label><input type="email" class="fi" value="leadleveracademy@gmail.com"/></div>
+        <div class="fg"><label class="fl">E-mail de acesso</label><input type="email" class="fi" id="cfg-email" value="tteamsantiago@gmail.com"/></div>
         <div class="fr">
           <div class="fg"><label class="fl">Nova senha</label><input type="password" class="fi" placeholder="••••••••"/></div>
           <div class="fg"><label class="fl">Confirmar senha</label><input type="password" class="fi" placeholder="••••••••"/></div>
@@ -536,16 +536,17 @@ main.bb-visible{padding-top:48px;}
       </div>
       <div class="fs">
         <div class="fst">Empresa</div>
-        <div class="fg"><label class="fl">Nome do painel</label><input type="text" class="fi" value="Painel Financeiro"/></div>
-        <div class="fg"><label class="fl">Subtítulo</label><input type="text" class="fi" value="Fechamento de Caixa Mensal"/></div>
+        <div class="fg"><label class="fl">Nome do painel</label><input type="text" class="fi" id="cfg-nome-painel" value="Team Santiago"/></div>
+        <div class="fg"><label class="fl">Subtítulo</label><input type="text" class="fi" id="cfg-subtitulo" value="Fechamento de Caixa Mensal"/></div>
       </div>
       <div class="fs">
         <div class="fst">Notificações</div>
-        <div class="fg"><label class="fl">E-mail para alertas</label><input type="email" class="fi" value="leadleveracademy@gmail.com"/></div>
+        <div class="fg"><label class="fl">E-mail para alertas e lembretes</label><input type="email" class="fi" id="cfg-email-alertas" value="tteamsantiago@gmail.com"/></div>
         <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;color:#374151;">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" checked/> Alertar quando saídas ultrapassarem 80% das entradas</label>
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" checked/> Lembrete de fechamento mensal</label>
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox"/> Relatório semanal por e-mail</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cfg-chk-alertas" checked/> Alertar quando saídas ultrapassarem 80% das entradas</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cfg-chk-fechamento" checked/> Lembrete de fechamento mensal</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cfg-chk-aniversarios" checked/> Lembrete de aniversário dos alunos</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cfg-chk-relatorio"/> Relatório semanal por e-mail</label>
         </div>
       </div>
       <div>
@@ -555,25 +556,19 @@ main.bb-visible{padding-top:48px;}
           <tbody>
             <tr><td>Nubank</td><td>Conta Corrente</td><td><span class="badge verde">✓ Ativa</span></td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarConta('Nubank','Conta Corrente')">Editar</button></td></tr>
             <tr><td>Itaú</td><td>Conta Corrente</td><td><span class="badge verde">✓ Ativa</span></td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarConta('Itaú','Conta Corrente')">Editar</button></td></tr>
-            <tr><td>Amex</td><td>Cartão de Crédito</td><td><span class="badge verde">✓ Ativa</span></td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarConta('Amex','Cartão de Crédito')">Editar</button></td></tr>
-            <tr><td>Elo</td><td>Cartão de Crédito</td><td><span class="badge amarelo">Pausada</span></td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarConta('Elo','Cartão de Crédito')">Editar</button></td></tr>
           </tbody>
         </table></div>
       </div>
 
       <div class="fs">
         <div class="fst">&#128279; Integra&#231;&#245;es</div>
-        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:12px;font-size:13px;color:#166534;margin-bottom:12px;">
-          <strong>&#10003; ClickUp integrado automaticamente!</strong><br>
-          Os dados do CRM (alunos, leads, parcelas) s&#227;o sincronizados diretamente do ClickUp via Supabase. Nenhuma configura&#231;&#227;o necess&#225;ria.
-        </div>
         <!-- Notion Financeiro -->
         <div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px;margin-bottom:4px;">
           <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">📒 Notion — Controle Financeiro</div>
           <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:7px;padding:10px 12px;font-size:12px;color:#0369a1;margin-bottom:12px;line-height:1.6;">
             <strong>Como configurar:</strong><br>
             1. Acesse <strong>notion.so/my-integrations</strong> → "New integration"<br>
-            2. Dê um nome (ex: "Painel Financeiro"), selecione seu workspace → "Submit"<br>
+            2. Dê um nome (ex: "Team Santiago"), selecione seu workspace → "Submit"<br>
             3. Copie o <strong>Internal Integration Token</strong> (começa com <code>secret_</code>)<br>
             4. No Notion, abra o banco de dados "Controle Financeiro" → "..." → "Add connection" → selecione sua integração<br>
             5. Cole o token abaixo
@@ -602,26 +597,6 @@ main.bb-visible{padding-top:48px;}
           <div id="windsor-cfg-status" style="font-size:12px;color:#6b7280;margin-top:8px;"></div>
         </div>
 
-        <!-- Organizze -->
-        <div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px;margin-top:12px;">
-          <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">💰 Organizze — Financeiro Real</div>
-          <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:7px;padding:10px 12px;font-size:12px;color:#0369a1;margin-bottom:12px;line-height:1.6;">
-            <strong>Como configurar:</strong><br>
-            1. Acesse <strong>app.organizze.com.br</strong> → Perfil → API<br>
-            2. Gere sua API Key (botão "Gerar nova chave")<br>
-            3. Use o mesmo e-mail do login do Organizze
-          </div>
-          <div class="fg" style="margin-bottom:10px;">
-            <label class="fl">E-mail do Organizze</label>
-            <input type="email" class="fi" id="organizze-email-input" placeholder="seu@email.com"/>
-          </div>
-          <div class="fg" style="margin-bottom:10px;">
-            <label class="fl">API Key do Organizze</label>
-            <input type="password" class="fi" id="organizze-key-input" placeholder="sua-api-key"/>
-          </div>
-          <button class="btn bp" style="font-size:12px;padding:7px 16px;" onclick="salvarOrganizze()">Salvar credenciais</button>
-          <div id="organizze-cfg-status" style="font-size:12px;color:#6b7280;margin-top:8px;"></div>
-        </div>
       </div>
     </div>
   </div>
@@ -631,24 +606,29 @@ main.bb-visible{padding-top:48px;}
 <!-- CRM & ALUNOS -->
 <div class="page" id="page-crm">
   <div class="ph">
-    <div><h2>CRM &amp; Alunos</h2><p id="crm-last-update" style="color:#64748b;">Sincronizado com ClickUp via Supabase</p></div>
-    <button class="btn bp" onclick="carregarCRM()" style="display:flex;align-items:center;gap:6px;">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
-      Atualizar
-    </button>
+    <div><h2>CRM &amp; Alunos</h2><p id="crm-last-update" style="color:#64748b;">Gerenciamento manual</p></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn bp" onclick="abrirModalAluno(null)" style="display:flex;align-items:center;gap:6px;">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Novo Aluno
+      </button>
+      <button class="btn bs" onclick="carregarCRM()" style="display:flex;align-items:center;gap:6px;">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+        Atualizar
+      </button>
+    </div>
   </div>
   <div id="crm-no-token" style="display:none;">
     <div class="card" style="text-align:center;padding:48px 32px;max-width:480px;margin:40px auto;">
-      <div style="font-size:48px;margin-bottom:16px;">&#128279;</div>
-      <h3 style="margin:0 0 8px;color:#1e293b;">Configure o ClickUp</h3>
-      <p style="color:#64748b;font-size:14px;margin-bottom:24px;line-height:1.6;">Adicione seu Personal API Token do ClickUp nas <strong>Configura&#231;&#245;es</strong> para ver alunos e leads em tempo real.</p>
-      <button class="btn bp" onclick="document.querySelector('.nl[data-page=configuracoes]').click()">Ir para Configura&#231;&#245;es</button>
-      <p style="margin-top:16px;font-size:12px;color:#94a3b8;">ClickUp &#8594; Perfil &#8594; Apps &#8594; Personal API Token</p>
+      <div style="font-size:48px;margin-bottom:16px;">&#9888;&#65039;</div>
+      <h3 style="margin:0 0 8px;color:#1e293b;">Erro ao carregar CRM</h3>
+      <p id="crm-no-token-msg" style="color:#64748b;font-size:14px;margin-bottom:24px;line-height:1.6;">Tente atualizar a página.</p>
+      <button class="btn bp" onclick="carregarCRM()">Tentar novamente</button>
     </div>
   </div>
   <div id="crm-loading" style="display:flex;align-items:center;justify-content:center;height:200px;gap:10px;color:#64748b;font-size:14px;">
     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="crm-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-    Carregando dados do ClickUp...
+    Carregando CRM...
   </div>
   <div id="crm-content" style="display:none;">
     <div class="kpi-grid">
@@ -1126,6 +1106,38 @@ main.bb-visible{padding-top:48px;}
     </div>
     <div class="modal-body" id="modal-body"></div>
     <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL ALUNO ═══════ -->
+<div class="modal-bg" id="modal-aluno" onclick="if(event.target===this)fecharModalAluno()">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-hdr">
+      <h4 id="modal-aluno-titulo">Novo Aluno</h4>
+      <button class="modal-close" onclick="fecharModalAluno()">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="fg"><label class="fl">Nome</label><input type="text" id="aluno-nome" class="fi" placeholder="Nome completo"/></div>
+        <div class="fg"><label class="fl">Status</label>
+          <select id="aluno-status" class="fi">
+            <option value="alunos ativos">Ativo</option>
+            <option value="inativo">Inativo</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">Upsell</label>
+          <select id="aluno-upsell" class="fi">
+            <option value="false">Não</option>
+            <option value="true">Sim (Upsell)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="btn-del-aluno" onclick="excluirAluno()" style="display:none;color:#ef4444;border:1px solid #fca5a5;padding:7px 14px;font-size:13px;border-radius:6px;cursor:pointer;background:none;margin-right:auto;">Excluir</button>
+      <button class="btn bs" onclick="fecharModalAluno()">Cancelar</button>
+      <button class="btn bp" onclick="salvarAluno()">Salvar</button>
+    </div>
   </div>
 </div>
 
@@ -1986,9 +1998,49 @@ function editarCategoria(nome,cor,tipo){
 // ══════════════════════════════════════════════
 // CONFIGURAÇÕES
 // ══════════════════════════════════════════════
-function salvarConfig(){
-  toast('Configurações salvas com sucesso!','sucesso');
+async function salvarConfig(){
+  const email       = document.getElementById('cfg-email')?.value.trim();
+  const nomePainel  = document.getElementById('cfg-nome-painel')?.value.trim();
+  const subtitulo   = document.getElementById('cfg-subtitulo')?.value.trim();
+  const emailAlerts = document.getElementById('cfg-email-alertas')?.value.trim();
+  const chkAniver   = document.getElementById('cfg-chk-aniversarios')?.checked;
+  const chkFecha    = document.getElementById('cfg-chk-fechamento')?.checked;
+  const chkRelat    = document.getElementById('cfg-chk-relatorio')?.checked;
+  const updates = [
+    {chave:'email_admin',      valor:email||''},
+    {chave:'nome_painel',      valor:nomePainel||''},
+    {chave:'subtitulo_painel', valor:subtitulo||''},
+    {chave:'email_alertas',    valor:emailAlerts||''},
+    {chave:'notif_aniversarios',valor:chkAniver?'1':'0'},
+    {chave:'notif_fechamento', valor:chkFecha?'1':'0'},
+    {chave:'notif_relatorio',  valor:chkRelat?'1':'0'},
+  ];
+  try{
+    for(const u of updates){
+      await sb.from('app_config').upsert({...u,atualizado_em:new Date().toISOString()},{onConflict:'chave'});
+    }
+    toast('Configurações salvas com sucesso!','sucesso');
+  }catch(e){ toast('Erro ao salvar: '+e.message,'erro'); }
 }
+
+async function carregarConfigSalva(){
+  try{
+    const {data}=await sb.from('app_config').select('chave,valor')
+      .in('chave',['email_admin','nome_painel','subtitulo_painel','email_alertas',
+                   'notif_aniversarios','notif_fechamento','notif_relatorio']);
+    if(!data) return;
+    const m=Object.fromEntries(data.map(r=>[r.chave,r.valor]));
+    const el=k=>document.getElementById(k);
+    if(m.email_admin      && el('cfg-email'))         el('cfg-email').value=m.email_admin;
+    if(m.nome_painel      && el('cfg-nome-painel'))   el('cfg-nome-painel').value=m.nome_painel;
+    if(m.subtitulo_painel && el('cfg-subtitulo'))     el('cfg-subtitulo').value=m.subtitulo_painel;
+    if(m.email_alertas    && el('cfg-email-alertas')) el('cfg-email-alertas').value=m.email_alertas;
+    if(m.notif_aniversarios!==undefined && el('cfg-chk-aniversarios')) el('cfg-chk-aniversarios').checked=m.notif_aniversarios!=='0';
+    if(m.notif_fechamento !==undefined && el('cfg-chk-fechamento'))    el('cfg-chk-fechamento').checked=m.notif_fechamento!=='0';
+    if(m.notif_relatorio  !==undefined && el('cfg-chk-relatorio'))     el('cfg-chk-relatorio').checked=m.notif_relatorio==='1';
+  }catch(e){}
+}
+
 function editarConta(banco,tipo){
   abrirModal(`Editar conta — ${banco}`,`
     <div class="fg"><label class="fl">Banco</label><input type="text" id="cnt-banco" class="fi" value="${banco}"/></div>
@@ -2005,6 +2057,55 @@ function editarConta(banco,tipo){
     `<button class="btn bs" onclick="fecharModal()">Cancelar</button>
      <button class="btn bp" onclick="fecharModal();toast('Conta atualizada!','sucesso')">Salvar</button>`
   );
+}
+
+// ══════════════════════════════════════════════
+// ALUNOS — Modal de edição manual
+// ══════════════════════════════════════════════
+let ALUNO_EDITING_ID = null;
+
+function abrirModalAluno(id){
+  ALUNO_EDITING_ID = id||null;
+  const a = id ? CRM_DATA_ALUNOS.find(x=>String(x.id)===String(id)) : null;
+  document.getElementById('modal-aluno-titulo').textContent = a ? 'Editar Aluno' : 'Novo Aluno';
+  document.getElementById('aluno-nome').value   = a?.nome||'';
+  document.getElementById('aluno-status').value = a?.status||'alunos ativos';
+  document.getElementById('aluno-upsell').value = a?.upsell?'true':'false';
+  const btnDel=document.getElementById('btn-del-aluno');
+  if(btnDel) btnDel.style.display = id ? 'block':'none';
+  document.getElementById('modal-aluno').classList.add('open');
+}
+function fecharModalAluno(){ document.getElementById('modal-aluno').classList.remove('open'); }
+
+async function salvarAluno(){
+  const nome   = document.getElementById('aluno-nome').value.trim();
+  if(!nome){ toast('Informe o nome do aluno','erro'); return; }
+  const status = document.getElementById('aluno-status').value;
+  const upsell = document.getElementById('aluno-upsell').value==='true';
+  try{
+    if(ALUNO_EDITING_ID){
+      const {error}=await sb.from('crm_alunos').update({nome,status,upsell}).eq('id',ALUNO_EDITING_ID);
+      if(error) throw error;
+    }else{
+      const {error}=await sb.from('crm_alunos').insert({nome,status,upsell});
+      if(error) throw error;
+    }
+    fecharModalAluno();
+    toast('Aluno salvo!','sucesso');
+    carregarCRM();
+  }catch(e){ toast('Erro: '+e.message,'erro'); }
+}
+
+async function excluirAluno(){
+  if(!ALUNO_EDITING_ID) return;
+  if(!confirm('Remover este aluno do CRM?')) return;
+  try{
+    const {error}=await sb.from('crm_alunos').delete().eq('id',ALUNO_EDITING_ID);
+    if(error) throw error;
+    fecharModalAluno();
+    toast('Aluno removido','sucesso');
+    carregarCRM();
+  }catch(e){ toast('Erro: '+e.message,'erro'); }
 }
 
 // ══════════════════════════════════════════════
@@ -2028,6 +2129,7 @@ async function carregarLancamentos(){
 window.addEventListener('DOMContentLoaded',()=>{
   initAuth();
   loadCUTokenInput();
+  carregarConfigSalva();
   carregarDashboardCRM();
   carregarDashboardVendas();
   carregarMetasComerciais();
@@ -2065,24 +2167,17 @@ async function salvarNotionToken() {
 }
 
 // ══════════════════════════════════════════════
-// CONFIGURAÇÕES — Windsor + Organizze
+// CONFIGURAÇÕES — Windsor
 // ══════════════════════════════════════════════
 async function carregarCfgIntegracoes() {
   try {
-    const { data } = await sb.from('app_config').select('chave,valor')
-      .in('chave', ['windsor_api_key','organizze_email','organizze_api_key']);
+    const { data } = await sb.from('app_config').select('chave,valor').in('chave', ['windsor_api_key']);
     const map = {};
     (data || []).forEach(r => map[r.chave] = r.valor);
     const wEl = document.getElementById('windsor-key-input');
     const wSt = document.getElementById('windsor-cfg-status');
     if (wEl && map.windsor_api_key) { wEl.value = '••••••••••••••••'; }
     if (wSt && map.windsor_api_key) { wSt.textContent = '✓ Chave configurada'; wSt.style.color = '#10b981'; }
-    const oEl = document.getElementById('organizze-email-input');
-    const okEl = document.getElementById('organizze-key-input');
-    const oSt = document.getElementById('organizze-cfg-status');
-    if (oEl && map.organizze_email) oEl.value = map.organizze_email;
-    if (okEl && map.organizze_api_key) okEl.value = '••••••••••••••••';
-    if (oSt && map.organizze_email && map.organizze_api_key) { oSt.textContent = '✓ Credenciais configuradas'; oSt.style.color = '#10b981'; }
   } catch(e) {}
 }
 
@@ -2095,26 +2190,6 @@ async function salvarWindsorKey() {
     await sb.from('app_config').upsert({ chave: 'windsor_api_key', valor: key, atualizado_em: new Date().toISOString() }, { onConflict: 'chave' });
     status.textContent = '✓ Chave salva!'; status.style.color = '#10b981';
     document.getElementById('windsor-key-input').value = '••••••••••••••••';
-  } catch(e) {
-    status.textContent = 'Erro: ' + e.message; status.style.color = '#dc2626';
-  }
-}
-
-async function salvarOrganizze() {
-  const email  = document.getElementById('organizze-email-input').value.trim();
-  const key    = document.getElementById('organizze-key-input').value.trim();
-  const status = document.getElementById('organizze-cfg-status');
-  if (!email) { status.textContent = 'Informe o e-mail do Organizze.'; status.style.color = '#dc2626'; return; }
-  if (!key || key === '••••••••••••••••') { status.textContent = 'Cole a API Key do Organizze.'; status.style.color = '#dc2626'; return; }
-  status.textContent = 'Salvando...'; status.style.color = '#6b7280';
-  try {
-    await Promise.all([
-      sb.from('app_config').upsert({ chave: 'organizze_email',   valor: email, atualizado_em: new Date().toISOString() }, { onConflict: 'chave' }),
-      sb.from('app_config').upsert({ chave: 'organizze_api_key', valor: key,   atualizado_em: new Date().toISOString() }, { onConflict: 'chave' }),
-    ]);
-    status.textContent = '✓ Credenciais salvas! Carregando dados...'; status.style.color = '#10b981';
-    document.getElementById('organizze-key-input').value = '••••••••••••••••';
-    await carregarOrganizze();
   } catch(e) {
     status.textContent = 'Erro: ' + e.message; status.style.color = '#dc2626';
   }
@@ -3597,8 +3672,7 @@ async function carregarCRM(){
     loader.style.display='none';
     if(noTok){
       noTok.style.display='block';
-      const h3=noTok.querySelector('h3'); if(h3) h3.textContent='Erro ao carregar CRM';
-      const p=noTok.querySelector('p'); if(p) p.textContent='Erro: '+(e.message||'');
+      const msg=document.getElementById('crm-no-token-msg'); if(msg) msg.textContent='Erro: '+(e.message||'');
     }
     toast('Erro ao carregar CRM: '+(e.message||''),'erro');
   }
@@ -3621,7 +3695,7 @@ function renderCRM(alunos,leads,adorm,parcelas){
       return '<tr><td>'+a.nome+'</td>'+
         '<td>'+(a.upsell?'<span class="badge roxo">Upsell</span>':'<span class="badge azul">Padrão</span>')+'</td>'+
         '<td><span class="badge verde">Ativo</span></td>'+
-        '<td><a href="'+(a.clickup_url||'#')+'" target="_blank" style="font-size:11px;color:#3b82f6;">Ver</a></td></tr>';
+        '<td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="abrirModalAluno(\''+a.id+'\')">Editar</button></td></tr>';
     }).join('');
   }
   // Leads table
