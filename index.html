@@ -376,20 +376,22 @@ main.bb-visible{padding-top:48px;}
     </div>
   </div>
 
-  <!-- KPIs Vendas -->
+  <!-- KPIs Financeiros -->
   <div class="kpi-grid" style="margin-bottom:20px;">
     <div class="kpi verde" style="cursor:pointer;" onclick="irPara('vendas',document.getElementById('nav-vendas'))">
-      <div class="kl">Vendas este mês</div>
+      <div class="kl">Faturamento do mês</div>
       <div class="kv" id="dash-kpi-vendas">—</div>
       <div class="kvar" id="dash-kpi-vendas-qt" style="font-size:11px;color:#94a3b8;"></div>
     </div>
     <div class="kpi azul" style="cursor:pointer;" onclick="irPara('vendas',document.getElementById('nav-vendas'))">
       <div class="kl">Recebido</div>
       <div class="kv" id="dash-kpi-recebido">—</div>
+      <div class="kvar" id="dash-kpi-recebido-sub" style="font-size:11px;color:#94a3b8;"></div>
     </div>
     <div class="kpi amarelo" style="cursor:pointer;" onclick="irPara('vendas',document.getElementById('nav-vendas'))">
-      <div class="kl">A Receber</div>
-      <div class="kv" id="dash-kpi-areceber">—</div>
+      <div class="kl">Previsto este mês</div>
+      <div class="kv" id="dash-kpi-previsto">—</div>
+      <div class="kvar" id="dash-kpi-previsto-sub" style="font-size:11px;color:#94a3b8;"></div>
     </div>
     <div class="kpi cinza" style="cursor:pointer;" onclick="irPara('crm',document.getElementById('nav-crm'))">
       <div class="kl">Alunos Ativos</div>
@@ -398,21 +400,20 @@ main.bb-visible{padding-top:48px;}
     </div>
   </div>
 
-  <!-- KPIs CRM -->
-  <div class="kpi-grid" style="margin-bottom:20px;">
-    <div class="kpi amarelo" style="cursor:pointer;" onclick="irPara('crm',document.getElementById('nav-crm'))">
-      <div class="kl">Leads em Pipeline</div>
-      <div class="kv" id="dash-kpi-leads">—</div>
-    </div>
-    <div class="kpi vermelho" style="cursor:pointer;" onclick="irPara('vendas',document.getElementById('nav-vendas'))">
-      <div class="kl">Parcelas em Aberto</div>
-      <div class="kv" id="dash-kpi-parcelas">—</div>
-      <div class="kvar" id="dash-kpi-parcelas-val" style="font-size:11px;color:#94a3b8;"></div>
-    </div>
-    <div class="kpi cinza" style="cursor:pointer;" onclick="irPara('crm',document.getElementById('nav-crm'))">
-      <div class="kl">Leads Adormecidos</div>
-      <div class="kv" id="dash-kpi-adorm">—</div>
-      <div class="kvar" style="font-size:11px;color:#94a3b8;">Reativação pendente</div>
+  <!-- Previsão de Faturamento -->
+  <div style="margin-bottom:20px;">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:8px;">
+        <h3 style="margin:0;font-size:14px;font-weight:700;">Previsão de Faturamento</h3>
+        <span style="font-size:11px;color:#94a3b8;" id="dash-prev-periodo">—</span>
+      </div>
+      <div id="dash-prev-barra" style="margin-bottom:20px;"><div style="color:#94a3b8;font-size:13px;">Carregando...</div></div>
+      <div>
+        <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px;">Próximos meses — parcelas cadastradas</div>
+        <div id="dash-prev-meses" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+          <div style="color:#94a3b8;font-size:13px;text-align:center;padding:16px;grid-column:1/-1;">Carregando...</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -426,7 +427,7 @@ main.bb-visible{padding-top:48px;}
         </div>
         <span style="font-size:11px;color:#94a3b8;" id="dash-metas-subtitle"></span>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" id="dash-metas-grid">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;" id="dash-metas-grid">
         <div style="color:#94a3b8;text-align:center;padding:20px;grid-column:1/-1;">Carregando...</div>
       </div>
     </div>
@@ -1314,6 +1315,7 @@ function irPara(p,el){
     carregarDashboardCRM();
     carregarDashboardVendas();
     carregarMetasComerciais();
+    carregarPrevisaoFaturamento();
     renderAniversarios();
   }
   if(p==='configuracoes'){ carregarCfgNotion(); carregarCfgIntegracoes(); }
@@ -1417,6 +1419,7 @@ function trocarMes(mes){
   carregarDashboardCRM();
   carregarDashboardVendas();
   carregarMetasComerciais();
+  carregarPrevisaoFaturamento();
 }
 
 function mesAtual(){
@@ -2028,6 +2031,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   carregarDashboardCRM();
   carregarDashboardVendas();
   carregarMetasComerciais();
+  carregarPrevisaoFaturamento();
   renderAniversarios();
   minTipoChange();
 });
@@ -2398,26 +2402,18 @@ async function carregarDashboardCRM(){
     const hoje = new Date();
     const em30 = new Date(hoje); em30.setDate(hoje.getDate()+30);
 
-    const [ra,rl,rd,rp] = await Promise.all([
+    const [ra,rp] = await Promise.all([
       sb.from('crm_alunos').select('id,status,upsell'),
-      sb.from('crm_leads').select('id,status'),
-      sb.from('crm_adormecidos').select('id'),
       sb.from('pagamentos').select('*,vendas(aluno)').eq('recebido',false).order('data_prevista',{nullsFirst:false})
     ]);
 
-    // KPIs CRM
+    // KPI Alunos Ativos
     const ativos = (ra.data||[]).filter(a=>a.status==='alunos ativos');
     const upsells = ativos.filter(a=>a.upsell).length;
     document.getElementById('dash-kpi-alunos').textContent = ativos.length;
-    document.getElementById('dash-kpi-alunos-sub').textContent = upsells+' Upsell';
-    document.getElementById('dash-kpi-leads').textContent = (rl.data||[]).length;
-    document.getElementById('dash-kpi-adorm').textContent = (rd.data||[]).length;
+    document.getElementById('dash-kpi-alunos-sub').textContent = upsells ? upsells+' Upsell' : '';
 
-    // KPI Parcelas em aberto (pagamentos não recebidos)
     const parcelas = rp.data||[];
-    const totalAberto = parcelas.reduce((s,p)=>s+(parseFloat(p.valor)||0),0);
-    document.getElementById('dash-kpi-parcelas').textContent = parcelas.length;
-    document.getElementById('dash-kpi-parcelas-val').textContent = 'R$ '+totalAberto.toLocaleString('pt-BR',{minimumFractionDigits:2});
 
     // Próximas parcelas (30 dias)
     const proximas = parcelas.filter(p=>{
@@ -2475,10 +2471,73 @@ async function carregarDashboardVendas(){
     const recebidoMes = pagamentos.filter(p=>p.recebido && p.data_recebido && p.data_recebido.startsWith(mes)).reduce((s,p)=>s+(parseFloat(p.valor)||0),0);
     document.getElementById('dash-kpi-recebido').textContent = 'R$ '+recebidoMes.toLocaleString('pt-BR',{minimumFractionDigits:2});
 
-    const aReceber = pagamentos.filter(p=>!p.recebido).reduce((s,p)=>s+(parseFloat(p.valor)||0),0);
-    document.getElementById('dash-kpi-areceber').textContent = 'R$ '+aReceber.toLocaleString('pt-BR',{minimumFractionDigits:2});
+    const previstoMes = pagamentos.filter(p=>!p.recebido && p.data_prevista && p.data_prevista.startsWith(mes)).reduce((s,p)=>s+(parseFloat(p.valor)||0),0);
+    const countPrev = pagamentos.filter(p=>!p.recebido && p.data_prevista && p.data_prevista.startsWith(mes)).length;
+    document.getElementById('dash-kpi-previsto').textContent = 'R$ '+previstoMes.toLocaleString('pt-BR',{minimumFractionDigits:2});
+    document.getElementById('dash-kpi-previsto-sub').textContent = countPrev ? countPrev+' parcela'+(countPrev>1?'s':'')+' aguardando' : 'Nenhuma prevista';
+    document.getElementById('dash-kpi-recebido-sub').textContent = (recebidoMes+previstoMes)>0 ? 'de R$ '+(recebidoMes+previstoMes).toLocaleString('pt-BR',{minimumFractionDigits:2})+' esperado' : '';
   }catch(e){
     console.warn('Erro ao carregar vendas no dashboard:',e.message);
+  }
+}
+
+async function carregarPrevisaoFaturamento(){
+  try{
+    const mes = document.getElementById('mes-select')?.value || new Date().toISOString().slice(0,7);
+    const [yr,mo] = mes.split('-').map(Number);
+    const nomesMes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+    const rp = await sb.from('pagamentos').select('valor,recebido,data_prevista,data_recebido');
+    const pags = rp.data||[];
+
+    const recebido = pags.filter(p=>p.recebido && p.data_recebido && p.data_recebido.startsWith(mes)).reduce((s,p)=>s+(parseFloat(p.valor)||0),0);
+    const previsto = pags.filter(p=>!p.recebido && p.data_prevista && p.data_prevista.startsWith(mes)).reduce((s,p)=>s+(parseFloat(p.valor)||0),0);
+    const total = recebido + previsto;
+    const pctRec = METAS.faturamento>0 ? Math.min((recebido/METAS.faturamento)*100,100) : 0;
+    const pctPrev = METAS.faturamento>0 ? Math.min((previsto/METAS.faturamento)*100, 100-pctRec) : 0;
+    const pctTotal = Math.min(Math.round(((recebido+previsto)/METAS.faturamento)*100),100);
+    const fmtBRL = v => 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2});
+
+    const perEl = document.getElementById('dash-prev-periodo');
+    if(perEl) perEl.textContent = nomesMes[mo-1]+'/'+yr;
+
+    const barEl = document.getElementById('dash-prev-barra');
+    if(barEl){
+      const corTotal = pctTotal>=100?'#059669':pctTotal>=70?'#92400e':pctTotal>=40?'#4338ca':'#64748b';
+      barEl.innerHTML = `
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:10px;flex-wrap:wrap;gap:6px;">
+          <div style="display:flex;gap:18px;">
+            <span style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:10px;height:10px;background:#10b981;border-radius:2px;"></span>Recebido: <strong>${fmtBRL(recebido)}</strong></span>
+            <span style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:10px;height:10px;background:#93c5fd;border-radius:2px;"></span>A receber: <strong>${fmtBRL(previsto)}</strong></span>
+          </div>
+          <span style="font-weight:700;color:${corTotal};">${pctTotal}% da meta (${fmtBRL(METAS.faturamento)})</span>
+        </div>
+        <div style="background:#f1f5f9;border-radius:8px;height:16px;overflow:hidden;position:relative;">
+          <div style="position:absolute;height:100%;background:#10b981;width:${pctRec.toFixed(1)}%;transition:width .5s;border-radius:8px 0 0 8px;"></div>
+          <div style="position:absolute;height:100%;background:#93c5fd;left:${pctRec.toFixed(1)}%;width:${pctPrev.toFixed(1)}%;transition:width .5s;"></div>
+        </div>
+        <div style="text-align:right;font-size:11px;color:#9ca3af;margin-top:5px;">Meta: ${fmtBRL(METAS.faturamento)}</div>`;
+    }
+
+    const mesesEl = document.getElementById('dash-prev-meses');
+    if(mesesEl){
+      let html = '';
+      for(let i=1;i<=3;i++){
+        let nm = mo+i, ny = yr;
+        if(nm>12){nm-=12;ny++;}
+        const mesStr = `${ny}-${String(nm).padStart(2,'0')}`;
+        const totalMes = pags.filter(p=>!p.recebido && p.data_prevista && p.data_prevista.startsWith(mesStr)).reduce((s,p)=>s+(parseFloat(p.valor)||0),0);
+        const countMes = pags.filter(p=>!p.recebido && p.data_prevista && p.data_prevista.startsWith(mesStr)).length;
+        html += `<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;">
+          <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:6px;">${nomesMes[nm-1]}/${ny}</div>
+          <div style="font-size:17px;font-weight:700;color:${totalMes>0?'#1e293b':'#94a3b8'};">${totalMes>0?fmtBRL(totalMes):'—'}</div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:4px;">${countMes?countMes+' parcela'+(countMes>1?'s':''):'Sem parcelas'}</div>
+        </div>`;
+      }
+      mesesEl.innerHTML = html || '<div style="color:#94a3b8;font-size:13px;text-align:center;padding:16px;grid-column:1/-1;">Nenhuma parcela futura cadastrada</div>';
+    }
+  }catch(e){
+    console.warn('Erro previsão faturamento:',e.message);
   }
 }
 
@@ -2492,16 +2551,12 @@ async function carregarMetasComerciais(){
     const proxMes = mo===12 ? `${yr+1}-01-01` : `${yr}-${String(mo+1).padStart(2,'0')}-01`;
     const nomesMes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
-    const [rv,rl] = await Promise.all([
-      sb.from('vendas').select('id,valor').gte('data',mes+'-01').lt('data',proxMes),
-      sb.from('crm_leads').select('id,status')
-    ]);
+    const rv = await sb.from('vendas').select('id,valor').gte('data',mes+'-01').lt('data',proxMes);
 
     const vendasMes = rv.data||[];
     const totalFat = vendasMes.reduce((s,v)=>s+(parseFloat(v.valor)||0),0);
     const totalVen = vendasMes.length;
     const ticketReal = totalVen>0 ? totalFat/totalVen : 0;
-    const totalLeads = (rl.data||[]).length;
 
     const periodo = `${nomesMes[mo-1]} ${yr}`;
     const el = document.getElementById('dash-metas-periodo');
@@ -2532,8 +2587,7 @@ async function carregarMetasComerciais(){
     if(grid) grid.innerHTML =
       metaBar('Faturamento', totalFat, METAS.faturamento, fmtBRL, '#10b981') +
       metaBar('Vendas fechadas', totalVen, METAS.vendas, fmtNum, '#6366f1') +
-      metaBar('Ticket médio', ticketReal, METAS.ticketMedio, fmtBRL, '#f59e0b') +
-      metaBar('Leads no pipeline', totalLeads, METAS.leads, fmtNum, '#3b82f6');
+      metaBar('Ticket médio', ticketReal, METAS.ticketMedio, fmtBRL, '#f59e0b');
   }catch(e){
     console.warn('Erro metas comerciais:',e.message);
   }
