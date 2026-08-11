@@ -326,6 +326,9 @@ main.bb-visible{padding-top:48px;}
     <div class="nl" data-page="vendas" onclick="irPara('vendas',this)" id="nav-vendas">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Vendas & Comissões
     </div>
+    <div class="nl" data-page="metas" onclick="irPara('metas',this)" id="nav-metas">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Metas Comerciais
+    </div>
     <div class="nl" data-page="configuracoes" onclick="irPara('configuracoes',this)">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configurações
     </div>
@@ -1095,6 +1098,76 @@ main.bb-visible{padding-top:48px;}
   </div>
 </div>
 
+<!-- ── METAS COMERCIAIS ── -->
+<div class="page" id="page-metas">
+  <div class="ph">
+    <div><h2>Metas Comerciais</h2><p>Calculadora de funil reverso · CAC · LTV · Análise de retenção</p></div>
+    <button class="btn bs" onclick="carregarMetasPage()" style="display:flex;align-items:center;gap:6px;">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.63-4.14"/></svg>Atualizar
+    </button>
+  </div>
+
+  <!-- Calculadora de Funil Reverso -->
+  <div class="card" style="margin-bottom:16px;">
+    <h3 style="margin-bottom:4px;">Calculadora de Funil Reverso</h3>
+    <p style="font-size:12px;color:#6b7280;margin-bottom:20px;">Informe o faturamento desejado e as taxas do funil — os passos necessários são calculados automaticamente (lógica idêntica ao Excel de metas).</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;">
+      <div>
+        <div style="font-size:10px;font-weight:700;color:#6b7280;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;">Parâmetros de entrada</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div class="fg"><label class="fl">🎯 Faturamento meta (R$)</label><input type="number" id="fc-faturamento" class="fi" value="60000" min="1" oninput="calcularFunil()"></div>
+          <div class="fg"><label class="fl">🏷️ Ticket médio (R$)</label><input type="number" id="fc-ticket" class="fi" value="3500" min="1" oninput="calcularFunil()"></div>
+          <div class="fg"><label class="fl">💰 % Conversão em vendas</label><input type="number" id="fc-conversao" class="fi" value="30" min="0.1" max="100" step="0.5" oninput="calcularFunil()"></div>
+          <div class="fg"><label class="fl">✅ % Show-up (comparecimento)</label><input type="number" id="fc-showup" class="fi" value="70" min="0.1" max="100" step="0.5" oninput="calcularFunil()"></div>
+          <div class="fg"><label class="fl">📅 % Agendamento de call (leads → call)</label><input type="number" id="fc-agendamento" class="fi" value="12" min="0.1" max="100" step="0.5" oninput="calcularFunil()"></div>
+        </div>
+        <div style="margin-top:16px;padding:12px;background:#f9fafb;border-radius:8px;font-size:11px;color:#6b7280;line-height:1.8;">
+          <strong style="display:block;margin-bottom:4px;">Fórmulas (lógica reversa):</strong>
+          Vendas = Faturamento ÷ Ticket<br>
+          Realizadas = ⌈Vendas ÷ % Conversão⌉<br>
+          Agendadas = ⌈Realizadas ÷ % Show-up⌉<br>
+          Leads = ⌈Agendadas ÷ % Agendamento⌉
+        </div>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:700;color:#6b7280;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;">Funil necessário (22 dias úteis)</div>
+        <div id="funil-result" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPIs CAC & LTV -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px;">
+    <div class="kpi cinza" id="kpi-cac">
+      <div class="kl">CAC Médio</div>
+      <div class="kv" id="kv-cac" style="font-size:20px;">—</div>
+      <div class="kvar" style="color:#6b7280;margin-top:4px;">Custo de aquisição de cliente</div>
+    </div>
+    <div class="kpi cinza" id="kpi-ltv">
+      <div class="kl">LTV Médio</div>
+      <div class="kv" id="kv-ltv" style="font-size:20px;">—</div>
+      <div class="kvar" id="kvar-ltv" style="color:#6b7280;margin-top:4px;">Valor do cliente no tempo</div>
+    </div>
+    <div class="kpi cinza" id="kpi-ratio">
+      <div class="kl">LTV / CAC</div>
+      <div class="kv" id="kv-ratio" style="font-size:20px;">—</div>
+      <div class="kvar" id="kvar-ratio" style="color:#6b7280;margin-top:4px;">Saudável ≥ 3x</div>
+    </div>
+  </div>
+
+  <!-- Churn & Planos -->
+  <div class="g2">
+    <div class="card">
+      <h3>Motivos de Saída</h3>
+      <div id="churn-lista" style="color:#9ca3af;font-size:13px;">Carregando...</div>
+    </div>
+    <div class="card">
+      <h3>Retenção & LTV por Plano</h3>
+      <div id="plano-lista" style="color:#9ca3af;font-size:13px;">Carregando...</div>
+    </div>
+  </div>
+</div>
+
 </main>
 
 <!-- ═══════ MODAL ═══════ -->
@@ -1341,6 +1414,7 @@ function irPara(p,el){
       .then(d=>{if(d&&d.setup)document.getElementById('min-setup-banner').style.display='block';})
       .catch(()=>{});
   }
+  if(p==='metas') carregarMetasPage();
 }
 
 // ══════════════════════════════════════════════
@@ -2124,6 +2198,115 @@ async function carregarLancamentos(){
   renderDashLanc(mes);
   atualizarKPIs(mes);
   atualizarCharts(mes);
+}
+
+// ══════════════════════════════════════════════
+// METAS COMERCIAIS — Calculadora + CAC/LTV
+// ══════════════════════════════════════════════
+
+function calcularFunil(){
+  const fat   = parseFloat(document.getElementById('fc-faturamento')?.value)||0;
+  const tkt   = parseFloat(document.getElementById('fc-ticket')?.value)||1;
+  const conv  = (parseFloat(document.getElementById('fc-conversao')?.value)||0)/100;
+  const show  = (parseFloat(document.getElementById('fc-showup')?.value)||0)/100;
+  const agend = (parseFloat(document.getElementById('fc-agendamento')?.value)||0)/100;
+
+  const vendas    = tkt>0 ? Math.ceil(fat/tkt) : 0;
+  const realiz    = conv>0 ? Math.ceil(vendas/conv) : 0;
+  const agendadas = show>0 ? Math.ceil(realiz/show) : 0;
+  const leads     = agend>0 ? Math.ceil(agendadas/agend) : 0;
+  const dias      = 22;
+
+  const el = document.getElementById('funil-result');
+  if(!el) return;
+  const fmtR = n=>'R$ '+Math.round(n).toLocaleString('pt-BR');
+  const fmt  = n=>Math.round(n).toLocaleString('pt-BR');
+
+  const etapas=[
+    {icon:'💵',label:'Faturamento meta',   valor:fmtR(fat),    sub:'',                                                                  bg:'#f0fdf4'},
+    {icon:'💰',label:'Vendas necessárias', valor:fmt(vendas),  sub:`~${(vendas/dias).toFixed(1)} por dia`,                               bg:'#eff6ff'},
+    {icon:'✅',label:'Reuniões realizadas',valor:fmt(realiz),  sub:`~${(realiz/dias).toFixed(1)}/dia · ${(conv*100).toFixed(0)}% conv.`, bg:'#f0f9ff'},
+    {icon:'📅',label:'Reuniões agendadas', valor:fmt(agendadas),sub:`~${(agendadas/dias).toFixed(1)}/dia · ${(show*100).toFixed(0)}% show-up`,bg:'#fefce8'},
+    {icon:'🔵',label:'Leads necessários',  valor:fmt(leads),   sub:`~${(leads/dias).toFixed(1)}/dia · ${(agend*100).toFixed(0)}% agend.`, bg:'#faf5ff'},
+  ];
+  el.innerHTML=etapas.map(e=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:${e.bg};border-radius:10px;">
+      <span style="font-size:18px;">${e.icon}</span>
+      <div style="flex:1;">
+        <div style="font-size:10px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;">${e.label}</div>
+        <div style="font-size:20px;font-weight:700;color:#111827;line-height:1.2;">${e.valor}</div>
+        ${e.sub?`<div style="font-size:10px;color:#9ca3af;">${e.sub}</div>`:''}
+      </div>
+    </div>`).join('');
+}
+
+async function carregarMetasPage(){
+  calcularFunil();
+  try{
+    const d = await fnCall('notion-ltv',{});
+    if(!d||d.setup||d.error) return;
+
+    // CAC
+    const cacEl=document.getElementById('kv-cac');
+    if(cacEl) cacEl.textContent=d.cacMedio?'R$ '+d.cacMedio.toLocaleString('pt-BR'):'—';
+
+    // LTV
+    const ltvEl=document.getElementById('kv-ltv');
+    const ltvVar=document.getElementById('kvar-ltv');
+    if(ltvEl) ltvEl.textContent=d.ltvMedio?'R$ '+d.ltvMedio.toLocaleString('pt-BR'):'—';
+    if(ltvVar) ltvVar.textContent=`Ticket R$ ${(d.ticketMedio||0).toLocaleString('pt-BR')} · ${d.retencaoMedia||0} meses médios`;
+
+    // LTV/CAC
+    const ratioEl=document.getElementById('kv-ratio');
+    const ratioVar=document.getElementById('kvar-ratio');
+    const kpiRatio=document.getElementById('kpi-ratio');
+    if(ratioEl&&d.ltvCacRatio!=null){
+      ratioEl.textContent=d.ltvCacRatio+'x';
+      const cor=d.ltvCacRatio>=3?'verde':d.ltvCacRatio>=2?'amarelo':'vermelho';
+      const msg=d.ltvCacRatio>=3?'✓ Excelente (≥ 3x)':d.ltvCacRatio>=2?'⚠ Razoável (2–3x)':'✗ Atenção (< 2x)';
+      if(kpiRatio) kpiRatio.className='kpi '+cor;
+      if(ratioVar) ratioVar.textContent=msg+' · meta ≥ 3x';
+    }
+
+    // Churn
+    const churnEl=document.getElementById('churn-lista');
+    if(churnEl&&d.churn&&d.churn.length>0){
+      const total=d.churn.reduce((s,x)=>s+x.count,0);
+      churnEl.innerHTML=d.churn.map(c=>{
+        const pct=Math.round((c.count/total)*100);
+        return`<div style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+            <span style="color:#374151;font-weight:500;">${c.motivo}</span>
+            <span style="color:#6b7280;">${c.count} · ${pct}%</span>
+          </div>
+          <div style="background:#f3f4f6;border-radius:6px;height:8px;overflow:hidden;">
+            <div style="background:#6366f1;height:8px;width:${pct}%;border-radius:6px;"></div>
+          </div>
+        </div>`;
+      }).join('');
+    } else if(churnEl) churnEl.textContent='Sem dados.';
+
+    // Por plano
+    const planoEl=document.getElementById('plano-lista');
+    if(planoEl&&d.porPlano&&d.porPlano.length>0){
+      planoEl.innerHTML=`<div style="overflow-x:auto;"><table style="width:100%;font-size:12px;border-collapse:collapse;">
+        <thead><tr style="color:#6b7280;">
+          <th style="text-align:left;padding:6px 0;border-bottom:1px solid #f3f4f6;">Plano</th>
+          <th style="text-align:right;padding:6px 0;border-bottom:1px solid #f3f4f6;">Ticket/mês</th>
+          <th style="text-align:right;padding:6px 0;border-bottom:1px solid #f3f4f6;">Retenção</th>
+          <th style="text-align:right;padding:6px 0;border-bottom:1px solid #f3f4f6;">LTV médio</th>
+        </tr></thead><tbody>
+        ${d.porPlano.sort((a,b)=>b.ltvMedio-a.ltvMedio).map(p=>`
+          <tr>
+            <td style="padding:8px 0;color:#374151;border-bottom:1px solid #f9fafb;">${p.plano} <span style="color:#9ca3af;">(${p.count})</span></td>
+            <td style="text-align:right;color:#374151;border-bottom:1px solid #f9fafb;">R$ ${(p.ticketMedio||0).toLocaleString('pt-BR')}</td>
+            <td style="text-align:right;color:#374151;border-bottom:1px solid #f9fafb;">${p.retencaoMedia||0}m</td>
+            <td style="text-align:right;font-weight:700;color:#111827;border-bottom:1px solid #f9fafb;">R$ ${(p.ltvMedio||0).toLocaleString('pt-BR')}</td>
+          </tr>`).join('')}
+        </tbody></table></div>`;
+    } else if(planoEl) planoEl.textContent='Sem dados.';
+
+  }catch(e){ console.warn('Metas page:',e.message); }
 }
 
 window.addEventListener('DOMContentLoaded',()=>{
