@@ -2480,7 +2480,7 @@ async function carregarFechamento(){
 
   // Buscar todos em paralelo
   const [fin, crm, ltv, cnt] = await Promise.allSettled([
-    fnCall('notion-financeiro',{}),
+    fnCall('notion-financeiro',{meses:24}),
     fnCall('notion-crm',{mes}),
     fnCall('notion-ltv',{mes}),
     fnCall('notion-conteudo',{mes}),
