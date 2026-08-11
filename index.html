@@ -2396,7 +2396,10 @@ async function carregarMetasPage(){
   calcularFunil();
   try{
     const d = await fnCall('notion-ltv',{});
-    if(!d||d.setup||d.error) return;
+    if(!d||d.setup||d.error){
+      ['churn-lista','plano-lista'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=d?.setup?'Configure o token do Notion em Configurações.':'Sem dados.';});
+      return;
+    }
 
     // CAC
     const cacEl=document.getElementById('kv-cac');
@@ -2489,13 +2492,14 @@ async function carregarFechamento(){
 
   // ── 1. Financeiro ──
   if(fD&&fD.rows){
-    const row=fD.rows.find(r=>r.mes===mes)||null;
+    // notion-financeiro retorna r.data como YYYY-MM-DD; r.mes é texto livre
+    const row=fD.rows.find(r=>r.data && r.data.slice(0,7)===mes)||null;
     const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=brl(v);};
     set('fech-entrada',row?.entrada);
     set('fech-saida',row?.saida);
-    const fl=(row?.entrada||0)-(row?.saida||0);
     const flEl=document.getElementById('fech-fluxo');
-    if(flEl){flEl.textContent=brl(fl);flEl.style.color=fl>=0?'#15803d':'#dc2626';}
+    if(flEl&&row){const fl=(row.entrada||0)-(row.saida||0);flEl.textContent=brl(fl);flEl.style.color=fl>=0?'#15803d':'#dc2626';}
+    else if(flEl) flEl.textContent='—';
     set('fech-consultoria',row?.consultoria);
     set('fech-personal',row?.personal);
     set('fech-gastosfixos',row?.gastos_fixo);
@@ -2582,9 +2586,9 @@ async function carregarFechamento(){
     const mesIni=mes+'-01';
     const [yr,mo]=mes.split('-').map(Number);
     const mesFim=mo===12?`${yr+1}-01-01`:`${yr}-${String(mo+1).padStart(2,'0')}-01`;
-    const {data:vendas}=await sb.from('vendas').select('valor,data').gte('data',mesIni).lt('data',mesFim);
+    const {data:vendas}=await sb.from('vendas').select('valor,data_venda').gte('data_venda',mesIni).lt('data_venda',mesFim);
     if(vendas&&vendas.length>0){
-      const fat=vendas.reduce((s,v)=>s+(v.valor||0),0);
+      const fat=vendas.reduce((s,v)=>s+(parseFloat(v.valor)||0),0);
       const pct=fat>20000?5:2;
       const comissao=fat*(pct/100);
       const efv=document.getElementById('fech-fat-vendas');if(efv)efv.textContent=brl(fat);
