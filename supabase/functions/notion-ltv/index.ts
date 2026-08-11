@@ -84,6 +84,8 @@ serve(async (req) => {
     )
 
     // Token Notion
+    const { mes } = await req.json().catch(() => ({}))
+
     const { data: cfg } = await sb
       .from('app_config')
       .select('valor')
@@ -93,6 +95,14 @@ serve(async (req) => {
     if (!cfg?.valor) return json({ setup: true })
     const token = cfg.valor
     const today = new Date().toISOString().slice(0, 10)
+
+    // Intervalo do mês selecionado (para entradas/saídas mensais)
+    let iniMo = '', proxMo = ''
+    if (mes) {
+      const [yr, mo] = mes.split('-').map(Number)
+      iniMo  = `${mes}-01`
+      proxMo = mo === 12 ? `${yr + 1}-01-01` : `${yr}-${String(mo + 1).padStart(2, '0')}-01`
+    }
 
     // Busca todos os alunos do Controle de Relacionamento
     const pages = await notionQuery(token, DB_RELACIONAMENTO, {})
@@ -162,6 +172,21 @@ serve(async (req) => {
     const cacMedio = cacCount > 0 ? Math.round(cacTotal / cacCount) : null
     const ltvCacRatio = cacMedio && ltvMedio ? Math.round((ltvMedio / cacMedio) * 10) / 10 : null
 
+    // Contagem de ativos
+    const totalAtivos = students.filter((s: any) => s.status === 'Ativo').length
+
+    // Entradas e saídas do mês (se mes foi informado)
+    let entradasMes: any[] = []
+    let saidasMes:   any[] = []
+    if (iniMo && proxMo) {
+      entradasMes = students
+        .filter((s: any) => s.entrada >= iniMo && s.entrada < proxMo)
+        .map((s: any) => ({ nome: s.nome, plano: s.plano, ticket: s.ticket }))
+      saidasMes = students
+        .filter((s: any) => s.saida && s.saida >= iniMo && s.saida < proxMo)
+        .map((s: any) => ({ nome: s.nome, plano: s.plano, motivo: s.motivo, ticket: s.ticket }))
+    }
+
     return json({
       ltvMedio,
       ticketMedio,
@@ -169,8 +194,11 @@ serve(async (req) => {
       cacMedio,
       ltvCacRatio,
       totalAlunos: students.length,
+      totalAtivos,
       churn,
       porPlano,
+      entradasMes,
+      saidasMes,
     })
   } catch (e: any) {
     console.error('notion-ltv error:', e)

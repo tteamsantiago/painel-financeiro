@@ -329,6 +329,9 @@ main.bb-visible{padding-top:48px;}
     <div class="nl" data-page="metas" onclick="irPara('metas',this)" id="nav-metas">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Metas Comerciais
     </div>
+    <div class="nl" data-page="fechamento" onclick="irPara('fechamento',this)" id="nav-fechamento">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Fechamento Mensal
+    </div>
     <div class="nl" data-page="configuracoes" onclick="irPara('configuracoes',this)">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configurações
     </div>
@@ -1168,6 +1171,154 @@ main.bb-visible{padding-top:48px;}
   </div>
 </div>
 
+<!-- ═══════ FECHAMENTO MENSAL ═══════ -->
+<div class="page" id="page-fechamento">
+  <div class="ph">
+    <div><h2>Fechamento Mensal</h2><p>Consolidação completa de todos os dados do Team Santiago por mês</p></div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <input type="month" id="fech-mes" class="fi" style="width:160px;" />
+      <button class="btn bs" onclick="carregarFechamento()" style="display:flex;align-items:center;gap:6px;">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.63-4.14"/></svg>Carregar
+      </button>
+    </div>
+  </div>
+
+  <!-- 1. Faturamento & Financeiro -->
+  <div class="card" style="margin-bottom:16px;">
+    <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+      <span style="background:#dbeafe;color:#1d4ed8;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">1</span>
+      Faturamento & Financeiro
+    </h3>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;" id="fech-fin-kpis">
+      <div class="kpi cinza"><div class="kl">Entradas</div><div class="kv" id="fech-entrada" style="font-size:18px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Saídas</div><div class="kv" id="fech-saida" style="font-size:18px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Fluxo Líquido</div><div class="kv" id="fech-fluxo" style="font-size:18px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Consultoria</div><div class="kv" id="fech-consultoria" style="font-size:18px;">—</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;" id="fech-fin-kpis2">
+      <div class="kpi cinza"><div class="kl">Personal</div><div class="kv" id="fech-personal" style="font-size:18px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Gastos Fixos</div><div class="kv" id="fech-gastosfixos" style="font-size:18px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Gastos Variáveis</div><div class="kv" id="fech-gastosvar" style="font-size:18px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Cartão</div><div class="kv" id="fech-cartao" style="font-size:18px;">—</div></div>
+    </div>
+  </div>
+
+  <!-- 2. Calls, Conversões & CAC -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+    <div class="card">
+      <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+        <span style="background:#dcfce7;color:#15803d;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">2</span>
+        Calls & Conversões
+      </h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div class="kpi cinza"><div class="kl">Calls Realizadas</div><div class="kv" id="fech-calls" style="font-size:22px;">—</div></div>
+        <div class="kpi cinza"><div class="kl">Conversões</div><div class="kv" id="fech-conv" style="font-size:22px;">—</div></div>
+        <div class="kpi cinza"><div class="kl">Gasto Tráfego</div><div class="kv" id="fech-trafego" style="font-size:18px;">—</div></div>
+        <div class="kpi cinza"><div class="kl">CAC do Mês</div><div class="kv" id="fech-cac" style="font-size:18px;">—</div></div>
+      </div>
+      <div style="font-size:12px;color:#6b7280;">
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f3f4f6;">
+          <span>Leads em negociação</span><strong id="fech-neg">—</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;">
+          <span>Leads adormecidos</span><strong id="fech-adorm">—</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Clientes / LTV -->
+    <div class="card">
+      <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+        <span style="background:#fef3c7;color:#b45309;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">3</span>
+        Entradas & Saídas de Clientes
+      </h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div class="kpi cinza"><div class="kl">Ativos</div><div class="kv" id="fech-ativos" style="font-size:22px;">—</div></div>
+        <div class="kpi verde"><div class="kl">Entradas</div><div class="kv" id="fech-entradas-n" style="font-size:22px;">—</div></div>
+        <div class="kpi vermelho"><div class="kl">Saídas</div><div class="kv" id="fech-saidas-n" style="font-size:22px;">—</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;">
+        <div>
+          <div style="font-weight:600;color:#15803d;margin-bottom:6px;">Entraram</div>
+          <div id="fech-entradas-lista" style="color:#6b7280;">—</div>
+        </div>
+        <div>
+          <div style="font-weight:600;color:#dc2626;margin-bottom:6px;">Saíram</div>
+          <div id="fech-saidas-lista" style="color:#6b7280;">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Conteúdo Instagram -->
+  <div class="card" style="margin-bottom:16px;">
+    <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+      <span style="background:#fce7f3;color:#9d174d;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">4</span>
+      Produção de Conteúdo & Instagram
+    </h3>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px;">
+      <div class="kpi cinza"><div class="kl">Posts</div><div class="kv" id="fech-posts" style="font-size:22px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Visualizações</div><div class="kv" id="fech-viz" style="font-size:18px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Alcance</div><div class="kv" id="fech-alc" style="font-size:18px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Seguidores +</div><div class="kv" id="fech-seg" style="font-size:18px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Retenção 3s</div><div class="kv" id="fech-ret3s" style="font-size:18px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Salvamentos</div><div class="kv" id="fech-salv" style="font-size:18px;">—</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#9ca3af;letter-spacing:1px;margin-bottom:8px;">DISTRIBUIÇÃO POR FUNIL</div>
+        <div id="fech-por-funil" style="font-size:12px;color:#6b7280;">—</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#9ca3af;letter-spacing:1px;margin-bottom:8px;">MELHOR POST DO MÊS</div>
+        <div id="fech-melhor-post" style="font-size:12px;color:#6b7280;">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Comissões -->
+  <div class="card" style="margin-bottom:16px;">
+    <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+      <span style="background:#ede9fe;color:#6d28d9;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">5</span>
+      Comissões & Influencers
+    </h3>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+      <div class="kpi cinza"><div class="kl">Faturamento Mês</div><div class="kv" id="fech-fat-vendas" style="font-size:18px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Vendas no Mês</div><div class="kv" id="fech-n-vendas" style="font-size:22px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Comissão Éllid</div><div class="kv" id="fech-comissao-ellid" style="font-size:18px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">% Comissão</div><div class="kv" id="fech-pct-ellid" style="font-size:22px;">—</div></div>
+    </div>
+    <div id="fech-comissao-obs" style="margin-top:10px;font-size:12px;color:#6b7280;"></div>
+  </div>
+
+  <!-- LTV/CAC & Reservas -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+    <div class="card">
+      <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+        <span style="background:#e0f2fe;color:#0369a1;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">6</span>
+        LTV / CAC (Histórico)
+      </h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+        <div class="kpi cinza"><div class="kl">LTV Médio</div><div class="kv" id="fech-ltv" style="font-size:18px;">—</div></div>
+        <div class="kpi cinza"><div class="kl">CAC Médio</div><div class="kv" id="fech-ltv-cac" style="font-size:18px;">—</div></div>
+        <div class="kpi cinza" id="fech-ratio-kpi"><div class="kl">LTV / CAC</div><div class="kv" id="fech-ratio" style="font-size:18px;">—</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+        <span style="background:#f0fdf4;color:#166534;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">7</span>
+        Reservas
+      </h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="kpi cinza"><div class="kl">Reserva Team Santiago</div><div class="kv" id="fech-res-ts" style="font-size:18px;">—</div></div>
+        <div class="kpi cinza"><div class="kl">Reserva Pessoal</div><div class="kv" id="fech-res-pes" style="font-size:18px;">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="fech-msg" style="color:#9ca3af;font-size:13px;text-align:center;padding:20px 0;display:none;">Selecione um mês e clique em Carregar.</div>
+</div>
+
 </main>
 
 <!-- ═══════ MODAL ═══════ -->
@@ -1415,6 +1566,7 @@ function irPara(p,el){
       .catch(()=>{});
   }
   if(p==='metas') carregarMetasPage();
+  if(p==='fechamento') carregarFechamento();
 }
 
 // ══════════════════════════════════════════════
@@ -2307,6 +2459,142 @@ async function carregarMetasPage(){
     } else if(planoEl) planoEl.textContent='Sem dados.';
 
   }catch(e){ console.warn('Metas page:',e.message); }
+}
+
+function brl(v){ return v!=null?'R$ '+Math.round(v).toLocaleString('pt-BR'):'—'; }
+
+async function carregarFechamento(){
+  // Determinar mês selecionado (default: mês anterior)
+  const inp=document.getElementById('fech-mes');
+  if(!inp.value){
+    const d=new Date(); d.setDate(1); d.setMonth(d.getMonth()-1);
+    inp.value=d.toISOString().slice(0,7);
+  }
+  const mes=inp.value;
+
+  const msgEl=document.getElementById('fech-msg');
+  if(msgEl) msgEl.style.display='none';
+
+  // Buscar todos em paralelo
+  const [fin, crm, ltv, cnt] = await Promise.allSettled([
+    fnCall('notion-financeiro',{}),
+    fnCall('notion-crm',{mes}),
+    fnCall('notion-ltv',{mes}),
+    fnCall('notion-conteudo',{mes}),
+  ]);
+  const fD=fin.status==='fulfilled'?fin.value:null;
+  const cD=crm.status==='fulfilled'?crm.value:null;
+  const lD=ltv.status==='fulfilled'?ltv.value:null;
+  const ctD=cnt.status==='fulfilled'?cnt.value:null;
+
+  // ── 1. Financeiro ──
+  if(fD&&fD.rows){
+    const row=fD.rows.find(r=>r.mes===mes)||null;
+    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=brl(v);};
+    set('fech-entrada',row?.entrada);
+    set('fech-saida',row?.saida);
+    const fl=(row?.entrada||0)-(row?.saida||0);
+    const flEl=document.getElementById('fech-fluxo');
+    if(flEl){flEl.textContent=brl(fl);flEl.style.color=fl>=0?'#15803d':'#dc2626';}
+    set('fech-consultoria',row?.consultoria);
+    set('fech-personal',row?.personal);
+    set('fech-gastosfixos',row?.gastos_fixo);
+    set('fech-gastosvar',row?.gastos_var);
+    set('fech-cartao',row?.cartao);
+    set('fech-res-ts',row?.reserva_ts);
+    set('fech-res-pes',row?.reserva_pessoal);
+  }
+
+  // ── 2. CRM – Calls & Conversões ──
+  if(cD&&!cD.error){
+    const setT=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v??'—';};
+    setT('fech-calls',cD.callsMes);
+    setT('fech-conv',cD.conversoesMes);
+    const eT=document.getElementById('fech-trafego');if(eT)eT.textContent=brl(cD.gastoTrafego);
+    const eC=document.getElementById('fech-cac');if(eC)eC.textContent=brl(cD.cac);
+    setT('fech-neg',cD.leadsNegociacao);
+    setT('fech-adorm',cD.leadsAdormecidos);
+  }
+
+  // ── 3. LTV – Clientes ──
+  if(lD&&!lD.error){
+    const setT=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v??'—';};
+    setT('fech-ativos',lD.totalAtivos);
+    setT('fech-entradas-n',(lD.entradasMes||[]).length||'0');
+    setT('fech-saidas-n',(lD.saidasMes||[]).length||'0');
+
+    // Lista entradas
+    const entEl=document.getElementById('fech-entradas-lista');
+    if(entEl){
+      if(lD.entradasMes&&lD.entradasMes.length>0){
+        entEl.innerHTML=lD.entradasMes.map(s=>`<div style="padding:3px 0;border-bottom:1px solid #f3f4f6;"><strong>${s.nome}</strong><br><span style="color:#9ca3af;">${s.plano||''} · R$ ${(s.ticket||0).toLocaleString('pt-BR')}/mês</span></div>`).join('');
+      } else entEl.textContent='Nenhuma entrada.';
+    }
+    // Lista saídas
+    const saiEl=document.getElementById('fech-saidas-lista');
+    if(saiEl){
+      if(lD.saidasMes&&lD.saidasMes.length>0){
+        saiEl.innerHTML=lD.saidasMes.map(s=>`<div style="padding:3px 0;border-bottom:1px solid #f3f4f6;"><strong>${s.nome}</strong><br><span style="color:#9ca3af;">${s.motivo||'—'}</span></div>`).join('');
+      } else saiEl.textContent='Nenhuma saída.';
+    }
+
+    // LTV/CAC histórico
+    const e1=document.getElementById('fech-ltv');if(e1)e1.textContent=brl(lD.ltvMedio);
+    const e2=document.getElementById('fech-ltv-cac');if(e2)e2.textContent=brl(lD.cacMedio);
+    const e3=document.getElementById('fech-ratio');
+    const kpi=document.getElementById('fech-ratio-kpi');
+    if(e3&&lD.ltvCacRatio!=null){
+      e3.textContent=lD.ltvCacRatio+'x';
+      const cor=lD.ltvCacRatio>=3?'verde':lD.ltvCacRatio>=2?'amarelo':'vermelho';
+      if(kpi)kpi.className='kpi '+cor;
+    }
+  }
+
+  // ── 4. Conteúdo ──
+  if(ctD&&!ctD.error&&!ctD.semDados){
+    const setT=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v??'—';};
+    setT('fech-posts',ctD.totalPublicados);
+    setT('fech-viz',(ctD.totalViz||0).toLocaleString('pt-BR'));
+    setT('fech-alc',(ctD.totalAlcance||0).toLocaleString('pt-BR'));
+    setT('fech-seg',(ctD.totalSeguidores||0)>0?'+'+ctD.totalSeguidores:'0');
+    setT('fech-ret3s',ctD.avgRetencao3s?ctD.avgRetencao3s+'%':'—');
+    setT('fech-salv',(ctD.totalSalv||0).toLocaleString('pt-BR'));
+
+    // Por funil
+    const funilEl=document.getElementById('fech-por-funil');
+    if(funilEl&&ctD.porFunil&&Object.keys(ctD.porFunil).length>0){
+      funilEl.innerHTML=Object.entries(ctD.porFunil).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #f9fafb;"><span>${k}</span><strong>${v}</strong></div>`).join('');
+    } else if(funilEl) funilEl.textContent='Sem dados.';
+
+    // Melhor post
+    const mpEl=document.getElementById('fech-melhor-post');
+    if(mpEl&&ctD.melhorPost){
+      const mp=ctD.melhorPost;
+      mpEl.innerHTML=`<strong style="color:#111827;">${mp.titulo||'—'}</strong><br><span style="color:#9ca3af;">${mp.visualizacoes?.toLocaleString('pt-BR')||0} visualizações · ${mp.funil||''}</span>`;
+    } else if(mpEl) mpEl.textContent='Sem dados.';
+  } else if(ctD&&ctD.semDados){
+    ['fech-posts','fech-viz','fech-alc','fech-seg','fech-ret3s','fech-salv'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='—';});
+  }
+
+  // ── 5. Comissões (Supabase vendas) ──
+  try{
+    // sb is global
+    const mesIni=mes+'-01';
+    const [yr,mo]=mes.split('-').map(Number);
+    const mesFim=mo===12?`${yr+1}-01-01`:`${yr}-${String(mo+1).padStart(2,'0')}-01`;
+    const {data:vendas}=await sb.from('vendas').select('valor,data').gte('data',mesIni).lt('data',mesFim);
+    if(vendas&&vendas.length>0){
+      const fat=vendas.reduce((s,v)=>s+(v.valor||0),0);
+      const pct=fat>20000?5:2;
+      const comissao=fat*(pct/100);
+      const efv=document.getElementById('fech-fat-vendas');if(efv)efv.textContent=brl(fat);
+      const env=document.getElementById('fech-n-vendas');if(env)env.textContent=vendas.length;
+      const ece=document.getElementById('fech-comissao-ellid');if(ece)ece.textContent=brl(comissao);
+      const epe=document.getElementById('fech-pct-ellid');if(epe)epe.textContent=pct+'%';
+      const obs=document.getElementById('fech-comissao-obs');
+      if(obs)obs.textContent=`Éllid: ${pct}% sobre R$ ${Math.round(fat).toLocaleString('pt-BR')} ${fat>20000?'(acima de R$ 20.000 → 5%)':'(até R$ 20.000 → 2%)'}`;
+    }
+  }catch(e){console.warn('Comissões fechamento:',e.message);}
 }
 
 window.addEventListener('DOMContentLoaded',()=>{
