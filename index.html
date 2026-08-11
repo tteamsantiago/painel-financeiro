@@ -326,6 +326,9 @@ main.bb-visible{padding-top:48px;}
     <div class="nl" data-page="vendas" onclick="irPara('vendas',this)" id="nav-vendas">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Vendas & Comissões
     </div>
+    <div class="nl" data-page="relatorio" onclick="irPara('relatorio',this)" id="nav-relatorio">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Relatório Diário
+    </div>
     <div class="nl" data-page="metas" onclick="irPara('metas',this)" id="nav-metas">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Metas Comerciais
     </div>
@@ -1319,6 +1322,172 @@ main.bb-visible{padding-top:48px;}
   <div id="fech-msg" style="color:#9ca3af;font-size:13px;text-align:center;padding:20px 0;display:none;">Selecione um mês e clique em Carregar.</div>
 </div>
 
+<!-- ═══════ RELATÓRIO DIÁRIO ═══════ -->
+<div class="page" id="page-relatorio">
+  <div class="ph">
+    <div><h2>Relatório Diário</h2><p>Acompanhamento diário da Social Seller — leads, calls, conversões e objeções</p></div>
+    <button class="btn bp" onclick="abrirFormRelatorio()" style="display:flex;align-items:center;gap:6px;">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Preencher Hoje
+    </button>
+  </div>
+
+  <!-- Formulário (oculto por padrão) -->
+  <div id="rel-form-wrap" style="display:none;margin-bottom:20px;">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3 id="rel-form-titulo">Relatório de Hoje</h3>
+        <button onclick="fecharFormRelatorio()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#9ca3af;">✕</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <!-- Coluna esquerda -->
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="fg">
+            <label class="fl">📅 Data</label>
+            <input type="date" id="rel-data" class="fi">
+          </div>
+          <div class="fg">
+            <label class="fl">👤 Social Seller</label>
+            <input type="text" id="rel-seller" class="fi" placeholder="Seu nome">
+          </div>
+
+          <div style="background:#f9fafb;border-radius:10px;padding:14px;">
+            <div style="font-size:10px;font-weight:700;color:#6b7280;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:12px;">Métricas do Dia</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div class="fg"><label class="fl">Leads novos abordados</label><input type="number" id="rel-leads-novos" class="fi" value="0" min="0" oninput="atualizarPreviewRel()"></div>
+              <div class="fg"><label class="fl">Leads antigos retomados</label><input type="number" id="rel-leads-retomados" class="fi" value="0" min="0" oninput="atualizarPreviewRel()"></div>
+              <div class="fg"><label class="fl">Calls agendadas</label><input type="number" id="rel-calls-ag" class="fi" value="0" min="0" oninput="atualizarPreviewRel()"></div>
+              <div class="fg"><label class="fl">Calls realizadas (show)</label><input type="number" id="rel-calls-real" class="fi" value="0" min="0" oninput="atualizarPreviewRel()"></div>
+              <div class="fg" style="grid-column:1/-1;"><label class="fl">Vendas geradas</label><input type="number" id="rel-vendas" class="fi" value="0" min="0" oninput="atualizarPreviewRel()"></div>
+            </div>
+          </div>
+
+          <!-- Preview rápido -->
+          <div id="rel-preview" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+            <div style="background:#f0fdf4;border-radius:8px;padding:10px;text-align:center;">
+              <div style="font-size:10px;color:#15803d;font-weight:600;">Show-up</div>
+              <div id="rel-prev-show" style="font-size:20px;font-weight:700;color:#15803d;">—</div>
+            </div>
+            <div style="background:#eff6ff;border-radius:8px;padding:10px;text-align:center;">
+              <div style="font-size:10px;color:#1d4ed8;font-weight:600;">Conversão</div>
+              <div id="rel-prev-conv" style="font-size:20px;font-weight:700;color:#1d4ed8;">—</div>
+            </div>
+            <div style="background:#fef3c7;border-radius:8px;padding:10px;text-align:center;">
+              <div style="font-size:10px;color:#b45309;font-weight:600;">Total Leads</div>
+              <div id="rel-prev-leads" style="font-size:20px;font-weight:700;color:#b45309;">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coluna direita -->
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div style="background:#f9fafb;border-radius:10px;padding:14px;">
+            <div style="font-size:10px;font-weight:700;color:#6b7280;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px;">Objeções mais comuns do dia</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;" id="rel-objecoes-checks">
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;cursor:pointer;"><input type="checkbox" value="Dinheiro / Preço alto"> Dinheiro / Preço alto</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;cursor:pointer;"><input type="checkbox" value="Falta de tempo"> Falta de tempo</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;cursor:pointer;"><input type="checkbox" value="Medo de não dar conta"> Medo de não dar conta</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;cursor:pointer;"><input type="checkbox" value="Precisa pensar"> Precisa pensar</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;cursor:pointer;"><input type="checkbox" value="Marido / Família"> Marido / Família</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;cursor:pointer;"><input type="checkbox" value="Já tem personal/coach"> Já tem personal</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;cursor:pointer;"><input type="checkbox" value="Não acredita no resultado"> Não acredita resultado</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;cursor:pointer;"><input type="checkbox" value="Esposo não aprova"> Esposo não aprova</label>
+            </div>
+            <input type="text" id="rel-objecoes-livre" class="fi" placeholder="Outras objeções (separar por vírgula)...">
+          </div>
+
+          <div style="background:#f9fafb;border-radius:10px;padding:14px;">
+            <div style="font-size:10px;font-weight:700;color:#6b7280;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px;">Leads melhores vieram de</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="rel-origem-checks">
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;cursor:pointer;"><input type="checkbox" value="Tráfego pago"> Tráfego pago</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;cursor:pointer;"><input type="checkbox" value="Indicação"> Indicação</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;cursor:pointer;"><input type="checkbox" value="Instagram orgânico"> Insta orgânico</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;cursor:pointer;"><input type="checkbox" value="Outro"> Outro</label>
+            </div>
+          </div>
+
+          <div class="fg">
+            <label class="fl">⚠️ Problemas encontrados</label>
+            <textarea id="rel-problemas" class="fi" rows="3" placeholder="Descreva dificuldades, leads difíceis, situações fora do comum..." style="resize:vertical;"></textarea>
+          </div>
+          <div class="fg">
+            <label class="fl">📝 Observações gerais</label>
+            <textarea id="rel-obs" class="fi" rows="3" placeholder="Qualquer anotação relevante para o dia..." style="resize:vertical;"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid #f3f4f6;">
+        <button class="btn" onclick="fecharFormRelatorio()" style="background:#f3f4f6;color:#374151;">Cancelar</button>
+        <button class="btn bp" id="rel-salvar-btn" onclick="salvarRelatorio()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar Relatório
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard de métricas -->
+  <div id="rel-dashboard">
+    <!-- KPIs 7 dias -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px;">
+      <div class="kpi cinza"><div class="kl">Leads/dia (7d)</div><div class="kv" id="rel-kpi-leads" style="font-size:22px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Calls/dia (7d)</div><div class="kv" id="rel-kpi-calls" style="font-size:22px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Show-up (7d)</div><div class="kv" id="rel-kpi-show" style="font-size:22px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Conversão (7d)</div><div class="kv" id="rel-kpi-conv" style="font-size:22px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Vendas (7d)</div><div class="kv" id="rel-kpi-vendas" style="font-size:22px;">—</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+      <!-- Objeções -->
+      <div class="card">
+        <h3 style="margin-bottom:12px;">Top Objeções — últimos 30 dias</h3>
+        <div id="rel-objecoes-chart" style="color:#9ca3af;font-size:13px;">Carregando...</div>
+      </div>
+      <!-- Origem dos leads -->
+      <div class="card">
+        <h3 style="margin-bottom:12px;">Origem dos Melhores Leads — 30 dias</h3>
+        <div id="rel-origem-chart" style="color:#9ca3af;font-size:13px;">Carregando...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Histórico -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h3>Histórico de Relatórios</h3>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select id="rel-filtro-periodo" class="fi" style="width:160px;" onchange="carregarHistoricoRelatorio()">
+          <option value="7">Últimos 7 dias</option>
+          <option value="30" selected>Últimos 30 dias</option>
+          <option value="90">Últimos 90 dias</option>
+        </select>
+      </div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;font-size:12px;border-collapse:collapse;" id="rel-historico-table">
+        <thead>
+          <tr style="color:#6b7280;border-bottom:2px solid #f3f4f6;">
+            <th style="text-align:left;padding:8px 6px;">Data</th>
+            <th style="text-align:left;padding:8px 6px;">Seller</th>
+            <th style="text-align:center;padding:8px 6px;">Leads Novos</th>
+            <th style="text-align:center;padding:8px 6px;">Retomados</th>
+            <th style="text-align:center;padding:8px 6px;">Calls Ag.</th>
+            <th style="text-align:center;padding:8px 6px;">Show</th>
+            <th style="text-align:center;padding:8px 6px;">Vendas</th>
+            <th style="text-align:center;padding:8px 6px;">Show-up</th>
+            <th style="text-align:center;padding:8px 6px;">Conversão</th>
+            <th style="text-align:left;padding:8px 6px;">Objeções</th>
+            <th style="padding:8px 6px;"></th>
+          </tr>
+        </thead>
+        <tbody id="rel-historico-body">
+          <tr><td colspan="11" style="text-align:center;color:#9ca3af;padding:30px;">Carregando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 </main>
 
 <!-- ═══════ MODAL ═══════ -->
@@ -1565,6 +1734,7 @@ function irPara(p,el){
       .then(d=>{if(d&&d.setup)document.getElementById('min-setup-banner').style.display='block';})
       .catch(()=>{});
   }
+  if(p==='relatorio') carregarRelatorioPage();
   if(p==='metas') carregarMetasPage();
   if(p==='fechamento') carregarFechamento();
 }
@@ -2601,6 +2771,277 @@ async function carregarFechamento(){
   }catch(e){console.warn('Comissões fechamento:',e.message);}
 }
 
+/* ═══════════════════════════════════════════
+   RELATÓRIO DIÁRIO – SOCIAL SELLER
+═══════════════════════════════════════════ */
+
+function carregarRelatorioPage(){
+  // Pré-preenche data de hoje e o nome da seller
+  const inp = document.getElementById('rel-data');
+  if(inp && !inp.value) inp.value = new Date().toISOString().slice(0,10);
+  const sellerInp = document.getElementById('rel-seller');
+  if(sellerInp && !sellerInp.value && USUARIO_EMAIL) sellerInp.value = USUARIO_EMAIL.split('@')[0];
+  carregarHistoricoRelatorio();
+  carregarDashboardRelatorio();
+}
+
+function abrirFormRelatorio(){
+  const wrap = document.getElementById('rel-form-wrap');
+  if(!wrap) return;
+  wrap.style.display='block';
+  // reset checkboxes
+  document.querySelectorAll('#rel-objecoes-checks input[type=checkbox]').forEach(c=>c.checked=false);
+  document.querySelectorAll('#rel-origem-checks input[type=checkbox]').forEach(c=>c.checked=false);
+  const libre = document.getElementById('rel-objecoes-livre');
+  if(libre) libre.value='';
+  const prob = document.getElementById('rel-problemas');
+  if(prob) prob.value='';
+  const obs = document.getElementById('rel-obs');
+  if(obs) obs.value='';
+  // data hoje
+  const inp = document.getElementById('rel-data');
+  if(inp) inp.value = new Date().toISOString().slice(0,10);
+  atualizarPreviewRel();
+  wrap.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function fecharFormRelatorio(){
+  const wrap = document.getElementById('rel-form-wrap');
+  if(wrap) wrap.style.display='none';
+}
+
+function atualizarPreviewRel(){
+  const ag   = parseInt(document.getElementById('rel-calls-ag')?.value||'0')||0;
+  const real = parseInt(document.getElementById('rel-calls-real')?.value||'0')||0;
+  const vend = parseInt(document.getElementById('rel-vendas')?.value||'0')||0;
+  const nov  = parseInt(document.getElementById('rel-leads-novos')?.value||'0')||0;
+  const ret  = parseInt(document.getElementById('rel-leads-retomados')?.value||'0')||0;
+  const showEl  = document.getElementById('rel-prev-show');
+  const convEl  = document.getElementById('rel-prev-conv');
+  const leadEl  = document.getElementById('rel-prev-leads');
+  if(showEl)  showEl.textContent  = ag>0 ? Math.round(real/ag*100)+'%' : '—';
+  if(convEl)  convEl.textContent  = real>0 ? Math.round(vend/real*100)+'%' : '—';
+  if(leadEl)  leadEl.textContent  = nov+ret;
+}
+
+async function salvarRelatorio(){
+  const btn = document.getElementById('rel-salvar-btn');
+  if(btn){btn.disabled=true;btn.textContent='Salvando...';}
+  try{
+    const data   = document.getElementById('rel-data').value;
+    const seller = (document.getElementById('rel-seller').value||'').trim();
+    if(!data||!seller){alert('Preencha a data e o nome da Social Seller.');return;}
+    const leadsNovos     = parseInt(document.getElementById('rel-leads-novos').value||'0')||0;
+    const leadsRetomados = parseInt(document.getElementById('rel-leads-retomados').value||'0')||0;
+    const callsAg        = parseInt(document.getElementById('rel-calls-ag').value||'0')||0;
+    const callsReal      = parseInt(document.getElementById('rel-calls-real').value||'0')||0;
+    const vendasG        = parseInt(document.getElementById('rel-vendas').value||'0')||0;
+    const objecoesChecks = [...document.querySelectorAll('#rel-objecoes-checks input[type=checkbox]:checked')].map(c=>c.value);
+    const objecoesLivre  = (document.getElementById('rel-objecoes-livre').value||'').trim();
+    const origens        = [...document.querySelectorAll('#rel-origem-checks input[type=checkbox]:checked')].map(c=>c.value);
+    const problemas      = (document.getElementById('rel-problemas').value||'').trim();
+    const observacoes    = (document.getElementById('rel-obs').value||'').trim();
+
+    const payload={
+      data,
+      social_seller: seller,
+      user_email: USUARIO_EMAIL||'',
+      leads_novos: leadsNovos,
+      leads_retomados: leadsRetomados,
+      calls_agendadas: callsAg,
+      calls_realizadas: callsReal,
+      vendas_geradas: vendasG,
+      objecoes: objecoesChecks,
+      objecoes_livre: objecoesLivre,
+      leads_origem: origens,
+      problemas,
+      observacoes,
+    };
+
+    // Tenta upsert (UNIQUE data+user_email)
+    const {error} = await sb.from('relatorio_diario').upsert(payload,{onConflict:'data,user_email'});
+    if(error) throw error;
+
+    toast('Relatório salvo com sucesso!','sucesso');
+    fecharFormRelatorio();
+    carregarHistoricoRelatorio();
+    carregarDashboardRelatorio();
+  }catch(e){
+    console.error('salvarRelatorio:',e);
+    toast('Erro ao salvar: '+e.message,'erro');
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML='<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar Relatório';}
+  }
+}
+
+async function carregarHistoricoRelatorio(){
+  const tbody = document.getElementById('rel-historico-body');
+  if(!tbody) return;
+  tbody.innerHTML='<tr><td colspan="11" style="text-align:center;color:#9ca3af;padding:20px;">Carregando...</td></tr>';
+
+  const dias = parseInt(document.getElementById('rel-filtro-periodo')?.value||'30')||30;
+  const desde = new Date(); desde.setDate(desde.getDate()-dias);
+  const desdeStr = desde.toISOString().slice(0,10);
+
+  try{
+    let query = sb.from('relatorio_diario')
+      .select('*')
+      .gte('data', desdeStr)
+      .order('data',{ascending:false});
+
+    // Sellers não-admin só veem seus próprios dados
+    if(USUARIO_ROLE==='crm' && USUARIO_EMAIL){
+      query = query.eq('user_email', USUARIO_EMAIL);
+    }
+
+    const {data,error} = await query;
+    if(error) throw error;
+
+    if(!data||data.length===0){
+      tbody.innerHTML='<tr><td colspan="11" style="text-align:center;color:#9ca3af;padding:30px;">Nenhum relatório neste período.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML=data.map(r=>{
+      const showup = r.calls_agendadas>0 ? Math.round(r.calls_realizadas/r.calls_agendadas*100)+'%' : '—';
+      const conv   = r.calls_realizadas>0 ? Math.round(r.vendas_geradas/r.calls_realizadas*100)+'%' : '—';
+      const objTxt = [...(r.objecoes||[]), r.objecoes_livre?'('+r.objecoes_livre+')':''].filter(Boolean).join(', ')||'—';
+      const dataFmt = r.data ? r.data.split('-').reverse().join('/') : '—';
+      return `<tr style="border-bottom:1px solid #f3f4f6;font-size:12px;">
+        <td style="padding:8px 6px;white-space:nowrap;">${dataFmt}</td>
+        <td style="padding:8px 6px;">${r.social_seller||'—'}</td>
+        <td style="text-align:center;padding:8px 6px;">${r.leads_novos||0}</td>
+        <td style="text-align:center;padding:8px 6px;">${r.leads_retomados||0}</td>
+        <td style="text-align:center;padding:8px 6px;">${r.calls_agendadas||0}</td>
+        <td style="text-align:center;padding:8px 6px;">${r.calls_realizadas||0}</td>
+        <td style="text-align:center;padding:8px 6px;font-weight:600;color:#15803d;">${r.vendas_geradas||0}</td>
+        <td style="text-align:center;padding:8px 6px;">${showup}</td>
+        <td style="text-align:center;padding:8px 6px;">${conv}</td>
+        <td style="padding:8px 6px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${objTxt}">${objTxt}</td>
+        <td style="padding:8px 6px;">
+          <button onclick="editarRelatorio('${r.id}')" style="background:none;border:none;cursor:pointer;color:#6b7280;font-size:12px;" title="Editar">✎</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }catch(e){
+    console.error('carregarHistoricoRelatorio:',e);
+    tbody.innerHTML='<tr><td colspan="11" style="text-align:center;color:#ef4444;padding:20px;">Erro: '+e.message+'</td></tr>';
+  }
+}
+
+async function carregarDashboardRelatorio(){
+  // KPIs últimos 7 dias
+  try{
+    const desde7 = new Date(); desde7.setDate(desde7.getDate()-7);
+    const desde7Str = desde7.toISOString().slice(0,10);
+    const {data:d7} = await sb.from('relatorio_diario').select('*').gte('data',desde7Str);
+    if(d7&&d7.length>0){
+      const dias = Math.max(1, new Set(d7.map(r=>r.data)).size);
+      const totLeads  = d7.reduce((s,r)=>(s+(r.leads_novos||0)+(r.leads_retomados||0)),0);
+      const totAg     = d7.reduce((s,r)=>s+(r.calls_agendadas||0),0);
+      const totReal   = d7.reduce((s,r)=>s+(r.calls_realizadas||0),0);
+      const totVend   = d7.reduce((s,r)=>s+(r.vendas_geradas||0),0);
+      const showup    = totAg>0 ? Math.round(totReal/totAg*100)+'%' : '—';
+      const conv      = totReal>0 ? Math.round(totVend/totReal*100)+'%' : '—';
+      const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+      setEl('rel-kpi-leads', (totLeads/dias).toFixed(1));
+      setEl('rel-kpi-calls', (totAg/dias).toFixed(1));
+      setEl('rel-kpi-show',  showup);
+      setEl('rel-kpi-conv',  conv);
+      setEl('rel-kpi-vendas',totVend);
+    }
+  }catch(e){console.warn('rel kpi 7d:',e);}
+
+  // Objeções e origens — últimos 30 dias
+  try{
+    const desde30 = new Date(); desde30.setDate(desde30.getDate()-30);
+    const desde30Str = desde30.toISOString().slice(0,10);
+    const {data:d30} = await sb.from('relatorio_diario').select('objecoes,objecoes_livre,leads_origem').gte('data',desde30Str);
+    if(!d30||d30.length===0) return;
+
+    // Conta objeções
+    const objCount={};
+    d30.forEach(r=>{
+      (r.objecoes||[]).forEach(o=>{objCount[o]=(objCount[o]||0)+1;});
+      if(r.objecoes_livre){
+        r.objecoes_livre.split(',').map(s=>s.trim()).filter(Boolean).forEach(o=>{
+          objCount[o]=(objCount[o]||0)+1;
+        });
+      }
+    });
+    const objSorted=Object.entries(objCount).sort((a,b)=>b[1]-a[1]).slice(0,6);
+    const maxObj=objSorted[0]?objSorted[0][1]:1;
+    const objEl=document.getElementById('rel-objecoes-chart');
+    if(objEl){
+      objEl.innerHTML=objSorted.length===0?'<span style="color:#9ca3af">Sem dados</span>':
+        objSorted.map(([k,v])=>`
+          <div style="margin-bottom:8px;">
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
+              <span style="color:#374151;">${k}</span>
+              <span style="font-weight:600;color:#374151;">${v}x</span>
+            </div>
+            <div style="background:#f3f4f6;border-radius:4px;height:6px;overflow:hidden;">
+              <div style="height:100%;background:#6366f1;border-radius:4px;width:${Math.round(v/maxObj*100)}%;"></div>
+            </div>
+          </div>`).join('');
+    }
+
+    // Conta origens
+    const origCount={};
+    d30.forEach(r=>{(r.leads_origem||[]).forEach(o=>{origCount[o]=(origCount[o]||0)+1;});});
+    const origSorted=Object.entries(origCount).sort((a,b)=>b[1]-a[1]);
+    const maxOrig=origSorted[0]?origSorted[0][1]:1;
+    const origEl=document.getElementById('rel-origem-chart');
+    const ORIG_COLORS={'Tráfego pago':'#3b82f6','Indicação':'#10b981','Instagram orgânico':'#f59e0b','Outro':'#8b5cf6'};
+    if(origEl){
+      origEl.innerHTML=origSorted.length===0?'<span style="color:#9ca3af">Sem dados</span>':
+        origSorted.map(([k,v])=>`
+          <div style="margin-bottom:8px;">
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
+              <span style="color:#374151;">${k}</span>
+              <span style="font-weight:600;color:#374151;">${v}x</span>
+            </div>
+            <div style="background:#f3f4f6;border-radius:4px;height:6px;overflow:hidden;">
+              <div style="height:100%;background:${ORIG_COLORS[k]||'#6366f1'};border-radius:4px;width:${Math.round(v/maxOrig*100)}%;"></div>
+            </div>
+          </div>`).join('');
+    }
+  }catch(e){console.warn('rel charts 30d:',e);}
+}
+
+async function editarRelatorio(id){
+  const {data,error} = await sb.from('relatorio_diario').select('*').eq('id',id).maybeSingle();
+  if(error||!data){toast('Erro ao carregar relatório','erro');return;}
+
+  // Preenche form
+  document.getElementById('rel-data').value = data.data||'';
+  document.getElementById('rel-seller').value = data.social_seller||'';
+  document.getElementById('rel-leads-novos').value = data.leads_novos||0;
+  document.getElementById('rel-leads-retomados').value = data.leads_retomados||0;
+  document.getElementById('rel-calls-ag').value = data.calls_agendadas||0;
+  document.getElementById('rel-calls-real').value = data.calls_realizadas||0;
+  document.getElementById('rel-vendas').value = data.vendas_geradas||0;
+  document.getElementById('rel-objecoes-livre').value = data.objecoes_livre||'';
+  document.getElementById('rel-problemas').value = data.problemas||'';
+  document.getElementById('rel-obs').value = data.observacoes||'';
+
+  // Checkboxes objeções
+  document.querySelectorAll('#rel-objecoes-checks input[type=checkbox]').forEach(c=>{
+    c.checked=(data.objecoes||[]).includes(c.value);
+  });
+  // Checkboxes origem
+  document.querySelectorAll('#rel-origem-checks input[type=checkbox]').forEach(c=>{
+    c.checked=(data.leads_origem||[]).includes(c.value);
+  });
+
+  atualizarPreviewRel();
+  document.getElementById('rel-form-titulo').textContent='Editar Relatório — '+data.data.split('-').reverse().join('/');
+  const wrap=document.getElementById('rel-form-wrap');
+  if(wrap){wrap.style.display='block';wrap.scrollIntoView({behavior:'smooth',block:'start'});}
+}
+
+/* ═══════════════════════════════════════════ */
+
 window.addEventListener('DOMContentLoaded',()=>{
   initAuth();
   loadCUTokenInput();
@@ -3176,6 +3617,7 @@ const PERM_MAPA = {
   instagram:        ['admin','crm'],
   minerador:        ['admin','crm'],
   vendas:           ['admin','financeiro'],
+  relatorio:        ['admin','financeiro','crm'],
   metas:            ['admin','financeiro'],
   fechamento:       ['admin','financeiro'],
 };
@@ -3191,6 +3633,7 @@ const TODAS_PAGINAS = [
   {key:'instagram',       label:'Instagram'},
   {key:'minerador',       label:'Minerador de Leads'},
   {key:'vendas',          label:'Vendas & Comissões'},
+  {key:'relatorio',       label:'Relatório Diário'},
   {key:'metas',           label:'Metas Comerciais'},
   {key:'fechamento',      label:'Fechamento Mensal'},
 ];
