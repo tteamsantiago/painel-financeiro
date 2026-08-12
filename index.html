@@ -1779,7 +1779,7 @@ function renderLeg(id,cats){
     <div class="leg-item">
       <span class="leg-dot" style="background:${c.c}"></span>
       <span class="leg-nome">${c.n}</span>
-      <span class="leg-pct">${((c.v/total)*100).toFixed(1)}%</span>
+      <span class="leg-pct">${total>0?((c.v/total)*100).toFixed(1):'0.0'}%</span>
       <span class="leg-val">${fmt(c.v)}</span>
     </div>`).join('');
 }
@@ -2293,17 +2293,11 @@ function confirmarPendente(rowId){
   if(row){row.style.opacity='0';row.style.transition='opacity .3s';
     setTimeout(()=>{row.remove();toast('Lançamento confirmado!','sucesso');},300);}
 }
-function resolverTodos(){
-  document.querySelectorAll('#tbody-pend tr').forEach(r=>{r.style.opacity='0';r.style.transition='opacity .3s';});
-  setTimeout(()=>{document.getElementById('tbody-pend').innerHTML='<tr><td colspan="6" class="empty">Nenhum lançamento pendente 🎉</td></tr>';
-    toast('Todos os pendentes resolvidos!','sucesso');},350);
-}
-
 // ══════════════════════════════════════════════
 // FECHAMENTOS
 // ══════════════════════════════════════════════
 function verFechamento(nome,e,s){
-  const ei=parseInt(e),si=parseInt(s),res=ei-si,mrg=((res/ei)*100).toFixed(1);
+  const ei=parseInt(e),si=parseInt(s),res=ei-si,mrg=ei>0?((res/ei)*100).toFixed(1):'0.0';
   abrirModal(`Fechamento — ${nome}`,`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
       <div style="background:#f0fdf4;border-radius:10px;padding:14px;border-left:3px solid #10b981;">
@@ -2378,7 +2372,7 @@ async function salvarNovaCategoria(){
   await carregarCategorias();
   toast(`Categoria "${nome}" criada!`,'sucesso');
 }
-function editarCategoria(nome,cor,tipo){
+function editarCategoria(nome,cor,tipo,id){
   abrirModal('Editar Categoria',`
     <div class="fg"><label class="fl">Nome</label><input type="text" id="ec-nome" class="fi" value="${nome}"/></div>
     <div class="fr">
@@ -2387,8 +2381,20 @@ function editarCategoria(nome,cor,tipo){
       <div class="fg"><label class="fl">Cor</label><input type="color" id="ec-cor" class="fi" value="${cor}" style="height:38px;padding:4px;cursor:pointer;"/></div>
     </div>`,
     `<button class="btn bs" onclick="fecharModal()">Cancelar</button>
-     <button class="btn bp" onclick="fecharModal();toast('Categoria atualizada!','sucesso')">Salvar</button>`
+     <button class="btn bp" onclick="salvarEdicaoCategoria('${id}')">Salvar</button>`
   );
+}
+async function salvarEdicaoCategoria(id){
+  if(!id){toast('ID da categoria não encontrado','erro');return;}
+  const nome=(document.getElementById('ec-nome')?.value||'').trim();
+  const tipo=document.getElementById('ec-tipo')?.value||'entrada';
+  const cor=document.getElementById('ec-cor')?.value||'#6366f1';
+  if(!nome){toast('Informe o nome','erro');return;}
+  const {error}=await sb.from('categorias').update({nome,tipo,cor}).eq('id',id);
+  if(error){toast('Erro ao salvar: '+error.message,'erro');return;}
+  fecharModal();
+  await carregarCategorias();
+  toast(`Categoria "${nome}" atualizada!`,'sucesso');
 }
 
 // ══════════════════════════════════════════════
@@ -2756,9 +2762,9 @@ async function carregarFechamento(){
     const mesIni=mes+'-01';
     const [yr,mo]=mes.split('-').map(Number);
     const mesFim=mo===12?`${yr+1}-01-01`:`${yr}-${String(mo+1).padStart(2,'0')}-01`;
-    const {data:vendas}=await sb.from('vendas').select('valor,data_venda').gte('data_venda',mesIni).lt('data_venda',mesFim);
+    const {data:vendas}=await sb.from('vendas').select('valor_total,data_venda').gte('data_venda',mesIni).lt('data_venda',mesFim);
     if(vendas&&vendas.length>0){
-      const fat=vendas.reduce((s,v)=>s+(parseFloat(v.valor)||0),0);
+      const fat=vendas.reduce((s,v)=>s+(parseFloat(v.valor_total)||0),0);
       const pct=fat>20000?5:2;
       const comissao=fat*(pct/100);
       const efv=document.getElementById('fech-fat-vendas');if(efv)efv.textContent=brl(fat);
@@ -2792,12 +2798,16 @@ function abrirFormRelatorio(){
   // reset checkboxes
   document.querySelectorAll('#rel-objecoes-checks input[type=checkbox]').forEach(c=>c.checked=false);
   document.querySelectorAll('#rel-origem-checks input[type=checkbox]').forEach(c=>c.checked=false);
+  // reset numéricos
+  ['rel-leads-novos','rel-leads-retomados','rel-calls-ag','rel-calls-real','rel-vendas']
+    .forEach(id=>{const el=document.getElementById(id);if(el)el.value='0';});
   const libre = document.getElementById('rel-objecoes-livre');
   if(libre) libre.value='';
   const prob = document.getElementById('rel-problemas');
   if(prob) prob.value='';
   const obs = document.getElementById('rel-obs');
   if(obs) obs.value='';
+  document.getElementById('rel-form-titulo').textContent='Relatório de Hoje';
   // data hoje
   const inp = document.getElementById('rel-data');
   if(inp) inp.value = new Date().toISOString().slice(0,10);
@@ -3271,6 +3281,7 @@ async function carregarNotionFinanceiro() {
   const meses  = parseInt(document.getElementById('notion-fin-meses')?.value || '6');
   const banner = document.getElementById('notion-fin-setup-banner');
   const card   = document.getElementById('notion-fin-card');
+  if (!banner || !card) return; // elementos removidos do HTML
   try {
     const res = await fnCall('notion-financeiro', { meses });
     if (res.setup || res.error) {
@@ -3361,6 +3372,7 @@ async function carregarNotionFinanceiro() {
 async function sincronizarClickUp() {
   const btn = document.getElementById('btn-sync-clickup');
   const icon = document.getElementById('sync-icon');
+  if (!btn) return;
   btn.disabled = true;
   btn.style.opacity = '0.7';
   icon.style.animation = 'spin 1s linear infinite';
@@ -3395,7 +3407,7 @@ async function carregarDashboardCRM(){
 
     const [ra,rp] = await Promise.all([
       sb.from('crm_alunos').select('id,status,upsell'),
-      sb.from('pagamentos').select('*,vendas(aluno)').eq('recebido',false).order('data_prevista',{nullsFirst:false})
+      sb.from('pagamentos').select('*,vendas(aluno_nome)').eq('recebido',false).order('data_prevista',{nullsFirst:false})
     ]);
 
     // KPI Alunos Ativos
@@ -3427,7 +3439,7 @@ async function carregarDashboardCRM(){
         const ds = String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
         const dias = Math.ceil((d-hoje)/(1000*60*60*24));
         const urgente = dias<=7;
-        const aluno = p.vendas?.aluno||'—';
+        const aluno = p.vendas?.aluno_nome||'—';
         const val = p.valor?'R$ '+parseFloat(p.valor).toLocaleString('pt-BR',{minimumFractionDigits:2}):'';
         return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9;">'
           +'<div><div style="font-weight:500;font-size:13px;">'+aluno+'</div>'
@@ -3449,13 +3461,13 @@ async function carregarDashboardVendas(){
     const [yr,mo] = mes.split('-').map(Number);
     const proxMes = mo===12 ? `${yr+1}-01-01` : `${yr}-${String(mo+1).padStart(2,'0')}-01`;
     const [rv,rp] = await Promise.all([
-      sb.from('vendas').select('id,valor').gte('data',mes+'-01').lt('data',proxMes),
+      sb.from('vendas').select('id,valor_total').gte('data_venda',mes+'-01').lt('data_venda',proxMes),
       sb.from('pagamentos').select('valor,recebido,data_prevista,data_recebido')
     ]);
     const vendas = rv.data||[];
     const pagamentos = rp.data||[];
 
-    const totalVendas = vendas.reduce((s,v)=>s+(parseFloat(v.valor)||0),0);
+    const totalVendas = vendas.reduce((s,v)=>s+(parseFloat(v.valor_total)||0),0);
     document.getElementById('dash-kpi-vendas').textContent = totalVendas>0?'R$ '+totalVendas.toLocaleString('pt-BR',{minimumFractionDigits:2}):'R$ 0,00';
     document.getElementById('dash-kpi-vendas-qt').textContent = vendas.length+' venda'+(vendas.length!==1?'s':'');
 
@@ -3542,10 +3554,10 @@ async function carregarMetasComerciais(){
     const proxMes = mo===12 ? `${yr+1}-01-01` : `${yr}-${String(mo+1).padStart(2,'0')}-01`;
     const nomesMes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
-    const rv = await sb.from('vendas').select('id,valor').gte('data',mes+'-01').lt('data',proxMes);
+    const rv = await sb.from('vendas').select('id,valor_total').gte('data_venda',mes+'-01').lt('data_venda',proxMes);
 
     const vendasMes = rv.data||[];
-    const totalFat = vendasMes.reduce((s,v)=>s+(parseFloat(v.valor)||0),0);
+    const totalFat = vendasMes.reduce((s,v)=>s+(parseFloat(v.valor_total)||0),0);
     const totalVen = vendasMes.length;
     const ticketReal = totalVen>0 ? totalFat/totalVen : 0;
 
@@ -5156,6 +5168,9 @@ function adicionarLinhaParcela(desc='',valor=0,data='',id=null,recebido=false){
 }
 
 async function salvarVenda(){
+  const btn=document.querySelector('#modal-venda .btn.bp[onclick*="salvarVenda"]')||document.getElementById('mv-salvar-btn');
+  if(btn){btn.disabled=true;btn.textContent='Salvando...';}
+  try{
   const aluno=document.getElementById('mv-aluno').value.trim();
   const data=document.getElementById('mv-data').value;
   const valor=parseFloat(document.getElementById('mv-valor').value);
@@ -5163,9 +5178,9 @@ async function salvarVenda(){
   const influencer_id=document.getElementById('mv-influencer').value||null;
   const vendedora_id=document.getElementById('mv-vendedora').value||null;
   const obs=document.getElementById('mv-obs').value.trim()||null;
-  if(!aluno){toast('Informe o nome do aluno','erro');return;}
-  if(!data){toast('Informe a data','erro');return;}
-  if(!valor||valor<=0){toast('Informe o valor','erro');return;}
+  if(!aluno){toast('Informe o nome do aluno','erro');if(btn){btn.disabled=false;btn.textContent='Salvar';}return;}
+  if(!data){toast('Informe a data','erro');if(btn){btn.disabled=false;btn.textContent='Salvar';}return;}
+  if(!valor||valor<=0){toast('Informe o valor','erro');if(btn){btn.disabled=false;btn.textContent='Salvar';}return;}
   const vendaDados={aluno_nome:aluno,data_venda:data,valor_total:valor,tipo_pagamento:tipo,influencer_id,vendedora_id,observacoes:obs};
   let vendaId=VENDA_EDITING_ID,error;
   if(vendaId){
@@ -5191,6 +5206,8 @@ async function salvarVenda(){
   toast(VENDA_EDITING_ID?'Venda atualizada!':'Venda registrada!','sucesso');
   fecharModalVenda();
   await carregarDadosVendas();popularSelectMeses();renderTabVendas(VENDAS_TAB);
+  }catch(e){toast('Erro ao salvar venda: '+e.message,'erro');}
+  finally{if(btn){btn.disabled=false;btn.textContent='Salvar';}}
 }
 
 async function excluirVendaModal(){
