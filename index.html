@@ -1535,8 +1535,8 @@ main.bb-visible{padding-top:48px;}
 </div>
 
 <!-- ═══════ MODAL VENDA ═══════ -->
-<div class="modal-bg" id="modal-venda" onclick="if(!event.target.closest('.modal'))fecharModalVenda()">
-  <div class="modal" style="max-width:640px;">
+<div class="modal-bg" id="modal-venda" onclick="fecharModalVenda()">
+  <div class="modal" style="max-width:640px;" onclick="event.stopPropagation()">
     <div class="modal-hdr">
       <h4 id="modal-venda-titulo">Nova Venda</h4>
       <button class="modal-close" onclick="fecharModalVenda()">✕</button>
