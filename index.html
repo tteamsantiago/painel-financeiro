@@ -1535,7 +1535,7 @@ main.bb-visible{padding-top:48px;}
 </div>
 
 <!-- ═══════ MODAL VENDA ═══════ -->
-<div class="modal-bg" id="modal-venda" onclick="if(event.target===this)fecharModalVenda()">
+<div class="modal-bg" id="modal-venda" onclick="if(!event.target.closest('.modal'))fecharModalVenda()">
   <div class="modal" style="max-width:640px;">
     <div class="modal-hdr">
       <h4 id="modal-venda-titulo">Nova Venda</h4>
@@ -1597,9 +1597,9 @@ main.bb-visible{padding-top:48px;}
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn" onclick="excluirVendaModal()" id="btn-del-venda" style="display:none;color:#ef4444;border:1px solid #fca5a5;padding:7px 14px;font-size:13px;border-radius:6px;cursor:pointer;background:none;margin-right:auto;">Excluir</button>
-      <button class="btn bs" onclick="fecharModalVenda()">Cancelar</button>
-      <button class="btn bp" onclick="salvarVenda()">Salvar</button>
+      <button type="button" class="btn" onclick="excluirVendaModal()" id="btn-del-venda" style="display:none;color:#ef4444;border:1px solid #fca5a5;padding:7px 14px;font-size:13px;border-radius:6px;cursor:pointer;background:none;margin-right:auto;">Excluir</button>
+      <button type="button" class="btn bs" onclick="fecharModalVenda()">Cancelar</button>
+      <button type="button" class="btn bp" onclick="salvarVenda()">Salvar</button>
     </div>
   </div>
 </div>
@@ -5143,6 +5143,7 @@ function editarVenda(id){
 function fecharModalVenda(){document.getElementById('modal-venda').classList.remove('open');}
 
 function atualizarParcelasForm(){
+  try{
   const tipo=document.getElementById('mv-tipo')?.value;
   const valor=parseFloat(document.getElementById('mv-valor')?.value)||0;
   const dataStr=document.getElementById('mv-data')?.value;
@@ -5155,6 +5156,7 @@ function atualizarParcelasForm(){
   else if(tipo==='credito'){adicionarLinhaParcela('Crédito (parcela 1)',valor,add(hoje,30));}
   else if(tipo==='sinal_parcelas'){adicionarLinhaParcela('Sinal',valor*0.5,hoje);adicionarLinhaParcela('Restante',valor*0.5,add(hoje,30));}
   else if(tipo==='parcelado_pix'){adicionarLinhaParcela('Parcela 1',valor,hoje);adicionarLinhaParcela('Parcela 2',0,add(hoje,30));}
+  }catch(e){console.error('atualizarParcelasForm:',e);}
 }
 
 function adicionarLinhaParcela(desc='',valor=0,data='',id=null,recebido=false){
