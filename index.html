@@ -427,6 +427,7 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
   <div class="ph">
     <div><h2>Dashboard</h2><p id="mes-label">Agosto 2026</p></div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <span id="dash-sync-ts" style="font-size:11px;color:#94a3b8;"></span>
       <select id="mes-select" onchange="trocarMes(this.value)">
         <option value="2026-12">Dezembro 2026</option>
         <option value="2026-11">Novembro 2026</option>
@@ -443,6 +444,10 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
         <option value="2025-12">Dezembro 2025</option>
         <option value="2025-11">Novembro 2025</option>
       </select>
+      <button class="btn bs" id="btn-dash-sync" onclick="sincronizarDashboard()" style="display:flex;align-items:center;gap:6px;">
+        <svg id="dash-sync-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.63-4.14"/></svg>
+        <span id="dash-sync-label">Sincronizar</span>
+      </button>
     </div>
   </div>
 
@@ -1273,8 +1278,9 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
     <div style="display:flex;align-items:center;gap:10px;">
       <span id="fech-sync-ts" style="font-size:11px;color:#94a3b8;"></span>
       <input type="month" id="fech-mes" class="fi" style="width:160px;" />
-      <button class="btn bs" onclick="carregarFechamento()" style="display:flex;align-items:center;gap:6px;">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.63-4.14"/></svg>Carregar
+      <button class="btn bs" id="btn-fech-sync" onclick="carregarFechamento()" style="display:flex;align-items:center;gap:6px;">
+        <svg id="fech-sync-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.63-4.14"/></svg>
+        <span id="fech-sync-label">Sincronizar Notion</span>
       </button>
     </div>
   </div>
@@ -1858,6 +1864,33 @@ function toggleSidebar(){
 function closeSidebar(){
   document.querySelector('aside').classList.remove('mob-open');
   document.getElementById('sb-overlay').classList.remove('mob-open');
+}
+async function sincronizarDashboard(){
+  const icon=document.getElementById('dash-sync-icon');
+  const label=document.getElementById('dash-sync-label');
+  const btn=document.getElementById('btn-dash-sync');
+  if(btn) btn.disabled=true;
+  if(icon) icon.style.animation='spin 1s linear infinite';
+  if(label) label.textContent='Sincronizando...';
+  try{
+    await Promise.all([
+      carregarDashboardVendas(),
+      carregarDashboardCRM(),
+      carregarMetasComerciais(),
+      carregarPrevisaoFaturamento(),
+      renderAniversarios(),
+    ]);
+    const agora=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    const tsEl=document.getElementById('dash-sync-ts');
+    if(tsEl) tsEl.textContent='Atualizado às '+agora;
+    toast('Dados atualizados!','sucesso');
+  }catch(e){
+    toast('Erro ao sincronizar','erro');
+  }finally{
+    if(icon) icon.style.animation='';
+    if(label) label.textContent='Sincronizar';
+    if(btn) btn.disabled=false;
+  }
 }
 function irPara(p,el){
   if(window.innerWidth<=768) closeSidebar();
@@ -2793,6 +2826,12 @@ async function carregarMetasPage(){
 function brl(v){ return v!=null?'R$ '+Math.round(v).toLocaleString('pt-BR'):'—'; }
 
 async function carregarFechamento(){
+  const fIcon=document.getElementById('fech-sync-icon');
+  const fLabel=document.getElementById('fech-sync-label');
+  const fBtn=document.getElementById('btn-fech-sync');
+  if(fBtn) fBtn.disabled=true;
+  if(fIcon) fIcon.style.animation='spin 1s linear infinite';
+  if(fLabel) fLabel.textContent='Sincronizando...';
   // Determinar mês selecionado (default: mês anterior)
   const inp=document.getElementById('fech-mes');
   if(!inp.value){
@@ -2957,6 +2996,9 @@ async function carregarFechamento(){
     }
   }catch(e){console.warn('Comissões fechamento:',e.message);}
   const tsF=await salvarSyncTs('sync_fech_ts');exibirSyncTs(tsF,'fech-sync-ts');
+  if(fIcon) fIcon.style.animation='';
+  if(fLabel) fLabel.textContent='Sincronizar Notion';
+  if(fBtn) fBtn.disabled=false;
 }
 
 /* ═══════════════════════════════════════════
