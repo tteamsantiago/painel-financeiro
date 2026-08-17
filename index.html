@@ -209,6 +209,7 @@ main.bb-visible{padding-top:48px;}
 .com-card-total{display:flex;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #f3f4f6;font-size:13px;font-weight:700;color:#059669;}
 .btn-marcar{padding:4px 10px;font-size:11px;font-weight:600;background:#d1fae5;color:#065f46;border:none;border-radius:6px;cursor:pointer;transition:background .15s;}
 .btn-marcar:hover{background:#a7f3d0;}
+body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!important;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pizzip@3.1.4/dist/pizzip.min.js"></script>
@@ -495,7 +496,7 @@ main.bb-visible{padding-top:48px;}
 <div class="page" id="page-categorias">
   <div class="ph">
     <div><h2>Categorias</h2><p>Gerencie as categorias de lançamentos</p></div>
-    <button class="btn bp" onclick="abrirModalNovaCategoria()">+ Nova Categoria</button>
+    <button class="btn bp" data-write onclick="abrirModalNovaCategoria()">+ Nova Categoria</button>
   </div>
   <div class="g2">
     <div class="card">
@@ -618,7 +619,7 @@ main.bb-visible{padding-top:48px;}
     <div><h2>CRM &amp; Alunos</h2><p id="crm-last-update" style="color:#64748b;">Gerenciamento manual</p></div>
     <div style="display:flex;align-items:center;gap:8px;">
       <span id="crm-sync-ts" style="font-size:11px;color:#94a3b8;"></span>
-      <button class="btn bp" onclick="abrirModalAluno(null)" style="display:flex;align-items:center;gap:6px;">
+      <button class="btn bp" data-write onclick="abrirModalAluno(null)" style="display:flex;align-items:center;gap:6px;">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Novo Aluno
       </button>
@@ -957,7 +958,7 @@ main.bb-visible{padding-top:48px;}
 <div class="page" id="page-vendas">
   <div class="ph">
     <div><h2>Vendas & Comissões</h2><p>Registre vendas, acompanhe parcelas e calcule comissões automaticamente</p></div>
-    <button class="btn bp" onclick="abrirModalVenda()">+ Nova Venda</button>
+    <button class="btn bp" data-write onclick="abrirModalVenda()">+ Nova Venda</button>
   </div>
   <!-- Tabs -->
   <div class="vtabs">
@@ -3730,7 +3731,8 @@ function showLogin(){
 // ══════════════════════════════════════════════
 let USUARIO_ROLE = 'admin';
 let USUARIO_EMAIL = '';
-let USUARIO_PAGINAS = null; // null = usa PERM_MAPA; array = páginas específicas deste usuário
+let USUARIO_PODE_EDITAR = true;
+let USUARIO_PAGINAS = null;
 let COLABS = [];
 const SUPABASE_FN = 'https://fhuromvcoujzmikxxjnv.supabase.co/functions/v1';
 
@@ -3774,10 +3776,17 @@ async function carregarRoleUsuario(){
   const {data:{session}}=await sb.auth.getSession();
   if(!session) return;
   USUARIO_EMAIL=session.user.email;
-  const {data}=await sb.from('colaboradores').select('role,nome,paginas_permitidas').eq('email',USUARIO_EMAIL).maybeSingle();
+  const {data}=await sb.from('colaboradores').select('role,nome,paginas_permitidas,apenas_visualizar').eq('email',USUARIO_EMAIL).maybeSingle();
   USUARIO_ROLE=data?.role||'admin';
   USUARIO_PAGINAS=data?.paginas_permitidas||null;
+  USUARIO_PODE_EDITAR=!(data?.apenas_visualizar||false);
   aplicarPermissoes();
+  aplicarModoEdicao();
+}
+
+function aplicarModoEdicao(){
+  if(USUARIO_PODE_EDITAR){document.body.removeAttribute('data-readonly');}
+  else{document.body.setAttribute('data-readonly','1');}
 }
 
 function aplicarPermissoes(){
@@ -3845,9 +3854,10 @@ function renderizarEquipe(){
         <div style="flex:1;min-width:0;">
           <div style="font-weight:600;color:#111827;font-size:14px;">${c.nome}${isSelf?' <span style="font-size:11px;color:#6b7280;">(você)</span>':''}</div>
           <div style="color:#6b7280;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.email}</div>
-          <div style="margin-top:5px;display:flex;gap:6px;align-items:center;">
+          <div style="margin-top:5px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
             <span style="background:${rb};color:${rc};padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">${RL[c.role]||c.role}</span>
             <span style="font-size:11px;color:#10b981;">● Ativo</span>
+            ${c.apenas_visualizar?'<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">👁 Somente visualizar</span>':'<span style="background:#ede9fe;color:#5b21b6;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">✏️ Pode editar</span>'}
           </div>
         </div>
         ${canEdit?`<div style="display:flex;gap:6px;flex-shrink:0;">
@@ -3894,6 +3904,17 @@ function abrirConvidarColab(){
           <option value="visualizador">Visualizador — somente dashboard</option>
         </select>
       </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Permissão de edição de dados</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #d1d5db;border-radius:8px;overflow:hidden;">
+          <label id="ci-modo-editor" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;cursor:pointer;font-size:13px;font-weight:600;background:#6366f1;color:#fff;border-right:1px solid #d1d5db;transition:all .15s;">
+            <input type="radio" name="ci-modo" value="editor" checked style="display:none;" onchange="ciModoChange()"> ✏️ Pode editar
+          </label>
+          <label id="ci-modo-leitura" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;cursor:pointer;font-size:13px;font-weight:600;background:#fff;color:#6b7280;transition:all .15s;">
+            <input type="radio" name="ci-modo" value="leitura" style="display:none;" onchange="ciModoChange()"> 👁 Somente visualizar
+          </label>
+        </div>
+      </div>
       <div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
           <span style="font-size:12px;font-weight:600;color:#374151;">Páginas com acesso</span>
@@ -3909,6 +3930,14 @@ function abrirConvidarColab(){
   ciRoleChange();
   document.getElementById('modal-footer').innerHTML=`<button class="btn bp" onclick="enviarConvite()" style="width:100%;">Criar Usuário</button>`;
   document.getElementById('modal-bg').classList.add('open');
+}
+
+function ciModoChange(){
+  const v=document.querySelector('[name="ci-modo"]:checked')?.value;
+  const eL=document.getElementById('ci-modo-leitura');
+  const eE=document.getElementById('ci-modo-editor');
+  if(eE){eE.style.background=v==='editor'?'#6366f1':'#fff';eE.style.color=v==='editor'?'#fff':'#6b7280';}
+  if(eL){eL.style.background=v==='leitura'?'#6366f1':'#fff';eL.style.color=v==='leitura'?'#fff':'#6b7280';}
 }
 
 function ciRoleChange(){
@@ -3930,6 +3959,7 @@ async function enviarConvite(){
   const senha=document.getElementById('ci-senha').value;
   const role=document.getElementById('ci-role').value;
   const paginas=[...document.querySelectorAll('[name="ci-pag"]:checked')].map(cb=>cb.value);
+  const soLeitura=document.querySelector('[name="ci-modo"]:checked')?.value==='leitura';
   if(!nome||!email){toast('Preencha nome e e-mail','erro');return;}
   if(!senha||senha.length<6){toast('Senha deve ter pelo menos 6 caracteres','erro');return;}
   if(!paginas.length){toast('Selecione ao menos uma página','erro');return;}
@@ -3944,6 +3974,7 @@ async function enviarConvite(){
     });
     const json=await res.json();
     if(json.error)throw new Error(json.error);
+    await sb.from('colaboradores').update({apenas_visualizar:soLeitura}).eq('email',email);
     fecharModal();
     toast('Usuário criado: '+email,'sucesso');
     carregarEquipe();
@@ -3956,6 +3987,7 @@ async function enviarConvite(){
 function abrirEditarRole(email,nome,roleAtual){
   const colab=COLABS.find(c=>c.email===email);
   const paginasAtuais=colab?.paginas_permitidas||paginasParaRole(roleAtual);
+  const soLeitura=!!(colab?.apenas_visualizar);
   document.getElementById('modal-title').textContent='Editar Acesso — '+nome;
   document.getElementById('modal-body').innerHTML=`
     <div style="display:flex;flex-direction:column;gap:14px;padding-top:4px;">
@@ -3967,6 +3999,18 @@ function abrirEditarRole(email,nome,roleAtual){
           <option value="crm" ${roleAtual==='crm'?'selected':''}>CRM — CRM e alunos</option>
           <option value="visualizador" ${roleAtual==='visualizador'?'selected':''}>Visualizador — somente dashboard</option>
         </select>
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Permissão de edição de dados</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #d1d5db;border-radius:8px;overflow:hidden;">
+          <label id="er-modo-editor" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;cursor:pointer;font-size:13px;font-weight:600;background:${!soLeitura?'#6366f1':'#fff'};color:${!soLeitura?'#fff':'#6b7280'};border-right:1px solid #d1d5db;transition:all .15s;">
+            <input type="radio" name="er-modo" value="editor" ${!soLeitura?'checked':''} style="display:none;" onchange="erModoChange()"> ✏️ Pode editar
+          </label>
+          <label id="er-modo-leitura" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;cursor:pointer;font-size:13px;font-weight:600;background:${soLeitura?'#6366f1':'#fff'};color:${soLeitura?'#fff':'#6b7280'};transition:all .15s;">
+            <input type="radio" name="er-modo" value="leitura" ${soLeitura?'checked':''} style="display:none;" onchange="erModoChange()"> 👁 Somente visualizar
+          </label>
+        </div>
+        <p style="font-size:11px;color:#6b7280;margin:4px 0 0;">"Somente visualizar" impede criar, editar ou excluir qualquer dado no painel.</p>
       </div>
       <div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
@@ -3989,6 +4033,14 @@ function abrirEditarRole(email,nome,roleAtual){
     </div>`;
   document.getElementById('modal-footer').innerHTML=`<button class="btn bp" onclick="salvarRole('${email}')" style="width:100%;">Salvar Alterações</button>`;
   document.getElementById('modal-bg').classList.add('open');
+}
+
+function erModoChange(){
+  const v=document.querySelector('[name="er-modo"]:checked')?.value;
+  const eL=document.getElementById('er-modo-leitura');
+  const eE=document.getElementById('er-modo-editor');
+  if(eE){eE.style.background=v==='editor'?'#6366f1':'#fff';eE.style.color=v==='editor'?'#fff':'#6b7280';}
+  if(eL){eL.style.background=v==='leitura'?'#6366f1':'#fff';eL.style.color=v==='leitura'?'#fff':'#6b7280';}
 }
 
 function erRoleChange(){
@@ -4018,6 +4070,7 @@ async function salvarRole(email){
   const role=document.getElementById('er-role').value;
   const paginas=[...document.querySelectorAll('[name="er-pag"]:checked')].map(cb=>cb.value);
   const senha=document.getElementById('er-senha')?.value||'';
+  const soLeitura=document.querySelector('[name="er-modo"]:checked')?.value==='leitura';
   if(!paginas.length){toast('Selecione ao menos uma página','erro');return;}
   const btn=document.querySelector('#modal-footer .btn');
   btn.disabled=true;btn.textContent='Salvando...';
@@ -4032,6 +4085,7 @@ async function salvarRole(email){
     });
     const json=await res.json();
     if(json.error)throw new Error(json.error);
+    await sb.from('colaboradores').update({apenas_visualizar:soLeitura}).eq('email',email);
     fecharModal();
     toast('Acesso atualizado','sucesso');
     carregarEquipe();
@@ -5097,7 +5151,7 @@ function renderListaVendas(){
     const tot=pgtos.reduce((s,p)=>s+(p.valor||0),0);
     const sc=rec>=tot&&tot>0?'badge-recebido':rec>0?'badge-parcial':'badge-pendente';
     const sl=rec>=tot&&tot>0?'Recebido':rec>0?'Parcial':'Pendente';
-    return`<tr><td><strong>${v.aluno_nome}</strong></td><td>${fmtDataV(v.data_venda)}</td><td>${fmt(v.valor_total)}</td><td>${tipoLabel(v.tipo_pagamento)}</td><td>${v.influenciadoras?.nome||'—'}</td><td>${v.vendedoras?.nome||'—'}</td><td><span class="badge-status ${sc}">${sl}</span><small style="color:#9ca3af;margin-left:6px;">${pgtos.filter(p=>p.recebido).length}/${pgtos.length}</small></td><td><button class="btn" style="padding:3px 8px;font-size:11px;" onclick="editarVenda('${v.id}')">Editar</button></td></tr>`;
+    return`<tr><td><strong>${v.aluno_nome}</strong></td><td>${fmtDataV(v.data_venda)}</td><td>${fmt(v.valor_total)}</td><td>${tipoLabel(v.tipo_pagamento)}</td><td>${v.influenciadoras?.nome||'—'}</td><td>${v.vendedoras?.nome||'—'}</td><td><span class="badge-status ${sc}">${sl}</span><small style="color:#9ca3af;margin-left:6px;">${pgtos.filter(p=>p.recebido).length}/${pgtos.length}</small></td><td>${USUARIO_PODE_EDITAR?`<button class="btn" style="padding:3px 8px;font-size:11px;" onclick="editarVenda('${v.id}')">Editar</button>`:''}</td></tr>`;
   }).join('');
 }
 
@@ -5116,7 +5170,7 @@ function renderListaPagamentos(){
   tbody.innerHTML=dados.map(p=>{
     const aluno=VENDAS_DATA.find(v=>v.id===p.venda_id)?.aluno_nome||'—';
     const venc=!p.recebido&&new Date(p.data_prevista)<new Date();
-    return`<tr><td><strong>${aluno}</strong></td><td>${p.descricao||'—'}</td><td>${fmt(p.valor)}</td><td style="${venc?'color:#ef4444;font-weight:600;':''}">${fmtDataV(p.data_prevista)}</td><td>${p.data_recebido?fmtDataV(p.data_recebido):'—'}</td><td><span class="badge-status ${p.recebido?'badge-recebido':'badge-pendente'}">${p.recebido?'Recebido':'Pendente'}</span></td><td>${!p.recebido?`<button class="btn-marcar" onclick="marcarPagamentoRecebido('${p.id}')">✓ Recebido</button>`:`<button class="btn" style="padding:3px 8px;font-size:11px;color:#6b7280;" onclick="desmarcarPagamento('${p.id}')">Desfazer</button>`}</td></tr>`;
+    return`<tr><td><strong>${aluno}</strong></td><td>${p.descricao||'—'}</td><td>${fmt(p.valor)}</td><td style="${venc?'color:#ef4444;font-weight:600;':''}">${fmtDataV(p.data_prevista)}</td><td>${p.data_recebido?fmtDataV(p.data_recebido):'—'}</td><td><span class="badge-status ${p.recebido?'badge-recebido':'badge-pendente'}">${p.recebido?'Recebido':'Pendente'}</span></td><td>${USUARIO_PODE_EDITAR?(!p.recebido?`<button class="btn-marcar" onclick="marcarPagamentoRecebido('${p.id}')">✓ Recebido</button>`:`<button class="btn" style="padding:3px 8px;font-size:11px;color:#6b7280;" onclick="desmarcarPagamento('${p.id}')">Desfazer</button>`):''}</td></tr>`;
   }).join('');
 }
 
