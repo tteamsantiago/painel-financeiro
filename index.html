@@ -210,11 +210,68 @@ main.bb-visible{padding-top:48px;}
 .btn-marcar{padding:4px 10px;font-size:11px;font-weight:600;background:#d1fae5;color:#065f46;border:none;border-radius:6px;cursor:pointer;transition:background .15s;}
 .btn-marcar:hover{background:#a7f3d0;}
 body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!important;}
+
+/* ── Mobile topbar ── */
+#mobile-topbar{display:none;position:fixed;top:0;left:0;right:0;height:52px;background:#111827;z-index:600;align-items:center;padding:0 16px;gap:12px;}
+#mob-hamburger{background:none;border:none;color:#fff;cursor:pointer;padding:6px;display:flex;flex-direction:column;gap:5px;border-radius:6px;}
+#mob-hamburger span{display:block;width:20px;height:2px;background:#fff;border-radius:2px;transition:all .2s;}
+#mobile-topbar .mob-brand{font-size:13px;font-weight:700;color:#fff;flex:1;}
+#sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:550;}
+
+@media(max-width:768px){
+  body{display:block;padding-top:52px;}
+  #mobile-topbar{display:flex;}
+  aside{
+    position:fixed;
+    top:52px;
+    left:0;
+    height:calc(100vh - 52px);
+    width:240px;
+    z-index:600;
+    transform:translateX(-100%);
+    transition:transform .25s ease;
+    overflow-y:auto;
+    min-height:unset;
+  }
+  aside.mob-open{transform:translateX(0);}
+  #sb-overlay.mob-open{display:block;}
+  main{margin-left:0!important;width:100%;}
+  .page{padding:16px;}
+  .ph{margin-bottom:16px;}
+  .ph h2{font-size:18px;}
+  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .kv{font-size:18px;}
+  .fr{grid-template-columns:1fr;}
+  .g3,.g2{grid-template-columns:1fr;}
+  #birthday-banner{left:0;top:52px;}
+  main.bb-visible{padding-top:48px;}
+  .vtabs{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;padding-bottom:2px;}
+  .vtab{white-space:nowrap;padding:8px 10px;font-size:12px;}
+  .modal{max-width:calc(100vw - 16px);margin:8px;}
+  .modal-hdr,.modal-body,.modal-footer{padding-left:16px;padding-right:16px;}
+  table{font-size:12px;}
+  thead th{padding:8px;font-size:10px;}
+  tbody td{padding:8px;}
+  .filtros{gap:8px;}
+  .filtros select,.filtros input{font-size:12px;padding:6px 10px;}
+  .btn{padding:7px 12px;font-size:12px;}
+  .card{padding:16px;}
+  .kpi{padding:14px;}
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pizzip@3.1.4/dist/pizzip.min.js"></script>
 </head>
 <body>
+
+<!-- ── Mobile Topbar ── -->
+<div id="mobile-topbar">
+  <button id="mob-hamburger" onclick="toggleSidebar()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <span class="mob-brand">Team Santiago</span>
+</div>
+<div id="sb-overlay" onclick="closeSidebar()"></div>
 
 <!-- ── LOGIN OVERLAY ── -->
 <div id="login-overlay">
@@ -1791,7 +1848,16 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementB
 // ══════════════════════════════════════════════
 // NAVEGAÇÃO
 // ══════════════════════════════════════════════
+function toggleSidebar(){
+  document.querySelector('aside').classList.toggle('mob-open');
+  document.getElementById('sb-overlay').classList.toggle('mob-open');
+}
+function closeSidebar(){
+  document.querySelector('aside').classList.remove('mob-open');
+  document.getElementById('sb-overlay').classList.remove('mob-open');
+}
 function irPara(p,el){
+  if(window.innerWidth<=768) closeSidebar();
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.nl').forEach(x=>x.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
