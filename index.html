@@ -5027,11 +5027,7 @@ function renderResumoVendas(){
   const vendasMes=VENDAS_DATA.filter(v=>v.data_venda?.startsWith(mesAtual));
   const totalRecebido=PAGAMENTOS_DATA.filter(p=>p.recebido&&p.data_prevista?.startsWith(mesAtual)).reduce((s,p)=>s+(p.valor||0),0);
   const totalPendente=PAGAMENTOS_DATA.filter(p=>!p.recebido).reduce((s,p)=>s+(p.valor||0),0);
-  const pgRecMes=PAGAMENTOS_DATA.filter(p=>{
-    if(!p.recebido)return false;
-    const v=VENDAS_DATA.find(x=>x.id===p.venda_id);
-    return v&&(v.data_venda||'').startsWith(mesAtual);
-  });
+  const pgRecMes=PAGAMENTOS_DATA.filter(p=>p.recebido&&(p.data_prevista||'').startsWith(mesAtual));
   let comTotal=0;
   pgRecMes.forEach(pg=>{
     const venda=VENDAS_DATA.find(v=>v.id===pg.venda_id);
@@ -5116,11 +5112,7 @@ function renderComissoesVendas(){
     if(lblPer)lblPer.textContent=`Período: 01/${m} a ${String(ultimoDia).padStart(2,'0')}/${m}/${y}`;
     if(lblPag)lblPag.textContent=`Pagável em: ${nomePag.charAt(0).toUpperCase()+nomePag.slice(1)}`;
   }
-  const pgRec=PAGAMENTOS_DATA.filter(p=>{
-    if(!p.recebido)return false;
-    const v=VENDAS_DATA.find(x=>x.id===p.venda_id);
-    return v&&(v.data_venda||'').startsWith(VENDAS_MES_COM);
-  });
+  const pgRec=PAGAMENTOS_DATA.filter(p=>p.recebido&&(p.data_prevista||'').startsWith(VENDAS_MES_COM));
   const infGrid=document.getElementById('v-com-inf-grid');
   if(infGrid){
     const ativos=INF_LIST_V.filter(i=>i.status==='ativa');
