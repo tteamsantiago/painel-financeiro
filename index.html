@@ -4993,17 +4993,17 @@ async function carregarAlunosNotion(){
     // Plano breakdown
     const planosEl = document.getElementById('cn-planos');
     if(planosEl && d.planoCount) {
-      const entries = Object.entries(d.planoCount).sort((a,b) => (b[1] as number)-(a[1] as number));
+      const entries = Object.entries(d.planoCount).sort((a,b) => b[1]-a[1]);
       planosEl.innerHTML = entries.map(([plano, qt]) => {
         const cor = CN_PLANO_COR[plano] || '#94a3b8';
-        const pctBar = total ? Math.round((qt as number)/total*100) : 0;
+        const pctBar = total ? Math.round(qt/total*100) : 0;
         return `<div style="margin-bottom:10px;">
           <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
             <span style="display:flex;align-items:center;gap:6px;">
               <span style="width:10px;height:10px;border-radius:50%;background:${cor};display:inline-block;flex-shrink:0;"></span>
               <strong>${plano}</strong>
             </span>
-            <span style="color:#6b7280;">${qt} aluno${(qt as number)!==1?'s':''} · ${pctBar}%</span>
+            <span style="color:#6b7280;">${qt} aluno${qt!==1?'s':''} · ${pctBar}%</span>
           </div>
           <div style="background:#f3f4f6;border-radius:999px;height:8px;overflow:hidden;">
             <div style="width:${pctBar}%;height:8px;border-radius:999px;background:${cor};transition:width .5s;"></div>
@@ -5019,7 +5019,7 @@ async function carregarAlunosNotion(){
     toast('Alunos sincronizados — ' + total + ' ativos', 'sucesso');
     if(label) label.textContent = 'Sincronizar Notion';
 
-  } catch(e: any) {
+  } catch(e) {
     toast('Erro ao carregar alunos do Notion', 'erro');
     console.error(e);
   } finally {
@@ -5030,9 +5030,9 @@ async function carregarAlunosNotion(){
 }
 
 function filtrarAlunosNotion(){
-  const busca  = (document.getElementById('cn-search') as HTMLInputElement)?.value?.toLowerCase() || '';
-  const plano  = (document.getElementById('cn-filtro-plano') as HTMLSelectElement)?.value || '';
-  const genero = (document.getElementById('cn-filtro-genero') as HTMLSelectElement)?.value || '';
+  const busca  = document.getElementById('cn-search')?.value?.toLowerCase() || '';
+  const plano  = document.getElementById('cn-filtro-plano')?.value || '';
+  const genero = document.getElementById('cn-filtro-genero')?.value || '';
 
   const lista = CN_ALUNOS_TODOS.filter(a =>
     (!busca  || a.nome?.toLowerCase().includes(busca)) &&
@@ -5050,7 +5050,7 @@ function filtrarAlunosNotion(){
     return;
   }
 
-  const fmt = (dt: string) => {
+  const fmt = (dt) => {
     if(!dt) return '—';
     const [y,m,d] = dt.split('-');
     return `${d}/${m}/${y}`;
