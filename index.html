@@ -258,6 +258,12 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
   .card{padding:16px;}
   .kpi{padding:14px;}
 }
+/* ── Personalização ── */
+.sb-sort-item{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:8px;background:#f8fafc;border:1px solid #e5e7eb;cursor:grab;user-select:none;transition:background .15s,opacity .15s;}
+.sb-sort-item.dragging{opacity:.4;}
+.sb-sort-item.drag-over{background:#e0e7ff;border-color:#a5b4fc;}
+.pal-swatch{width:30px;height:30px;border-radius:7px;cursor:pointer;transition:transform .15s,outline .1s;display:inline-block;}
+.pal-swatch:hover{transform:scale(1.18);}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pizzip@3.1.4/dist/pizzip.min.js"></script>
@@ -675,6 +681,40 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
       </div>
     </div>
   </div>
+
+  <!-- ── Personalização ── -->
+  <div style="max-width:640px;margin-top:16px;">
+    <div class="card mb16">
+      <!-- Cores -->
+      <div class="fs">
+        <div class="fst">🎨 Cores do Painel</div>
+        <div class="fg">
+          <label class="fl">Cor de destaque — botões e item ativo na sidebar</label>
+          <div id="pal-acc" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;"></div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <input type="color" id="cor-acc-picker" value="#4f46e5"
+              oninput="TEMA_ACC=this.value;aplicarTemaCores();atualizarPalette()"
+              style="width:42px;height:38px;border:2px solid #e5e7eb;border-radius:8px;cursor:pointer;padding:2px;"/>
+            <span style="font-size:12px;color:#6b7280;">Cor personalizada (clique para abrir seletor)</span>
+          </div>
+        </div>
+        <div class="fg">
+          <label class="fl">Cor de fundo da sidebar</label>
+          <div id="pal-sb" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+        </div>
+        <button class="btn bp" onclick="salvarPersonalizacao()" style="margin-top:4px;">💾 Salvar aparência</button>
+      </div>
+
+      <!-- Sidebar order -->
+      <div>
+        <div class="fst">📌 Ordem da Sidebar</div>
+        <p style="font-size:12px;color:#6b7280;margin:6px 0 14px;">Arraste os itens para reorganizar a ordem da sidebar como quiser</p>
+        <div id="sb-sort-list" style="display:flex;flex-direction:column;gap:5px;max-width:380px;"></div>
+        <button class="btn bs" onclick="resetarOrdemSidebar()" style="margin-top:14px;font-size:12px;">↺ Restaurar ordem padrão</button>
+      </div>
+    </div>
+  </div>
+
   <div class="demo-footer">⚠ Dados fictícios — apenas para demonstração visual</div>
 </div>
 
@@ -1917,7 +1957,7 @@ function irPara(p,el){
     carregarPrevisaoFaturamento();
     renderAniversarios();
   }
-  if(p==='configuracoes'){ carregarCfgNotion(); carregarCfgIntegracoes(); }
+  if(p==='configuracoes'){ carregarCfgNotion(); carregarCfgIntegracoes(); atualizarPalette(); renderSbSortList(); }
   if(p==='crm'){ carregarAlunosNotion(); carregarCRMFinanceiro(); }
   if(p==='contratos')initContratos();
   if(p==='equipe')carregarEquipe();
@@ -2700,6 +2740,112 @@ async function excluirAluno(){
     fecharModalAluno();
     toast('Aluno removido','sucesso');
   }catch(e){ toast('Erro: '+e.message,'erro'); }
+}
+
+// ══════════════════════════════════════════════
+// PERSONALIZAÇÃO — CORES E SIDEBAR
+// ══════════════════════════════════════════════
+const CORES_ACC_PRESET = ['#4f46e5','#2563eb','#7c3aed','#db2777','#059669','#d97706','#dc2626','#0891b2'];
+const CORES_SB_PRESET  = [
+  {c:'#111827',n:'Grafite (padrão)'},
+  {c:'#0f172a',n:'Preto azulado'},
+  {c:'#1e1b4b',n:'Indigo escuro'},
+  {c:'#14532d',n:'Verde escuro'},
+  {c:'#1e3a5f',n:'Azul marinho'},
+];
+
+let TEMA_ACC = localStorage.getItem('tema-acc') || '#4f46e5';
+let TEMA_SB  = localStorage.getItem('tema-sb')  || '#111827';
+
+function aplicarTemaCores(){
+  let st = document.getElementById('st-tema');
+  if(!st){ st=document.createElement('style'); st.id='st-tema'; document.head.appendChild(st); }
+  st.textContent =
+    `.bp{background:${TEMA_ACC}!important;} .bp:hover{filter:brightness(.88);}` +
+    `.nl.active{background:${TEMA_ACC}!important;}` +
+    `aside{background:${TEMA_SB}!important;}` +
+    `#mobile-topbar{background:${TEMA_SB}!important;}`;
+}
+
+function atualizarPalette(){
+  const palAcc = document.getElementById('pal-acc');
+  const palSb  = document.getElementById('pal-sb');
+  if(palAcc) palAcc.innerHTML = CORES_ACC_PRESET.map(c => {
+    const sel = TEMA_ACC.toLowerCase()===c.toLowerCase();
+    return `<div class="pal-swatch" onclick="selecionarCorAcc('${c}')" title="${c}"
+      style="background:${c};outline:3px solid ${sel?'#000':'transparent'};box-shadow:${sel?'0 0 0 5px rgba(0,0,0,.08)':'none'};"></div>`;
+  }).join('');
+  if(palSb) palSb.innerHTML = CORES_SB_PRESET.map(({c,n}) => {
+    const sel = TEMA_SB.toLowerCase()===c.toLowerCase();
+    return `<div class="pal-swatch" onclick="selecionarCorSb('${c}')" title="${n}"
+      style="background:${c};outline:3px solid ${sel?TEMA_ACC:'transparent'};box-shadow:${sel?'0 0 0 5px rgba(0,0,0,.12)':'none'};"></div>`;
+  }).join('');
+  const pk = document.getElementById('cor-acc-picker');
+  if(pk) pk.value = TEMA_ACC;
+}
+
+function selecionarCorAcc(c){
+  TEMA_ACC=c;
+  const pk=document.getElementById('cor-acc-picker'); if(pk) pk.value=c;
+  aplicarTemaCores(); atualizarPalette();
+}
+function selecionarCorSb(c){ TEMA_SB=c; aplicarTemaCores(); atualizarPalette(); }
+
+function salvarPersonalizacao(){
+  const pk=document.getElementById('cor-acc-picker'); if(pk) TEMA_ACC=pk.value;
+  localStorage.setItem('tema-acc',TEMA_ACC);
+  localStorage.setItem('tema-sb',TEMA_SB);
+  aplicarTemaCores(); atualizarPalette();
+  toast('Aparência salva!','sucesso');
+}
+
+// ── Sidebar Order ──
+const SB_KEYS_DEFAULT = ['dashboard','importar','categorias','crm','contratos','instagram','minerador','vendas','relatorio','metas','fechamento','equipe'];
+let SB_ORDEM = (()=>{ try{ return JSON.parse(localStorage.getItem('sb-order'))||null; }catch(e){return null;} })()||SB_KEYS_DEFAULT.slice();
+
+function aplicarOrdemSidebar(ordem){
+  const nav = document.querySelector('aside nav');
+  if(!nav) return;
+  const items = {};
+  nav.querySelectorAll('.nl[data-page]').forEach(el => items[el.getAttribute('data-page')]=el);
+  const cfgEl = items['configuracoes'];
+  const logEl = Array.from(nav.querySelectorAll('.nl')).find(el=>!el.dataset.page && el.textContent.trim().includes('Sair'));
+  while(nav.firstChild) nav.removeChild(nav.firstChild);
+  ordem.forEach(k=>{ if(items[k]&&k!=='configuracoes') nav.appendChild(items[k]); });
+  if(cfgEl) nav.appendChild(cfgEl);
+  if(logEl) nav.appendChild(logEl);
+  if(typeof aplicarPermissoes==='function') aplicarPermissoes();
+}
+
+let _sbDragKey=null;
+function sbDragStart(e,el){ _sbDragKey=el.dataset.key; e.dataTransfer.effectAllowed='move'; setTimeout(()=>el.classList.add('dragging'),0); }
+function sbDragOver(e,el){ e.preventDefault(); document.querySelectorAll('.sb-sort-item').forEach(x=>x.classList.remove('drag-over')); el.classList.add('drag-over'); }
+function sbDrop(e,el){ e.stopPropagation(); const tk=el.dataset.key; if(_sbDragKey&&_sbDragKey!==tk){ const fi=SB_ORDEM.indexOf(_sbDragKey),ti=SB_ORDEM.indexOf(tk); if(fi>-1&&ti>-1){SB_ORDEM.splice(fi,1);SB_ORDEM.splice(ti,0,_sbDragKey);localStorage.setItem('sb-order',JSON.stringify(SB_ORDEM));aplicarOrdemSidebar(SB_ORDEM);renderSbSortList();}} return false; }
+function sbDragEnd(){ document.querySelectorAll('.sb-sort-item').forEach(el=>el.classList.remove('dragging','drag-over')); }
+
+function renderSbSortList(){
+  const list=document.getElementById('sb-sort-list');
+  if(!list) return;
+  const lblMap={}; if(typeof TODAS_PAGINAS!=='undefined') TODAS_PAGINAS.forEach(p=>lblMap[p.key]=p.label);
+  list.innerHTML=SB_ORDEM.filter(k=>k!=='configuracoes').map(k=>`
+    <div class="sb-sort-item" draggable="true" data-key="${k}"
+      ondragstart="sbDragStart(event,this)" ondragover="sbDragOver(event,this)"
+      ondrop="sbDrop(event,this)" ondragend="sbDragEnd()">
+      <svg width="14" height="14" viewBox="0 0 24 24" style="flex-shrink:0;">
+        <circle cx="9" cy="6" r="1.5" fill="#94a3b8"/><circle cx="15" cy="6" r="1.5" fill="#94a3b8"/>
+        <circle cx="9" cy="12" r="1.5" fill="#94a3b8"/><circle cx="15" cy="12" r="1.5" fill="#94a3b8"/>
+        <circle cx="9" cy="18" r="1.5" fill="#94a3b8"/><circle cx="15" cy="18" r="1.5" fill="#94a3b8"/>
+      </svg>
+      <span style="font-size:13px;font-weight:500;color:#374151;">${lblMap[k]||k}</span>
+    </div>`).join('');
+}
+
+function resetarOrdemSidebar(){
+  SB_ORDEM=SB_KEYS_DEFAULT.slice();
+  localStorage.removeItem('sb-order');
+  aplicarOrdemSidebar(SB_ORDEM);
+  renderSbSortList();
+  toast('Sidebar restaurada à ordem padrão','sucesso');
 }
 
 // ══════════════════════════════════════════════
@@ -3839,6 +3985,8 @@ async function carregarMetasComerciais(){
 // ══════════════════════════════════════════════
 function showApp(){
   document.getElementById('login-overlay').style.display='none';
+  aplicarTemaCores();
+  aplicarOrdemSidebar(SB_ORDEM);
   carregarRoleUsuario();
   carregarCategorias();
   verificarAniversariosHoje();
