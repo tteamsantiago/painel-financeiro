@@ -364,7 +364,7 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h18"/></svg>Categorias
     </div>
     <div class="nl" data-page="crm" onclick="irPara('crm',this)" id="nav-crm">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>CRM &amp; Alunos
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>CRM, Alunos e Finan&#231;as
     </div>
     <div class="nl" data-page="contratos" onclick="irPara('contratos',this)" id="nav-contratos">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Contratos
@@ -678,20 +678,78 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
   <div class="demo-footer">⚠ Dados fictícios — apenas para demonstração visual</div>
 </div>
 
-<!-- CRM & ALUNOS -->
+<!-- CRM, ALUNOS E FINANÇAS -->
 <div class="page" id="page-crm">
   <div class="ph">
-    <div><h2>CRM &amp; Alunos</h2><p id="crm-last-update" style="color:#64748b;">Gerenciamento manual</p></div>
-    <div style="display:flex;align-items:center;gap:8px;">
+    <div><h2>CRM, Alunos e Finan&#231;as</h2><p id="crm-last-update" style="color:#64748b;">Notion + ClickUp</p></div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
       <span id="crm-sync-ts" style="font-size:11px;color:#94a3b8;"></span>
       <button class="btn bp" data-write onclick="abrirModalAluno(null)" style="display:flex;align-items:center;gap:6px;">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Novo Aluno
       </button>
-      <button class="btn bs" onclick="carregarCRM()" style="display:flex;align-items:center;gap:6px;">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
-        Sincronizar
+      <button class="btn bs" id="btn-notion-alunos-sync" onclick="carregarAlunosNotion()" style="display:flex;align-items:center;gap:6px;">
+        <svg id="na-sync-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.63-4.14"/></svg>
+        <span id="na-sync-label">Sincronizar Notion</span>
       </button>
+    </div>
+  </div>
+
+  <!-- ── Seção Alunos Notion ── -->
+  <div id="crm-notion-section">
+    <!-- KPIs -->
+    <div class="kpi-grid" style="margin-bottom:16px;">
+      <div class="kpi azul"><div class="kl">Total Ativos</div><div class="kv" id="cn-total">—</div><div class="kvar" id="cn-total-sub" style="font-size:11px;color:#94a3b8;"></div></div>
+      <div class="kpi" style="border-color:#ec4899;background:#fdf2f8;"><div class="kl">&#9792;&#65039; Feminino</div><div class="kv" id="cn-fem" style="color:#9d174d;">—</div><div class="kvar" id="cn-fem-pct" style="font-size:11px;color:#9d174d;"></div></div>
+      <div class="kpi" style="border-color:#3b82f6;background:#eff6ff;"><div class="kl">&#9794;&#65039; Masculino</div><div class="kv" id="cn-mas" style="color:#1e40af;">—</div><div class="kvar" id="cn-mas-pct" style="font-size:11px;color:#1e40af;"></div></div>
+      <div class="kpi amarelo"><div class="kl">&#11088; Influencer</div><div class="kv" id="cn-inf">—</div><div class="kvar" id="cn-inf-pct" style="font-size:11px;color:#92400e;"></div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+      <!-- Distribuição por Plano -->
+      <div class="card">
+        <h3 style="margin-bottom:16px;">&#128197; Distribuição por Plano</h3>
+        <div id="cn-planos"><div class="empty">Carregando...</div></div>
+      </div>
+      <!-- Finanças Notion -->
+      <div class="card" id="crm-fin-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+          <h3 style="margin:0;">&#128176; Finan&#231;as — Notion</h3>
+          <span id="crm-fin-mes" style="font-size:11px;color:#94a3b8;font-weight:600;"></span>
+        </div>
+        <div id="crm-fin-body"><div class="empty">Carregando...</div></div>
+      </div>
+    </div>
+
+    <!-- Lista Alunos -->
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+        <h3 style="margin:0;">&#128203; Alunos Ativos — Notion</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <select id="cn-filtro-plano" onchange="filtrarAlunosNotion()" style="font-size:12px;padding:5px 10px;border-radius:7px;border:1px solid #e5e7eb;">
+            <option value="">Todos os planos</option>
+            <option value="Anual">Anual</option>
+            <option value="Semestral">Semestral</option>
+            <option value="Quadrimestral">Quadrimestral</option>
+            <option value="Trimestral">Trimestral</option>
+            <option value="Mensal">Mensal</option>
+            <option value="Influencer">Influencer</option>
+          </select>
+          <select id="cn-filtro-genero" onchange="filtrarAlunosNotion()" style="font-size:12px;padding:5px 10px;border-radius:7px;border:1px solid #e5e7eb;">
+            <option value="">Todos</option>
+            <option value="Mulher">Feminino</option>
+            <option value="Homem">Masculino</option>
+          </select>
+          <input type="text" id="cn-search" placeholder="Buscar nome..." class="fi" style="width:160px;padding:5px 10px;font-size:12px;" oninput="filtrarAlunosNotion()"/>
+        </div>
+      </div>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Nome</th><th>G&#234;nero</th><th>Plano</th><th>Consultoria</th><th>Objetivo</th><th>Vencimento</th></tr></thead>
+          <tbody id="cn-lista"><tr><td colspan="6" class="empty">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+      <div id="cn-lista-rodape" style="font-size:11px;color:#94a3b8;text-align:right;margin-top:8px;"></div>
     </div>
   </div>
   <div id="crm-no-token" style="display:none;">
@@ -1906,7 +1964,7 @@ function irPara(p,el){
     renderAniversarios();
   }
   if(p==='configuracoes'){ carregarCfgNotion(); carregarCfgIntegracoes(); }
-  if(p==='crm')carregarCRM();
+  if(p==='crm'){ carregarCRM(); carregarAlunosNotion(); carregarCRMFinanceiro(); }
   if(p==='contratos')initContratos();
   if(p==='equipe')carregarEquipe();
   if(p==='vendas')renderVendas();
@@ -4885,6 +4943,192 @@ async function confirmarNovaSenha(){
 // CRM — Supabase (sincronizado do ClickUp)
 // ══════════════════════════════════════════════
 let CRM_DATA_ALUNOS = [];
+let CN_ALUNOS_TODOS = []; // cache notion alunos
+
+// ── Cores por plano ──
+const CN_PLANO_COR = {
+  'Anual':          '#10b981',
+  'Semestral':      '#3b82f6',
+  'Quadrimestral':  '#8b5cf6',
+  'Trimestral':     '#f59e0b',
+  'Mensal':         '#94a3b8',
+  'Influencer':     '#ec4899',
+  'Não informado':  '#d1d5db',
+};
+
+async function carregarAlunosNotion(){
+  const icon  = document.getElementById('na-sync-icon');
+  const label = document.getElementById('na-sync-label');
+  const btn   = document.getElementById('btn-notion-alunos-sync');
+  if(btn) btn.disabled = true;
+  if(icon) icon.style.animation = 'spin 1s linear infinite';
+  if(label) label.textContent = 'Sincronizando...';
+
+  try {
+    const d = await fnCall('notion-alunos', {});
+    if(d.setup || d.error){ toast(d.error || 'Configure o token do Notion em Configurações', 'erro'); return; }
+
+    CN_ALUNOS_TODOS = d.alunos || [];
+
+    // KPIs
+    const total = d.total || 0;
+    const fem   = d.generoCount?.['Mulher'] || 0;
+    const mas   = d.generoCount?.['Homem']  || 0;
+    const inf   = d.planoCount?.['Influencer'] || 0;
+    const pct   = v => total ? Math.round(v/total*100)+'%' : '0%';
+
+    const set = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+    set('cn-total', total);
+    set('cn-total-sub', d.totalGeral + ' cadastrados no total');
+    set('cn-fem', fem);     set('cn-fem-pct', pct(fem));
+    set('cn-mas', mas);     set('cn-mas-pct', pct(mas));
+    set('cn-inf', inf);     set('cn-inf-pct', pct(inf));
+
+    // Dashboard KPI alunos também
+    const da = document.getElementById('dash-kpi-alunos');
+    if(da) da.textContent = 'R$ '+total;
+    const das = document.getElementById('dash-kpi-alunos-sub');
+    if(das) das.textContent = total + ' alunos ativos';
+
+    // Plano breakdown
+    const planosEl = document.getElementById('cn-planos');
+    if(planosEl && d.planoCount) {
+      const entries = Object.entries(d.planoCount).sort((a,b) => (b[1] as number)-(a[1] as number));
+      planosEl.innerHTML = entries.map(([plano, qt]) => {
+        const cor = CN_PLANO_COR[plano] || '#94a3b8';
+        const pctBar = total ? Math.round((qt as number)/total*100) : 0;
+        return `<div style="margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+            <span style="display:flex;align-items:center;gap:6px;">
+              <span style="width:10px;height:10px;border-radius:50%;background:${cor};display:inline-block;flex-shrink:0;"></span>
+              <strong>${plano}</strong>
+            </span>
+            <span style="color:#6b7280;">${qt} aluno${(qt as number)!==1?'s':''} · ${pctBar}%</span>
+          </div>
+          <div style="background:#f3f4f6;border-radius:999px;height:8px;overflow:hidden;">
+            <div style="width:${pctBar}%;height:8px;border-radius:999px;background:${cor};transition:width .5s;"></div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // Lista
+    filtrarAlunosNotion();
+
+    const agora = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    toast('Alunos sincronizados — ' + total + ' ativos', 'sucesso');
+    if(label) label.textContent = 'Sincronizar Notion';
+
+  } catch(e: any) {
+    toast('Erro ao carregar alunos do Notion', 'erro');
+    console.error(e);
+  } finally {
+    if(icon) icon.style.animation = '';
+    if(label) label.textContent = 'Sincronizar Notion';
+    if(btn) btn.disabled = false;
+  }
+}
+
+function filtrarAlunosNotion(){
+  const busca  = (document.getElementById('cn-search') as HTMLInputElement)?.value?.toLowerCase() || '';
+  const plano  = (document.getElementById('cn-filtro-plano') as HTMLSelectElement)?.value || '';
+  const genero = (document.getElementById('cn-filtro-genero') as HTMLSelectElement)?.value || '';
+
+  const lista = CN_ALUNOS_TODOS.filter(a =>
+    (!busca  || a.nome?.toLowerCase().includes(busca)) &&
+    (!plano  || a.plano === plano) &&
+    (!genero || a.genero === genero)
+  );
+
+  const tbody = document.getElementById('cn-lista');
+  const rodape = document.getElementById('cn-lista-rodape');
+  if(!tbody) return;
+
+  if(!lista.length){
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">Nenhum aluno encontrado</td></tr>';
+    if(rodape) rodape.textContent = '';
+    return;
+  }
+
+  const fmt = (dt: string) => {
+    if(!dt) return '—';
+    const [y,m,d] = dt.split('-');
+    return `${d}/${m}/${y}`;
+  };
+  const hoje = new Date();
+
+  tbody.innerHTML = lista.map(a => {
+    const cor = CN_PLANO_COR[a.plano] || '#94a3b8';
+    const genIcon = a.genero === 'Mulher' ? '♀' : a.genero === 'Homem' ? '♂' : '—';
+    const genCor  = a.genero === 'Mulher' ? '#9d174d' : a.genero === 'Homem' ? '#1e40af' : '#6b7280';
+
+    // Alerta de vencimento próximo (≤30 dias)
+    let vencStyle = '';
+    if(a.fimCtrt){
+      const diasRestantes = Math.round((new Date(a.fimCtrt).getTime() - hoje.getTime()) / 86400000);
+      if(diasRestantes <= 30 && diasRestantes >= 0) vencStyle = 'color:#dc2626;font-weight:700;';
+      else if(diasRestantes < 0) vencStyle = 'color:#ef4444;text-decoration:line-through;';
+    }
+
+    return `<tr>
+      <td style="font-weight:600;">${a.nome || '—'}</td>
+      <td><span style="color:${genCor};font-size:14px;">${genIcon}</span> ${a.genero || '—'}</td>
+      <td><span style="background:${cor}22;color:${cor};border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">${a.plano || '—'}</span></td>
+      <td style="font-size:12px;color:#6b7280;">${a.consult || '—'}</td>
+      <td style="font-size:12px;color:#6b7280;">${a.objetivo || '—'}</td>
+      <td style="font-size:12px;${vencStyle}">${fmt(a.fimCtrt)}</td>
+    </tr>`;
+  }).join('');
+
+  if(rodape) rodape.textContent = `Exibindo ${lista.length} de ${CN_ALUNOS_TODOS.length} alunos ativos`;
+}
+
+async function carregarCRMFinanceiro(){
+  try {
+    const res = await fnCall('notion-financeiro', { meses: 3 });
+    const card = document.getElementById('crm-fin-card');
+    const body = document.getElementById('crm-fin-body');
+    const mesEl = document.getElementById('crm-fin-mes');
+    if(!body) return;
+
+    if(!res || res.setup || !res.rows || res.rows.length === 0){
+      body.innerHTML = '<div class="empty" style="padding:16px;">Sem dados financeiros no Notion.<br><small>Configure o token em Configurações → Integrações.</small></div>';
+      return;
+    }
+
+    const ultimo = res.rows[res.rows.length - 1];
+    if(mesEl) mesEl.textContent = ultimo.mes || '';
+
+    const fmt = v => v ? 'R$ '+Math.round(v).toLocaleString('pt-BR') : '—';
+    const fluxo = (ultimo.entrada || 0) - (ultimo.saida || 0);
+    const fluxoCor = fluxo >= 0 ? '#15803d' : '#dc2626';
+
+    body.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div style="background:#f0fdf4;border-radius:10px;padding:12px;border-left:3px solid #10b981;">
+          <div style="font-size:10px;font-weight:700;color:#6b7280;margin-bottom:4px;">ENTRADA TOTAL</div>
+          <div style="font-size:17px;font-weight:700;color:#065f46;">${fmt(ultimo.entrada)}</div>
+        </div>
+        <div style="background:#fef2f2;border-radius:10px;padding:12px;border-left:3px solid #ef4444;">
+          <div style="font-size:10px;font-weight:700;color:#6b7280;margin-bottom:4px;">SAÍDA TOTAL</div>
+          <div style="font-size:17px;font-weight:700;color:#991b1b;">${fmt(ultimo.saida)}</div>
+        </div>
+      </div>
+      <div style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:12px;font-weight:600;color:#374151;">Fluxo Líquido</span>
+        <span style="font-size:18px;font-weight:800;color:${fluxoCor};">${fluxo >= 0 ? '+' : ''}${fmt(Math.abs(fluxo))}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div style="font-size:11px;color:#6b7280;">Consultoria<br><strong style="font-size:13px;color:#374151;">${fmt(ultimo.consultoria)}</strong></div>
+        <div style="font-size:11px;color:#6b7280;">Personal Trainer<br><strong style="font-size:13px;color:#374151;">${fmt(ultimo.personal)}</strong></div>
+        <div style="font-size:11px;color:#6b7280;">Reserva TS<br><strong style="font-size:13px;color:#374151;">${fmt(ultimo.reserva_ts)}</strong></div>
+        <div style="font-size:11px;color:#6b7280;">Reserva Pessoal<br><strong style="font-size:13px;color:#1e40af;">${fmt(ultimo.reserva_pessoal)}</strong></div>
+      </div>`;
+  } catch(e) {
+    const body = document.getElementById('crm-fin-body');
+    if(body) body.innerHTML = '<div class="empty">Erro ao carregar dados financeiros.</div>';
+  }
+}
 
 async function carregarCRM(){
   const noTok  = document.getElementById('crm-no-token');
