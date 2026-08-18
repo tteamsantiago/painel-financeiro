@@ -752,52 +752,6 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
       <div id="cn-lista-rodape" style="font-size:11px;color:#94a3b8;text-align:right;margin-top:8px;"></div>
     </div>
   </div>
-  <div id="crm-no-token" style="display:none;">
-    <div class="card" style="text-align:center;padding:48px 32px;max-width:480px;margin:40px auto;">
-      <div style="font-size:48px;margin-bottom:16px;">&#9888;&#65039;</div>
-      <h3 style="margin:0 0 8px;color:#1e293b;">Erro ao carregar CRM</h3>
-      <p id="crm-no-token-msg" style="color:#64748b;font-size:14px;margin-bottom:24px;line-height:1.6;">Tente atualizar a página.</p>
-      <button class="btn bp" onclick="carregarCRM()">Tentar novamente</button>
-    </div>
-  </div>
-  <div id="crm-loading" style="display:flex;align-items:center;justify-content:center;height:200px;gap:10px;color:#64748b;font-size:14px;">
-    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="crm-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-    Carregando CRM...
-  </div>
-  <div id="crm-content" style="display:none;">
-    <div class="kpi-grid">
-      <div class="kpi verde"><div class="kl">Alunos Ativos</div><div class="kv" id="crm-kpi-alunos">--</div></div>
-      <div class="kpi azul"><div class="kl">Leads em Pipeline</div><div class="kv" id="crm-kpi-leads">--</div></div>
-      <div class="kpi" style="border-color:#f59e0b;background:#fffbeb;"><div class="kl">Pend&#234;ncias</div><div class="kv" id="crm-kpi-pend" style="color:#92400e;">--</div></div>
-      <div class="kpi" style="border-color:#94a3b8;background:#f8fafc;"><div class="kl">Leads Adormecidos</div><div class="kv" id="crm-kpi-adorm" style="color:#475569;">--</div></div>
-    </div>
-    <div class="card mb16">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
-        <h3 style="margin:0;">&#128170; Alunos Ativos</h3>
-        <input type="text" id="crm-search" placeholder="Buscar aluno..." class="fi" style="width:200px;padding:6px 12px;font-size:13px;" oninput="filtrarAlunos(this.value)"/>
-      </div>
-      <div class="tw"><table>
-        <thead><tr><th>Nome</th><th>Plano</th><th>Status</th><th></th></tr></thead>
-        <tbody id="tbody-crm-alunos"><tr><td colspan="4" class="empty">Carregando...</td></tr></tbody>
-      </table></div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-      <div class="card">
-        <h3 style="margin-bottom:14px;">&#128640; Pipeline de Vendas</h3>
-        <div class="tw"><table>
-          <thead><tr><th>Lead</th><th>Status</th><th></th></tr></thead>
-          <tbody id="tbody-crm-leads"><tr><td colspan="3" class="empty">Carregando...</td></tr></tbody>
-        </table></div>
-      </div>
-      <div class="card">
-        <h3 style="margin-bottom:14px;">&#9201; Pr&#243;ximas Parcelas</h3>
-        <div class="tw"><table>
-          <thead><tr><th>Descri&#231;&#227;o</th><th>Vencimento</th><th></th></tr></thead>
-          <tbody id="tbody-crm-pend"><tr><td colspan="3" class="empty">Carregando...</td></tr></tbody>
-        </table></div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- ── CONTRATOS ── -->
@@ -1964,7 +1918,7 @@ function irPara(p,el){
     renderAniversarios();
   }
   if(p==='configuracoes'){ carregarCfgNotion(); carregarCfgIntegracoes(); }
-  if(p==='crm'){ carregarCRM(); carregarAlunosNotion(); carregarCRMFinanceiro(); }
+  if(p==='crm'){ carregarAlunosNotion(); carregarCRMFinanceiro(); }
   if(p==='contratos')initContratos();
   if(p==='equipe')carregarEquipe();
   if(p==='vendas')renderVendas();
@@ -2734,7 +2688,6 @@ async function salvarAluno(){
     }
     fecharModalAluno();
     toast('Aluno salvo!','sucesso');
-    carregarCRM();
   }catch(e){ toast('Erro: '+e.message,'erro'); }
 }
 
@@ -2746,7 +2699,6 @@ async function excluirAluno(){
     if(error) throw error;
     fecharModalAluno();
     toast('Aluno removido','sucesso');
-    carregarCRM();
   }catch(e){ toast('Erro: '+e.message,'erro'); }
 }
 
