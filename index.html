@@ -454,10 +454,11 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
     </div>
   </div>
 
-  <!-- KPIs Financeiros -->
+  <!-- KPIs Financeiros — Vendas com indicação -->
+  <div style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;">Vendas &amp; Comissões — indicações cadastradas</div>
   <div class="kpi-grid" style="margin-bottom:20px;">
     <div class="kpi verde" style="cursor:pointer;" onclick="irPara('vendas',document.getElementById('nav-vendas'))">
-      <div class="kl">Faturamento do mês</div>
+      <div class="kl">Vendas Indicadas</div>
       <div class="kv" id="dash-kpi-vendas">—</div>
       <div class="kvar" id="dash-kpi-vendas-qt" style="font-size:11px;color:#94a3b8;"></div>
     </div>
@@ -475,6 +476,32 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
       <div class="kl">Alunos Ativos</div>
       <div class="kv" id="dash-kpi-alunos">—</div>
       <div class="kvar" id="dash-kpi-alunos-sub" style="font-size:11px;color:#94a3b8;"></div>
+    </div>
+  </div>
+
+  <!-- Faturamento Real — Notion -->
+  <div style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;">Faturamento Real — Notion</div>
+  <div class="card" id="dash-notion-fin-card" style="margin-bottom:20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+      <div>
+        <h3 style="margin:0 0 2px;font-size:14px;font-weight:700;">Resumo Financeiro</h3>
+        <p style="font-size:12px;color:#6b7280;margin:0;" id="dash-nf-mes">Atualizado toda sexta pelo Notion</p>
+      </div>
+      <button class="btn bs" onclick="carregarDashboardNotionFin()" style="font-size:12px;padding:5px 12px;display:flex;align-items:center;gap:5px;">
+        <svg id="dash-nf-icon" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.63-4.14"/></svg>
+        Atualizar Notion
+      </button>
+    </div>
+    <div class="kpi-grid" style="margin-bottom:12px;">
+      <div class="kpi verde"><div class="kl">Entrada Total</div><div class="kv" id="dash-nf-entrada">—</div></div>
+      <div class="kpi" style="border-color:#ef4444;background:#fef2f2;"><div class="kl">Saída Total</div><div class="kv" id="dash-nf-saida" style="color:#991b1b;">—</div></div>
+      <div class="kpi azul"><div class="kl">Fluxo Líquido</div><div class="kv" id="dash-nf-fluxo">—</div></div>
+      <div class="kpi amarelo"><div class="kl">Reserva TS</div><div class="kv" id="dash-nf-reserva">—</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;color:#6b7280;padding-top:10px;border-top:1px solid #f1f5f9;">
+      <div>Consultoria Online: <strong id="dash-nf-consultoria" style="color:#374151;">—</strong></div>
+      <div>Personal Trainer: <strong id="dash-nf-personal" style="color:#374151;">—</strong></div>
+      <div>Reserva Pessoal: <strong id="dash-nf-reserva-pessoal" style="color:#374151;">—</strong></div>
     </div>
   </div>
 
@@ -1086,12 +1113,39 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
 
   <!-- Tab: Resumo -->
   <div class="vtab-panel active" id="vtab-resumo">
-    <div class="kpi-grid">
+    <div style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;">Vendas &amp; Comissões — indicações cadastradas</div>
+    <div class="kpi-grid" style="margin-bottom:20px;">
       <div class="kpi verde"><div class="kl">Vendas este mês</div><div class="kv" id="v-kpi-vendas-mes">—</div></div>
       <div class="kpi azul"><div class="kl">Total Recebido (mês)</div><div class="kv" id="v-kpi-recebido">—</div></div>
       <div class="kpi amarelo"><div class="kl">Pendente a Receber</div><div class="kv" id="v-kpi-pendente">—</div></div>
       <div class="kpi cinza"><div class="kl">Comissões a Pagar</div><div class="kv" id="v-kpi-comissoes">—</div></div>
     </div>
+
+    <div style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;">Faturamento Real — Notion</div>
+    <div class="card" style="margin-bottom:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+        <div>
+          <h3 style="margin:0 0 2px;font-size:14px;font-weight:700;">Resumo Financeiro</h3>
+          <p style="font-size:12px;color:#6b7280;margin:0;" id="fech-nf-mes">Atualizado toda sexta pelo Notion</p>
+        </div>
+        <button class="btn bs" onclick="carregarFechamentoNotionFin()" style="font-size:12px;padding:5px 12px;display:flex;align-items:center;gap:5px;">
+          <svg id="fech-nf-icon" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.63-4.14"/></svg>
+          Atualizar Notion
+        </button>
+      </div>
+      <div class="kpi-grid" style="margin-bottom:12px;">
+        <div class="kpi verde"><div class="kl">Entrada Total</div><div class="kv" id="fech-nf-entrada">—</div></div>
+        <div class="kpi" style="border-color:#ef4444;background:#fef2f2;"><div class="kl">Saída Total</div><div class="kv" id="fech-nf-saida" style="color:#991b1b;">—</div></div>
+        <div class="kpi azul"><div class="kl">Fluxo Líquido</div><div class="kv" id="fech-nf-fluxo">—</div></div>
+        <div class="kpi amarelo"><div class="kl">Reserva TS</div><div class="kv" id="fech-nf-reserva">—</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;color:#6b7280;padding-top:10px;border-top:1px solid #f1f5f9;">
+        <div>Consultoria Online: <strong id="fech-nf-consultoria" style="color:#374151;">—</strong></div>
+        <div>Personal Trainer: <strong id="fech-nf-personal" style="color:#374151;">—</strong></div>
+        <div>Reserva Pessoal: <strong id="fech-nf-reserva-pessoal" style="color:#374151;">—</strong></div>
+      </div>
+    </div>
+
     <div class="card">
       <h3>Próximas Parcelas Pendentes</h3>
       <div class="tw">
@@ -1928,6 +1982,7 @@ async function sincronizarDashboard(){
       carregarMetasComerciais(),
       carregarPrevisaoFaturamento(),
       renderAniversarios(),
+      carregarDashboardNotionFin(),
     ]);
     const agora=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     const tsEl=document.getElementById('dash-sync-ts');
@@ -1953,6 +2008,7 @@ function irPara(p,el){
     carregarMetasComerciais();
     carregarPrevisaoFaturamento();
     renderAniversarios();
+    carregarDashboardNotionFin();
   }
   if(p==='configuracoes'){ carregarCfgNotion(); carregarCfgIntegracoes(); atualizarPalette(); renderSbSortList(); }
   if(p==='crm'){ carregarAlunosNotion(); carregarCRMFinanceiro(); }
@@ -1967,7 +2023,7 @@ function irPara(p,el){
   }
   if(p==='relatorio') carregarRelatorioPage();
   if(p==='metas') carregarMetasPage();
-  if(p==='fechamento') carregarFechamento();
+  if(p==='fechamento'){ carregarFechamento(); carregarFechamentoNotionFin(); }
 }
 
 // ══════════════════════════════════════════════
@@ -3147,6 +3203,7 @@ async function carregarFechamento(){
     }
   }catch(e){console.warn('Comissões fechamento:',e.message);}
   const tsF=await salvarSyncTs('sync_fech_ts');exibirSyncTs(tsF,'fech-sync-ts');
+  carregarFechamentoNotionFin();
   if(fIcon) fIcon.style.animation='';
   if(fLabel) fLabel.textContent='Sincronizar Notion';
   if(fBtn) fBtn.disabled=false;
@@ -5176,6 +5233,60 @@ function filtrarAlunosNotion(){
   }).join('');
 
   if(rodape) rodape.textContent = `Exibindo ${lista.length} de ${CN_ALUNOS_TODOS.length} alunos ativos`;
+}
+
+async function carregarDashboardNotionFin(){
+  const icon = document.getElementById('dash-nf-icon');
+  if(icon) icon.style.animation = 'spin 1s linear infinite';
+  try {
+    const res = await fnCall('notion-financeiro', { meses: 1 });
+    if(!res || res.setup || !res.rows || !res.rows.length) return;
+    const u = res.rows[res.rows.length - 1];
+    const fmt = v => v != null ? 'R$ ' + Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2}) : '—';
+    const fluxo = (u.entrada||0) - (u.saida||0);
+    const mesEl = document.getElementById('dash-nf-mes');
+    if(mesEl) mesEl.textContent = 'Último mês: ' + (u.mes||'');
+    const set = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+    set('dash-nf-entrada', fmt(u.entrada));
+    set('dash-nf-saida', fmt(u.saida));
+    set('dash-nf-reserva', fmt(u.reserva_ts));
+    set('dash-nf-consultoria', fmt(u.consultoria));
+    set('dash-nf-personal', fmt(u.personal));
+    set('dash-nf-reserva-pessoal', fmt(u.reserva_pessoal));
+    const flEl = document.getElementById('dash-nf-fluxo');
+    if(flEl){ flEl.textContent = (fluxo>=0?'+':'')+fmt(fluxo); flEl.style.color = fluxo>=0?'#065f46':'#dc2626'; }
+  } catch(e) {
+    console.warn('Erro ao carregar financeiro Notion no dashboard:', e);
+  } finally {
+    if(icon) icon.style.animation = '';
+  }
+}
+
+async function carregarFechamentoNotionFin(){
+  const icon = document.getElementById('fech-nf-icon');
+  if(icon) icon.style.animation = 'spin 1s linear infinite';
+  try {
+    const res = await fnCall('notion-financeiro', { meses: 1 });
+    if(!res || res.setup || !res.rows || !res.rows.length) return;
+    const u = res.rows[res.rows.length - 1];
+    const fmt = v => v != null ? 'R$ ' + Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2}) : '—';
+    const fluxo = (u.entrada||0) - (u.saida||0);
+    const mesEl = document.getElementById('fech-nf-mes');
+    if(mesEl) mesEl.textContent = 'Último mês: ' + (u.mes||'');
+    const set = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+    set('fech-nf-entrada', fmt(u.entrada));
+    set('fech-nf-saida', fmt(u.saida));
+    set('fech-nf-reserva', fmt(u.reserva_ts));
+    set('fech-nf-consultoria', fmt(u.consultoria));
+    set('fech-nf-personal', fmt(u.personal));
+    set('fech-nf-reserva-pessoal', fmt(u.reserva_pessoal));
+    const flEl = document.getElementById('fech-nf-fluxo');
+    if(flEl){ flEl.textContent = (fluxo>=0?'+':'')+fmt(fluxo); flEl.style.color = fluxo>=0?'#065f46':'#dc2626'; }
+  } catch(e) {
+    console.warn('Erro ao carregar financeiro Notion no fechamento:', e);
+  } finally {
+    if(icon) icon.style.animation = '';
+  }
 }
 
 async function carregarCRMFinanceiro(){
