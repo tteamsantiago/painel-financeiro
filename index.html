@@ -786,6 +786,43 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
       </div>
     </div>
 
+    <!-- Próximas Renovações -->
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+        <h3 style="margin:0;">&#128260; Pr&#243;ximas Renova&#231;&#245;es</h3>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <select id="renov-filtro-dias" onchange="renderRenovacoes()" style="font-size:12px;padding:5px 10px;border-radius:7px;border:1px solid #e5e7eb;">
+            <option value="15">Pr&#243;ximos 15 dias</option>
+            <option value="30" selected>Pr&#243;ximos 30 dias</option>
+            <option value="60">Pr&#243;ximos 60 dias</option>
+            <option value="90">Pr&#243;ximos 90 dias</option>
+          </select>
+          <span id="renov-count" style="font-size:12px;color:#94a3b8;"></span>
+        </div>
+      </div>
+      <!-- KPIs rápidos -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
+        <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.06em;">Urgente (≤15d)</div>
+          <div style="font-size:24px;font-weight:800;color:#dc2626;" id="renov-kpi-urgente">—</div>
+        </div>
+        <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:.06em;">Aten&#231;&#227;o (16-30d)</div>
+          <div style="font-size:24px;font-weight:800;color:#c2410c;" id="renov-kpi-atencao">—</div>
+        </div>
+        <div style="background:#fefce8;border:1px solid #fde68a;border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;color:#a16207;text-transform:uppercase;letter-spacing:.06em;">Em breve (31-60d)</div>
+          <div style="font-size:24px;font-weight:800;color:#a16207;" id="renov-kpi-breve">—</div>
+        </div>
+      </div>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Nome</th><th>Plano</th><th>Final do Contrato</th><th>Dias Restantes</th><th>Status</th></tr></thead>
+          <tbody id="renov-lista"><tr><td colspan="5" class="empty">Sincronize para ver as renova&#231;&#245;es</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- Lista Alunos -->
     <div class="card" style="margin-bottom:16px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
@@ -5166,8 +5203,9 @@ async function carregarAlunosNotion(){
       }).join('');
     }
 
-    // Lista
+    // Lista e renovações
     filtrarAlunosNotion();
+    renderRenovacoes();
 
     const agora = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     toast('Alunos sincronizados — ' + total + ' ativos', 'sucesso');
@@ -5235,6 +5273,83 @@ function filtrarAlunosNotion(){
   }).join('');
 
   if(rodape) rodape.textContent = `Exibindo ${lista.length} de ${CN_ALUNOS_TODOS.length} alunos ativos`;
+}
+
+function renderRenovacoes(){
+  const sel = document.getElementById('renov-filtro-dias');
+  const dias = parseInt(sel?.value || '30');
+  const hoje = new Date();
+  hoje.setHours(0,0,0,0);
+  const limite = new Date(hoje);
+  limite.setDate(hoje.getDate() + dias);
+
+  const renov = CN_ALUNOS_TODOS
+    .filter(a => {
+      if(!a.fimCtrt) return false;
+      const d = new Date(a.fimCtrt + 'T00:00:00');
+      return d >= hoje && d <= limite;
+    })
+    .sort((a,b) => new Date(a.fimCtrt) - new Date(b.fimCtrt));
+
+  const tbody  = document.getElementById('renov-lista');
+  const countEl = document.getElementById('renov-count');
+  if(!tbody) return;
+
+  if(countEl) countEl.textContent = renov.length + ' aluno' + (renov.length !== 1 ? 's' : '');
+
+  // KPIs fixos (independente do filtro)
+  const urgente = CN_ALUNOS_TODOS.filter(a => {
+    if(!a.fimCtrt) return false;
+    const d = new Date(a.fimCtrt + 'T00:00:00');
+    const dr = Math.round((d - hoje) / 86400000);
+    return dr >= 0 && dr <= 15;
+  }).length;
+  const atencao = CN_ALUNOS_TODOS.filter(a => {
+    if(!a.fimCtrt) return false;
+    const d = new Date(a.fimCtrt + 'T00:00:00');
+    const dr = Math.round((d - hoje) / 86400000);
+    return dr >= 16 && dr <= 30;
+  }).length;
+  const breve = CN_ALUNOS_TODOS.filter(a => {
+    if(!a.fimCtrt) return false;
+    const d = new Date(a.fimCtrt + 'T00:00:00');
+    const dr = Math.round((d - hoje) / 86400000);
+    return dr >= 31 && dr <= 60;
+  }).length;
+
+  const setEl = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+  setEl('renov-kpi-urgente', urgente);
+  setEl('renov-kpi-atencao', atencao);
+  setEl('renov-kpi-breve', breve);
+
+  if(!renov.length){
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">Nenhuma renovação nos próximos ' + dias + ' dias</td></tr>';
+    return;
+  }
+
+  const fmtDt = dt => {
+    if(!dt) return '—';
+    const [y,m,d] = dt.split('-');
+    return d + '/' + m + '/' + y;
+  };
+
+  tbody.innerHTML = renov.map(a => {
+    const d = new Date(a.fimCtrt + 'T00:00:00');
+    const dr = Math.round((d - hoje) / 86400000);
+    const cor = CN_PLANO_COR[a.plano] || '#94a3b8';
+    let sBg, sCl, sTx;
+    if(dr <= 15)       { sBg='#fef2f2'; sCl='#dc2626'; sTx='Urgente'; }
+    else if(dr <= 30)  { sBg='#fff7ed'; sCl='#c2410c'; sTx='Atenção'; }
+    else if(dr <= 60)  { sBg='#fefce8'; sCl='#a16207'; sTx='Em breve'; }
+    else               { sBg='#f0fdf4'; sCl='#15803d'; sTx='Planejado'; }
+    return '<tr>' +
+      '<td style="font-weight:600;">' + (a.nome || '—') + '</td>' +
+      '<td><span style="background:' + cor + '22;color:' + cor + ';border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">' + (a.plano || '—') + '</span></td>' +
+      '<td style="font-size:12px;">' + fmtDt(a.fimCtrt) + '</td>' +
+      '<td style="font-size:13px;font-weight:700;color:' + sCl + ';">' + dr + ' dia' + (dr !== 1 ? 's' : '') + '</td>' +
+      '<td><span style="background:' + sBg + ';color:' + sCl + ';border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;">' + sTx + '</span></td>' +
+      '</tr>';
+  }).join('');
 }
 
 async function carregarDashboardNotionFin(){
