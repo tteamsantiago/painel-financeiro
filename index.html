@@ -786,6 +786,37 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
       </div>
     </div>
 
+    <!-- Previsão de Renovações por Mês -->
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+        <div>
+          <h3 style="margin:0;">&#128197; Previs&#227;o de Renova&#231;&#245;es</h3>
+          <div style="font-size:11px;color:#94a3b8;margin-top:2px;">Pr&#243;ximos 12 meses &#183; clique em um m&#234;s para filtrar</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:#64748b;">
+            <span style="width:10px;height:10px;border-radius:3px;background:#bbf7d0;display:inline-block;"></span>1-2
+            <span style="width:10px;height:10px;border-radius:3px;background:#fde68a;display:inline-block;margin-left:4px;"></span>3-5
+            <span style="width:10px;height:10px;border-radius:3px;background:#fca5a5;display:inline-block;margin-left:4px;"></span>6+
+          </div>
+          <button onclick="renderPrevisaoRenovacoes(null)" style="font-size:11px;color:#6366f1;background:none;border:none;cursor:pointer;padding:0;font-weight:600;">Ver todos</button>
+        </div>
+      </div>
+      <div id="previsao-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;"></div>
+      <div id="previsao-detalhe" style="display:none;margin-top:14px;border-top:1px solid #f1f5f9;padding-top:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span id="previsao-detalhe-titulo" style="font-size:13px;font-weight:700;color:#1e293b;"></span>
+          <button onclick="document.getElementById('previsao-detalhe').style.display='none'" style="font-size:11px;color:#94a3b8;background:none;border:none;cursor:pointer;">&#x2715; fechar</button>
+        </div>
+        <div class="tw" style="max-height:220px;overflow-y:auto;">
+          <table>
+            <thead><tr><th>Nome</th><th>Plano</th><th>Data</th></tr></thead>
+            <tbody id="previsao-detalhe-lista"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- Próximas Renovações -->
     <div class="card" style="margin-bottom:16px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
@@ -5203,9 +5234,10 @@ async function carregarAlunosNotion(){
       }).join('');
     }
 
-    // Lista e renovações
+    // Lista, renovações e previsão
     filtrarAlunosNotion();
     renderRenovacoes();
+    renderPrevisaoRenovacoes(null);
 
     const agora = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     toast('Alunos sincronizados — ' + total + ' ativos', 'sucesso');
@@ -5350,6 +5382,102 @@ function renderRenovacoes(){
       '<td><span style="background:' + sBg + ';color:' + sCl + ';border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;">' + sTx + '</span></td>' +
       '</tr>';
   }).join('');
+}
+
+function renderPrevisaoRenovacoes(mesFiltro){
+  const grid = document.getElementById('previsao-grid');
+  if(!grid) return;
+
+  const hoje = new Date();
+  hoje.setHours(0,0,0,0);
+
+  // Agrupa por mês (YYYY-MM) para os próximos 12 meses
+  const meses = [];
+  for(let i = 0; i < 12; i++){
+    const d = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1);
+    meses.push({
+      key: d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'),
+      label: d.toLocaleDateString('pt-BR', {month:'short', year:'2-digit'}).toUpperCase(),
+      alunos: []
+    });
+  }
+
+  CN_ALUNOS_TODOS.forEach(a => {
+    if(!a.fimCtrt) return;
+    const mesKey = a.fimCtrt.slice(0,7);
+    const m = meses.find(m => m.key === mesKey);
+    if(m) m.alunos.push(a);
+  });
+
+  const maxCount = Math.max(1, ...meses.map(m => m.alunos.length));
+
+  const NOMES_MES = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+
+  grid.innerHTML = meses.map(m => {
+    const n = m.alunos.length;
+    const isAtivo = m.key === mesFiltro;
+    const pct = Math.round(n / maxCount * 100);
+    let bg, cor, borderC;
+    if(n === 0)       { bg='#f8fafc'; cor='#cbd5e1'; borderC='#e2e8f0'; }
+    else if(n <= 2)   { bg='#f0fdf4'; cor='#15803d'; borderC=isAtivo?'#16a34a':'#bbf7d0'; }
+    else if(n <= 5)   { bg='#fefce8'; cor='#a16207'; borderC=isAtivo?'#ca8a04':'#fde68a'; }
+    else              { bg='#fef2f2'; cor='#dc2626'; borderC=isAtivo?'#dc2626':'#fca5a5'; }
+
+    const [y, mo] = m.key.split('-');
+    const nomeMes = NOMES_MES[parseInt(mo)-1] + ' ' + y.slice(2);
+
+    return '<div onclick="renderPrevisaoRenovacoes(\'' + m.key + '\')" style="' +
+      'background:' + bg + ';border:2px solid ' + borderC + ';border-radius:10px;padding:10px 8px;' +
+      'cursor:' + (n > 0 ? 'pointer' : 'default') + ';text-align:center;transition:all .15s;' +
+      (isAtivo ? 'box-shadow:0 0 0 3px ' + borderC + '44;' : '') +
+    '">' +
+      '<div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.05em;margin-bottom:6px;">' + nomeMes + '</div>' +
+      '<div style="font-size:22px;font-weight:800;color:' + cor + ';line-height:1;">' + n + '</div>' +
+      '<div style="font-size:10px;color:' + cor + ';margin-top:2px;">' + (n === 1 ? 'aluno' : 'alunos') + '</div>' +
+      '<div style="background:' + borderC + ';border-radius:999px;height:4px;margin-top:8px;overflow:hidden;">' +
+        '<div style="width:' + pct + '%;height:4px;border-radius:999px;background:' + cor + ';transition:width .5s;"></div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  // Painel de detalhe do mês clicado
+  const detalhe = document.getElementById('previsao-detalhe');
+  const titulo = document.getElementById('previsao-detalhe-titulo');
+  const lista = document.getElementById('previsao-detalhe-lista');
+
+  if(!mesFiltro || !detalhe || !lista) {
+    if(detalhe) detalhe.style.display = 'none';
+
+    // Ao clicar em "ver todos", mostra todas no card de renovações abaixo
+    const selDias = document.getElementById('renov-filtro-dias');
+    if(selDias){ selDias.value = '90'; renderRenovacoes(); }
+    return;
+  }
+
+  const m = meses.find(m => m.key === mesFiltro);
+  if(!m || !m.alunos.length){ detalhe.style.display = 'none'; return; }
+
+  const [y, mo] = mesFiltro.split('-');
+  if(titulo) titulo.textContent = NOMES_MES[parseInt(mo)-1] + '/' + y + ' — ' + m.alunos.length + ' renova' + (m.alunos.length !== 1 ? 'ções' : 'ção');
+
+  const fmtDt = dt => {
+    if(!dt) return '—';
+    const [y2,m2,d2] = dt.split('-');
+    return d2 + '/' + m2 + '/' + y2;
+  };
+
+  lista.innerHTML = m.alunos
+    .sort((a,b) => a.fimCtrt < b.fimCtrt ? -1 : 1)
+    .map(a => {
+      const cor = CN_PLANO_COR[a.plano] || '#94a3b8';
+      return '<tr>' +
+        '<td style="font-weight:600;">' + (a.nome || '—') + '</td>' +
+        '<td><span style="background:' + cor + '22;color:' + cor + ';border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">' + (a.plano || '—') + '</span></td>' +
+        '<td style="font-size:12px;">' + fmtDt(a.fimCtrt) + '</td>' +
+        '</tr>';
+    }).join('');
+
+  detalhe.style.display = 'block';
 }
 
 async function carregarDashboardNotionFin(){
