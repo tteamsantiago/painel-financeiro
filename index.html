@@ -6431,7 +6431,7 @@ async function verificarAniversariosHoje() {
 
     const anivHoje = data.filter(a => {
       const partes = a.data_nascimento.split('-');
-      return +partes[1] === mesHoje && +partes[2] === diaHoje;
+      return +partes[1] === mesHoje + 1 && +partes[2] === diaHoje;
     });
 
     if (anivHoje.length === 0) return;
