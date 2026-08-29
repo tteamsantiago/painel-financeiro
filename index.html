@@ -6025,6 +6025,28 @@ function renderComissoesVendas(){
     if(lblPag)lblPag.textContent=`Pagável em: ${nomePag.charAt(0).toUpperCase()+nomePag.slice(1)}`;
   }
   const pgRec=PAGAMENTOS_DATA.filter(p=>p.recebido&&(p.data_prevista||'').startsWith(VENDAS_MES_COM));
+
+  const buildDetalheVendas=(pgs,calcCom)=>{
+    const ids=[...new Set(pgs.map(p=>p.venda_id))];
+    if(!ids.length)return'<div style="font-size:11px;color:#9ca3af;padding:4px 0;">Nenhuma venda no período</div>';
+    return ids.map(vid=>{
+      const venda=VENDAS_DATA.find(v=>v.id===vid);
+      const vpgs=pgs.filter(p=>p.venda_id===vid);
+      const vtot=vpgs.reduce((s,p)=>s+(p.valor||0),0);
+      const vcom=calcCom(vtot);
+      return'<div style="border-left:3px solid #e5e7eb;margin:6px 0;padding:0 0 0 10px;">'+
+        '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:#374151;margin-bottom:3px;">'+
+          '<span>'+(venda?.aluno_nome||'—')+'</span>'+
+          '<span style="color:#059669;">comissão '+fmt(vcom)+'</span>'+
+        '</div>'+
+        vpgs.map(p=>'<div style="display:flex;justify-content:space-between;font-size:11px;color:#6b7280;padding:1px 0;">'+
+          '<span>'+(p.descricao||'Parcela')+' · '+fmtDataV(p.data_prevista)+'</span>'+
+          '<span style="font-weight:600;">'+fmt(p.valor)+'</span>'+
+        '</div>').join('')+
+      '</div>';
+    }).join('');
+  };
+
   const infGrid=document.getElementById('v-com-inf-grid');
   if(infGrid){
     const ativos=INF_LIST_V.filter(i=>i.status==='ativa');
@@ -6033,7 +6055,8 @@ function renderComissoesVendas(){
       const tot=pgs.reduce((s,p)=>s+(p.valor||0),0);
       const com=tot*(inf.percentual||0)/100;
       const nv=[...new Set(pgs.map(p=>p.venda_id))].length;
-      return`<div class="com-card"><div class="com-card-nome">${inf.nome}</div><div class="com-card-row"><span>Vendas recebidas</span><span>${nv}</span></div><div class="com-card-row"><span>Total recebido</span><span>${fmt(tot)}</span></div><div class="com-card-row"><span>Comissão (${inf.percentual}%)</span><span>${fmt(com)}</span></div><div class="com-card-total"><span>A pagar</span><span>${fmt(com)}</span></div></div>`;
+      const detalhe=buildDetalheVendas(pgs,v=>v*(inf.percentual||0)/100);
+      return`<div class="com-card"><div class="com-card-nome">${inf.nome}</div><div class="com-card-row"><span>Vendas recebidas</span><span>${nv}</span></div><div class="com-card-row"><span>Total recebido</span><span>${fmt(tot)}</span></div><div class="com-card-row"><span>Comissão (${inf.percentual}%)</span><span>${fmt(com)}</span></div><div class="com-card-total"><span>A pagar</span><span>${fmt(com)}</span></div><button onclick="toggleComDetail(this)" style="width:100%;margin-top:10px;padding:5px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;cursor:pointer;font-size:11px;color:#6b7280;">▾ Ver vendas</button><div class="com-detalhe" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #f3f4f6;">${detalhe}</div></div>`;
     }).join('');
   }
   const venGrid=document.getElementById('v-com-ven-grid');
@@ -6046,9 +6069,17 @@ function renderComissoesVendas(){
       const teto=ven.teto_base||20000;const p1=ven.percentual||2;const p2=ven.percentual_bonus||5;
       const det=tot>teto?`${fmt(teto)}×${p1}% + ${fmt(tot-teto)}×${p2}%`:`${fmt(tot)}×${p1}%`;
       const nv=[...new Set(pgs.map(p=>p.venda_id))].length;
-      return`<div class="com-card"><div class="com-card-nome">${ven.nome}</div><div class="com-card-row"><span>Vendas recebidas</span><span>${nv}</span></div><div class="com-card-row"><span>Total recebido</span><span>${fmt(tot)}</span></div><div class="com-card-row"><span>Cálculo</span><span style="font-size:11px;">${det}</span></div><div class="com-card-total"><span>A pagar</span><span>${fmt(com)}</span></div></div>`;
+      const detalhe=buildDetalheVendas(pgs,v=>calcComissaoVendedora(v,ven));
+      return`<div class="com-card"><div class="com-card-nome">${ven.nome}</div><div class="com-card-row"><span>Vendas recebidas</span><span>${nv}</span></div><div class="com-card-row"><span>Total recebido</span><span>${fmt(tot)}</span></div><div class="com-card-row"><span>Cálculo</span><span style="font-size:11px;">${det}</span></div><div class="com-card-total"><span>A pagar</span><span>${fmt(com)}</span></div><button onclick="toggleComDetail(this)" style="width:100%;margin-top:10px;padding:5px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;cursor:pointer;font-size:11px;color:#6b7280;">▾ Ver vendas</button><div class="com-detalhe" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #f3f4f6;">${detalhe}</div></div>`;
     }).join('');
   }
+}
+
+function toggleComDetail(btn){
+  const det=btn.nextElementSibling;
+  const open=det.style.display==='none';
+  det.style.display=open?'block':'none';
+  btn.textContent=open?'▴ Ocultar vendas':'▾ Ver vendas';
 }
 
 function mudarMesComissao(delta){
