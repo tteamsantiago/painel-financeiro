@@ -1232,10 +1232,11 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
     <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
       <input type="text" id="v-busca" placeholder="Buscar aluno..." style="flex:1;min-width:180px;" oninput="renderListaVendas()">
       <select id="v-filtro-mes" onchange="renderListaVendas()" style="width:160px;"></select>
-      <select id="v-filtro-nf" onchange="renderListaVendas()" style="width:160px;">
-        <option value="">PIX + Cartão</option>
+      <select id="v-filtro-nf" onchange="renderListaVendas()" style="width:180px;">
+        <option value="">Todas as formas</option>
         <option value="pix">Somente PIX</option>
         <option value="cartao">Somente Cartão</option>
+        <option value="misto">Misto (PIX + Cartão)</option>
       </select>
     </div>
     <div class="card">
@@ -5896,7 +5897,8 @@ async function renderVendas(){
 
 function popularSelectMeses(){
   const todos=[...new Set([...VENDAS_DATA.map(v=>v.data_venda?.substring(0,7)),...PAGAMENTOS_DATA.map(p=>p.data_prevista?.substring(0,7))].filter(Boolean))].sort().reverse();
-  const lbl=m=>{const[y,mo]=m.split('-');return new Date(+y,+mo-1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});};
+  const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const lbl=m=>{const[y,mo]=m.split('-');return MESES[+mo-1]+'/'+y;};
   const opts='<option value="">Todos os meses</option>'+todos.map(m=>`<option value="${m}">${lbl(m)}</option>`).join('');
   ['v-filtro-mes','p-filtro-mes'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
 }
@@ -5960,7 +5962,17 @@ function renderListaVendas(){
   let dados=VENDAS_DATA;
   if(busca)dados=dados.filter(v=>v.aluno_nome?.toLowerCase().includes(busca));
   if(mes)dados=dados.filter(v=>v.data_venda?.startsWith(mes));
-  if(filtroNf)dados=dados.filter(v=>PAGAMENTOS_DATA.some(p=>p.venda_id===v.id&&p.recebido&&(p.forma_pagamento_nf||'pix')===filtroNf));
+  if(filtroNf){
+    dados=dados.filter(v=>{
+      const pgRec=PAGAMENTOS_DATA.filter(p=>p.venda_id===v.id&&p.recebido);
+      const temPix=pgRec.some(p=>(p.forma_pagamento_nf||'pix')==='pix');
+      const temCart=pgRec.some(p=>p.forma_pagamento_nf==='cartao');
+      if(filtroNf==='pix')return temPix&&!temCart;
+      if(filtroNf==='cartao')return temCart&&!temPix;
+      if(filtroNf==='misto')return temPix&&temCart;
+      return true;
+    });
+  }
   const tbody=document.getElementById('v-tbody-vendas');
   if(!tbody)return;
   if(!dados.length){tbody.innerHTML='<tr><td colspan="9" class="empty">Nenhuma venda encontrada</td></tr>';return;}
