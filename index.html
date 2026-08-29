@@ -1837,13 +1837,13 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
           </div>
           <div>
             <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Data da Venda</label>
-            <input id="mv-data" type="date" style="width:100%;">
+            <input id="mv-data" type="date" onchange="atualizarParcelasForm()" style="width:100%;">
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div>
             <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Valor Total (R$)</label>
-            <input id="mv-valor" type="number" min="0" step="0.01" placeholder="0,00" style="width:100%;">
+            <input id="mv-valor" type="number" min="0" step="0.01" placeholder="0,00" oninput="atualizarParcelasForm()" style="width:100%;">
           </div>
           <div>
             <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Tipo de Pagamento</label>
