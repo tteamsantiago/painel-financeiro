@@ -5960,7 +5960,7 @@ function renderListaVendas(){
   let dados=VENDAS_DATA;
   if(busca)dados=dados.filter(v=>v.aluno_nome?.toLowerCase().includes(busca));
   if(mes)dados=dados.filter(v=>v.data_venda?.startsWith(mes));
-  if(filtroNf)dados=dados.filter(v=>PAGAMENTOS_DATA.some(p=>p.venda_id===v.id&&(p.forma_pagamento_nf||'pix')===filtroNf));
+  if(filtroNf)dados=dados.filter(v=>PAGAMENTOS_DATA.some(p=>p.venda_id===v.id&&p.recebido&&(p.forma_pagamento_nf||'pix')===filtroNf));
   const tbody=document.getElementById('v-tbody-vendas');
   if(!tbody)return;
   if(!dados.length){tbody.innerHTML='<tr><td colspan="9" class="empty">Nenhuma venda encontrada</td></tr>';return;}
