@@ -5967,8 +5967,8 @@ function renderListaVendas(){
   const tipoLabel=t=>({avista:'À Vista',credito:'Cartão',sinal_parcelas:'Sinal+Parc.',parcelado_pix:'Parc.Pix'})[t]||t;
   const totalFiltrado=dados.reduce((s,v)=>s+(v.valor_total||0),0);
   const nfBreakdown=pgtos=>{
-    const pix=pgtos.filter(p=>(p.forma_pagamento_nf||'pix')==='pix').reduce((s,p)=>s+(p.valor||0),0);
-    const cart=pgtos.filter(p=>p.forma_pagamento_nf==='cartao').reduce((s,p)=>s+(p.valor||0),0);
+    const pix=pgtos.filter(p=>p.recebido&&(p.forma_pagamento_nf||'pix')==='pix').reduce((s,p)=>s+(p.valor||0),0);
+    const cart=pgtos.filter(p=>p.recebido&&p.forma_pagamento_nf==='cartao').reduce((s,p)=>s+(p.valor||0),0);
     const parts=[];
     if(pix>0)parts.push('<span style="background:#dcfce7;color:#166534;border-radius:5px;padding:2px 6px;font-size:10px;font-weight:700;">PIX '+fmt(pix)+'</span>');
     if(cart>0)parts.push('<span style="background:#dbeafe;color:#1e40af;border-radius:5px;padding:2px 6px;font-size:10px;font-weight:700;">Cartão '+fmt(cart)+'</span>');
