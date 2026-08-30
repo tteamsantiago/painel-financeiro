@@ -1063,6 +1063,53 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
     <p id="ig-windsor-updated" style="font-size:11px;color:#94a3b8;margin:0 0 16px;"></p>
   </div>
 
+  <!-- CONTEÚDO INTERNACIONAL -->
+  <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">🌍 Explorador de Conteúdo Internacional</div>
+  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:20px;">
+    <div style="margin-bottom:14px;">
+      <h3 style="font-size:14px;font-weight:600;color:#374151;margin:0 0 4px;">Encontrar conteúdos virais de outros países</h3>
+      <p style="font-size:12px;color:#6b7280;margin:0;">Busque posts com mais engajamento de uma hashtag para estudar e replicar</p>
+    </div>
+    <!-- Atalhos de nicho -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+      <span style="font-size:11px;font-weight:600;color:#6b7280;align-self:center;">Nichos:</span>
+      <button onclick="usarHashtagIntl('fitness')" style="padding:4px 10px;border-radius:20px;border:1px solid #e5e7eb;background:#f9fafb;font-size:12px;cursor:pointer;color:#374151;" class="btn-niche">fitness</button>
+      <button onclick="usarHashtagIntl('workout')" style="padding:4px 10px;border-radius:20px;border:1px solid #e5e7eb;background:#f9fafb;font-size:12px;cursor:pointer;color:#374151;" class="btn-niche">workout</button>
+      <button onclick="usarHashtagIntl('weightloss')" style="padding:4px 10px;border-radius:20px;border:1px solid #e5e7eb;background:#f9fafb;font-size:12px;cursor:pointer;color:#374151;" class="btn-niche">weightloss</button>
+      <button onclick="usarHashtagIntl('bodyrecomposition')" style="padding:4px 10px;border-radius:20px;border:1px solid #e5e7eb;background:#f9fafb;font-size:12px;cursor:pointer;color:#374151;" class="btn-niche">bodyrecomposition</button>
+      <button onclick="usarHashtagIntl('gym')" style="padding:4px 10px;border-radius:20px;border:1px solid #e5e7eb;background:#f9fafb;font-size:12px;cursor:pointer;color:#374151;" class="btn-niche">gym</button>
+      <button onclick="usarHashtagIntl('personaltrainer')" style="padding:4px 10px;border-radius:20px;border:1px solid #e5e7eb;background:#f9fafb;font-size:12px;cursor:pointer;color:#374151;" class="btn-niche">personaltrainer</button>
+      <button onclick="usarHashtagIntl('fatlosstips')" style="padding:4px 10px;border-radius:20px;border:1px solid #e5e7eb;background:#f9fafb;font-size:12px;cursor:pointer;color:#374151;" class="btn-niche">fatlosstips</button>
+      <button onclick="usarHashtagIntl('musclegain')" style="padding:4px 10px;border-radius:20px;border:1px solid #e5e7eb;background:#f9fafb;font-size:12px;cursor:pointer;color:#374151;" class="btn-niche">musclegain</button>
+    </div>
+    <!-- Busca -->
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
+      <div style="position:relative;flex:1;min-width:180px;">
+        <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#6b7280;font-size:14px;pointer-events:none;">#</span>
+        <input id="intl-hashtag" type="text" placeholder="hashtag (sem #)" style="width:100%;padding:9px 12px 9px 26px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box;">
+      </div>
+      <select id="intl-ordenar" style="padding:9px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff;">
+        <option value="engagement">Maior Engajamento</option>
+        <option value="likes">Mais Curtidas</option>
+        <option value="views">Mais Views</option>
+        <option value="comments">Mais Comentários</option>
+      </select>
+      <select id="intl-limite" style="padding:9px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff;">
+        <option value="15">15 posts</option>
+        <option value="25" selected>25 posts</option>
+        <option value="40">40 posts</option>
+      </select>
+      <button onclick="buscarConteudoInternacional()" id="intl-btn" class="btn bp" style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Buscar Posts
+      </button>
+    </div>
+    <div id="intl-loading" style="display:none;text-align:center;padding:32px;color:#6b7280;font-size:13px;">
+      <svg width="24" height="24" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 10px;animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+      Buscando posts... pode levar até 90 segundos
+    </div>
+    <div id="intl-resultado"></div>
+  </div>
+
   <!-- APIFY: Análise de posts individuais -->
   <div style="font-size:11px;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;">📸 Análise de Posts Individuais — Apify</div>
   <div id="ig-posts-area">
@@ -1461,6 +1508,10 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
       <button class="btn bs" id="btn-fech-sync" onclick="carregarFechamento()" style="display:flex;align-items:center;gap:6px;">
         <svg id="fech-sync-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.63-4.14"/></svg>
         <span id="fech-sync-label">Sincronizar Notion</span>
+      </button>
+      <button class="btn" onclick="gerarRelatorioMensal()" style="display:flex;align-items:center;gap:6px;background:#6366f1;color:#fff;border:none;">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Gerar Relatório
       </button>
     </div>
   </div>
@@ -4564,6 +4615,127 @@ function imgError(el, type) {
     `;
   }
   el.parentNode.insertBefore(d, el);
+}
+
+function usarHashtagIntl(tag) {
+  document.getElementById('intl-hashtag').value = tag;
+}
+
+async function buscarConteudoInternacional() {
+  const tag = document.getElementById('intl-hashtag').value.trim().replace(/^#/, '');
+  if (!tag) { toast('Digite uma hashtag para buscar', 'aviso'); return; }
+  const ordenar = document.getElementById('intl-ordenar').value;
+  const limite = parseInt(document.getElementById('intl-limite').value) || 25;
+
+  const btn = document.getElementById('intl-btn');
+  btn.disabled = true; btn.textContent = 'Buscando...';
+  document.getElementById('intl-loading').style.display = 'block';
+  document.getElementById('intl-resultado').innerHTML = '';
+
+  try {
+    const data = await fnCall('apify-leads', { plataforma: 'instagram', tipo: 'top-posts', busca: tag, limite, ordenar }, 120000);
+    document.getElementById('intl-loading').style.display = 'none';
+    btn.disabled = false; btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Buscar Posts';
+
+    if (data.error) { document.getElementById('intl-resultado').innerHTML = `<p style="color:#ef4444;font-size:13px;">${data.error}</p>`; return; }
+    const posts = data.items || [];
+    if (!posts.length) { document.getElementById('intl-resultado').innerHTML = `<p style="color:#9ca3af;font-size:13px;text-align:center;padding:30px;">Nenhum post encontrado para #${tag}. Tente outra hashtag.</p>`; return; }
+
+    const fmt = n => n >= 1000000 ? (n/1000000).toFixed(1)+'M' : n >= 1000 ? (n/1000).toFixed(1)+'k' : (n||0).toString();
+    const html = `
+      <div style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <span style="font-size:13px;color:#374151;font-weight:600;">${posts.length} posts encontrados para <strong>#${tag}</strong></span>
+        <span style="font-size:11px;color:#9ca3af;">ordenado por: ${ordenar === 'engagement' ? 'engajamento total' : ordenar === 'views' ? 'views' : ordenar === 'likes' ? 'curtidas' : 'comentários'}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">
+        ${posts.map((p, i) => {
+          const typeBadge = p.mediaType === 'Reel' ? '#e0e7ff:#6366f1' : p.mediaType === 'Vídeo' ? '#fef3c7:#d97706' : p.mediaType === 'Carrossel' ? '#f0fdf4:#16a34a' : '#f9fafb:#6b7280';
+          const [tbg, tcl] = typeBadge.split(':');
+          const rank = i+1;
+          const rankColor = rank === 1 ? '#fbbf24' : rank === 2 ? '#94a3b8' : rank === 3 ? '#cd7c3a' : '#e5e7eb';
+          return `
+          <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;transition:box-shadow .2s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,.08)'" onmouseout="this.style.boxShadow='none'">
+            ${p.thumbnail ? `<a href="${p.url}" target="_blank" rel="noopener" style="display:block;position:relative;">
+              <img src="${p.thumbnail}" alt="" style="width:100%;height:160px;object-fit:cover;display:block;">
+              <div style="position:absolute;top:8px;left:8px;background:${rankColor};color:${rank<=3?'#1e293b':'#6b7280'};width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;">${rank}</div>
+              <div style="position:absolute;top:8px;right:8px;background:${tbg};color:${tcl};border-radius:20px;padding:3px 8px;font-size:10px;font-weight:700;">${p.mediaType}</div>
+            </a>` : `<div style="background:#f3f4f6;height:160px;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:11px;">Sem prévia</div>`}
+            <div style="padding:12px;">
+              <div style="display:flex;gap:12px;margin-bottom:8px;">
+                ${p.views ? `<div style="display:flex;align-items:center;gap:4px;font-size:12px;color:#6b7280;"><svg width="12" height="12" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>${fmt(p.views)}</div>` : ''}
+                <div style="display:flex;align-items:center;gap:4px;font-size:12px;color:#6b7280;"><svg width="12" height="12" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>${fmt(p.likes)}</div>
+                <div style="display:flex;align-items:center;gap:4px;font-size:12px;color:#6b7280;"><svg width="12" height="12" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>${fmt(p.comments)}</div>
+              </div>
+              ${p.username ? `<div style="font-size:11px;color:#6b7280;margin-bottom:6px;">@${p.username}</div>` : ''}
+              ${p.caption ? `<div style="font-size:11px;color:#374151;line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${p.caption.replace(/</g,'&lt;')}</div>` : ''}
+              <a href="${p.url}" target="_blank" rel="noopener" style="display:inline-block;margin-top:8px;font-size:11px;color:#6366f1;text-decoration:none;font-weight:600;">Ver post no Instagram →</a>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    document.getElementById('intl-resultado').innerHTML = html;
+  } catch(e) {
+    document.getElementById('intl-loading').style.display = 'none';
+    btn.disabled = false; btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Buscar Posts';
+    document.getElementById('intl-resultado').innerHTML = `<p style="color:#ef4444;font-size:13px;">Erro: ${e.message}</p>`;
+  }
+}
+
+function gerarRelatorioMensal() {
+  const mes = document.getElementById('fech-mes').value;
+  const mesLabel = mes ? (()=>{ const [y,m]=mes.split('-'); const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']; return MESES[+m-1]+' de '+y; })() : 'Mês não selecionado';
+
+  const g = id => { const el=document.getElementById(id); return el ? (el.textContent||'—').trim() : '—'; };
+
+  const linhas = [
+    ['FATURAMENTO & FINANCEIRO'],
+    ['Entradas', g('fech-entrada')], ['Saídas', g('fech-saida')], ['Fluxo Líquido', g('fech-fluxo')],
+    ['Consultoria', g('fech-consultoria')], ['Personal', g('fech-personal')],
+    ['Gastos Fixos', g('fech-gastosfixos')], ['Gastos Variáveis', g('fech-gastosvar')], ['Cartão', g('fech-cartao')],
+    ['CALLS & CONVERSÕES'],
+    ['Calls Realizadas', g('fech-calls')], ['Conversões', g('fech-conv')],
+    ['Gasto Tráfego', g('fech-trafego')], ['CAC do Mês', g('fech-cac')],
+    ['Leads em Negociação', g('fech-neg')], ['Leads Adormecidos', g('fech-adorm')],
+    ['CLIENTES'],
+    ['Clientes Ativos', g('fech-ativos')], ['Entradas', g('fech-entradas-n')], ['Saídas', g('fech-saidas-n')],
+    ['CONTEÚDO & INSTAGRAM'],
+    ['Posts', g('fech-posts')], ['Visualizações', g('fech-viz')], ['Alcance', g('fech-alc')],
+    ['Seguidores +/-', g('fech-seg')], ['Retenção 3s', g('fech-ret3s')], ['Salvamentos', g('fech-salv')],
+    ['COMISSÕES'],
+    ['Faturamento Vendas', g('fech-fat-vendas')], ['Qtd Vendas', g('fech-n-vendas')],
+    ['Comissão Éllid', g('fech-comissao-ellid')], ['% Comissão', g('fech-pct-ellid')],
+    ['LTV / CAC'],
+    ['LTV Médio', g('fech-ltv')], ['CAC Médio', g('fech-ltv-cac')], ['Ratio LTV/CAC', g('fech-ratio')],
+    ['RESERVAS'],
+    ['Reserva Team Santiago', g('fech-res-ts')], ['Reserva Pessoal', g('fech-res-pes')],
+  ];
+
+  const rows = linhas.map(r => {
+    if (r.length === 1) return `<tr><td colspan="2" style="background:#1e293b;color:#fff;font-weight:700;font-size:12px;letter-spacing:1px;padding:10px 16px;text-transform:uppercase;">${r[0]}</td></tr>`;
+    return `<tr><td style="padding:9px 16px;font-size:13px;color:#374151;border-bottom:1px solid #f3f4f6;width:60%;">${r[0]}</td><td style="padding:9px 16px;font-size:14px;font-weight:700;color:#111827;border-bottom:1px solid #f3f4f6;text-align:right;">${r[1]}</td></tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório ${mesLabel} — Team Santiago</title>
+  <style>body{font-family:'Segoe UI',Arial,sans-serif;margin:0;padding:0;background:#f8fafc;}@media print{.no-print{display:none!important;}.page-break{page-break-before:always;}}</style>
+  </head><body>
+  <div style="max-width:700px;margin:0 auto;padding:40px 20px;">
+    <div class="no-print" style="display:flex;gap:10px;margin-bottom:24px;">
+      <button onclick="window.print()" style="padding:8px 18px;background:#6366f1;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">Imprimir / Salvar PDF</button>
+    </div>
+    <div style="background:linear-gradient(135deg,#1e293b 0%,#334155 100%);color:#fff;border-radius:16px;padding:32px;margin-bottom:24px;text-align:center;">
+      <div style="font-size:11px;letter-spacing:2px;color:#94a3b8;margin-bottom:8px;text-transform:uppercase;">Relatório de Performance</div>
+      <h1 style="margin:0 0 4px;font-size:28px;font-weight:800;">${mesLabel}</h1>
+      <div style="color:#94a3b8;font-size:13px;">Team Santiago · gerado em ${new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'})}</div>
+    </div>
+    <div style="background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;margin-bottom:24px;">
+      <table style="width:100%;border-collapse:collapse;">${rows}</table>
+    </div>
+    <div style="font-size:10px;color:#94a3b8;text-align:center;padding-top:8px;">Team Santiago · Relatório gerado automaticamente pelo painel de controle</div>
+  </div></body></html>`;
+
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
 }
 
 async function carregarMeusPosts() {
