@@ -856,9 +856,15 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
 
     <!-- Lista Alunos -->
     <div class="card" style="margin-bottom:16px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
-        <h3 style="margin:0;">&#128203; Alunos Ativos — Notion</h3>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;cursor:pointer;" onclick="toggleListaAlunos()" id="cn-lista-header">
+        <h3 style="margin:0;display:flex;align-items:center;gap:8px;">
+          &#128203; Alunos Ativos — Notion
+          <svg id="cn-lista-arrow" width="16" height="16" fill="none" stroke="#6b7280" stroke-width="2.5" viewBox="0 0 24 24" style="transition:transform .2s;transform:rotate(0deg);"><polyline points="6 9 12 15 18 9"/></svg>
+        </h3>
+        <span id="cn-lista-collapsed-info" style="font-size:12px;color:#9ca3af;font-style:italic;">Clique para expandir</span>
+      </div>
+      <div id="cn-lista-body" style="display:none;margin-top:14px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
           <select id="cn-filtro-plano" onchange="filtrarAlunosNotion()" style="font-size:12px;padding:5px 10px;border-radius:7px;border:1px solid #e5e7eb;">
             <option value="">Todos os planos</option>
             <option value="Anual">Anual</option>
@@ -875,14 +881,14 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
           </select>
           <input type="text" id="cn-search" placeholder="Buscar nome..." class="fi" style="width:160px;padding:5px 10px;font-size:12px;" oninput="filtrarAlunosNotion()"/>
         </div>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Nome</th><th>G&#234;nero</th><th>Plano</th><th>Consultoria</th><th>Objetivo</th><th>Vencimento</th></tr></thead>
+            <tbody id="cn-lista"><tr><td colspan="6" class="empty">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+        <div id="cn-lista-rodape" style="font-size:11px;color:#94a3b8;text-align:right;margin-top:8px;"></div>
       </div>
-      <div class="tw">
-        <table>
-          <thead><tr><th>Nome</th><th>G&#234;nero</th><th>Plano</th><th>Consultoria</th><th>Objetivo</th><th>Vencimento</th></tr></thead>
-          <tbody id="cn-lista"><tr><td colspan="6" class="empty">Carregando...</td></tr></tbody>
-        </table>
-      </div>
-      <div id="cn-lista-rodape" style="font-size:11px;color:#94a3b8;text-align:right;margin-top:8px;"></div>
     </div>
   </div>
 </div>
@@ -5488,6 +5494,24 @@ function filtrarAlunosNotion(){
   }).join('');
 
   if(rodape) rodape.textContent = `Exibindo ${lista.length} de ${CN_ALUNOS_TODOS.length} alunos ativos`;
+
+  const info = document.getElementById('cn-lista-collapsed-info');
+  if(info && document.getElementById('cn-lista-body')?.style.display === 'none') {
+    info.textContent = `${CN_ALUNOS_TODOS.length} alunos ativos — clique para ver`;
+  }
+}
+
+function toggleListaAlunos() {
+  const body = document.getElementById('cn-lista-body');
+  const arrow = document.getElementById('cn-lista-arrow');
+  const info = document.getElementById('cn-lista-collapsed-info');
+  if (!body) return;
+  const aberto = body.style.display !== 'none';
+  body.style.display = aberto ? 'none' : 'block';
+  if (arrow) arrow.style.transform = aberto ? 'rotate(0deg)' : 'rotate(180deg)';
+  if (info) info.textContent = aberto
+    ? (CN_ALUNOS_TODOS.length ? `${CN_ALUNOS_TODOS.length} alunos ativos — clique para ver` : 'Clique para expandir')
+    : '';
 }
 
 function renderRenovacoes(){
