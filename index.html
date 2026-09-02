@@ -1954,7 +1954,7 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
           </div>
           <div>
             <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Tipo de Pagamento</label>
-            <select id="mv-tipo" onchange="atualizarParcelasForm()" style="width:100%;">
+            <select id="mv-tipo" onchange="atualizarParcelasForm(true)" style="width:100%;">
               <option value="avista">À Vista (recebido na hora)</option>
               <option value="credito">Cartão de Crédito (~1 dia útil)</option>
               <option value="sinal_parcelas">Sinal + Parcelas</option>
@@ -6592,7 +6592,7 @@ function abrirModalVenda(){
   const si=document.getElementById('mv-influencer');const sv=document.getElementById('mv-vendedora');
   if(si)si.innerHTML='<option value="">— Nenhuma —</option>'+INF_LIST_V.filter(i=>i.status==='ativa').map(i=>`<option value="${i.id}">${i.nome}</option>`).join('');
   if(sv)sv.innerHTML='<option value="">— Nenhuma —</option>'+VEN_LIST_V.filter(v=>v.status==='ativa').map(v=>`<option value="${v.id}">${v.nome}</option>`).join('');
-  atualizarParcelasForm();
+  atualizarParcelasForm(true);
   document.getElementById('modal-venda').classList.add('open');
 }
 function editarVenda(id){
@@ -6618,21 +6618,33 @@ function editarVenda(id){
 }
 function fecharModalVenda(){document.getElementById('modal-venda').classList.remove('open');}
 
-function atualizarParcelasForm(){
+function atualizarParcelasForm(fromTipo=false){
   try{
   const tipo=document.getElementById('mv-tipo')?.value;
   const valor=parseFloat(document.getElementById('mv-valor')?.value)||0;
   const dataStr=document.getElementById('mv-data')?.value;
   const lista=document.getElementById('mv-parcelas-list');
   if(!lista)return;
-  lista.innerHTML='';
   const hoje=dataStr||new Date().toISOString().split('T')[0];
   const add=(d,dias)=>{const dt=new Date(d+'T12:00:00');dt.setDate(dt.getDate()+dias);return dt.toISOString().split('T')[0];};
   const addUtil=(d,n)=>{const dt=new Date(d+'T12:00:00');let c=0;while(c<n){dt.setDate(dt.getDate()+1);const dw=dt.getDay();if(dw!==0&&dw!==6)c++;}return dt.toISOString().split('T')[0];};
-  if(tipo==='avista'){adicionarLinhaParcela('Pagamento à vista',valor,hoje,null,true,'pix');}
-  else if(tipo==='credito'){adicionarLinhaParcela('Crédito (1 dia útil)',valor,addUtil(hoje,1),null,false,'cartao');}
-  else if(tipo==='sinal_parcelas'){adicionarLinhaParcela('Sinal',valor*0.5,hoje,null,false,'pix');adicionarLinhaParcela('Restante',valor*0.5,add(hoje,30),null,false,'cartao');}
-  else if(tipo==='parcelado_pix'){adicionarLinhaParcela('Parcela 1',valor,hoje,null,false,'pix');adicionarLinhaParcela('Parcela 2',0,add(hoje,30),null,false,'pix');}
+  // Quando tipo muda ou lista está vazia: gera parcelas do zero
+  if(fromTipo||lista.children.length===0){
+    lista.innerHTML='';
+    if(tipo==='avista'){adicionarLinhaParcela('Pagamento à vista',valor,hoje,null,true,'pix');}
+    else if(tipo==='credito'){adicionarLinhaParcela('Crédito (1 dia útil)',valor,addUtil(hoje,1),null,false,'cartao');}
+    else if(tipo==='sinal_parcelas'){adicionarLinhaParcela('Sinal',valor*0.5,hoje,null,false,'pix');adicionarLinhaParcela('Restante',valor*0.5,add(hoje,30),null,false,'cartao');}
+    else if(tipo==='parcelado_pix'){adicionarLinhaParcela('Parcela 1',valor,hoje,null,false,'pix');adicionarLinhaParcela('Parcela 2',0,add(hoje,30),null,false,'pix');}
+    return;
+  }
+  // Quando valor/data muda: atualiza in-place sem destruir checkboxes
+  const rows=[...lista.querySelectorAll(':scope > div')];
+  if(tipo==='avista'||tipo==='credito'){
+    if(rows[0]){const ni=rows[0].querySelector('input[type="number"]');if(ni)ni.value=valor||'';}
+  } else if(tipo==='sinal_parcelas'&&rows.length>=2){
+    const n1=rows[0].querySelector('input[type="number"]');if(n1)n1.value=valor>0?(valor*0.5):'';
+    const n2=rows[1].querySelector('input[type="number"]');if(n2)n2.value=valor>0?(valor*0.5):'';
+  }
   }catch(e){console.error('atualizarParcelasForm:',e);}
 }
 
