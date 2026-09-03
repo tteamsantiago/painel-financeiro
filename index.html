@@ -5617,6 +5617,15 @@ async function carregarColaboradoresAniversario() {
     return `${String(d).padStart(2,'0')} de ${MESES[m-1]}`;
   }
 
+  function calcIdadeColab(dateStr) {
+    if (!dateStr) return null;
+    const [y, m, d] = dateStr.split('-').map(Number);
+    if (!y || y < 1900) return null;
+    let idade = anoAtual - y;
+    if (new Date(anoAtual, m - 1, d) > hoje) idade--;
+    return idade;
+  }
+
   const comData = data.filter(c => c.data_aniversario).sort((a, b) => diasParaAniversario(a.data_aniversario) - diasParaAniversario(b.data_aniversario));
   const semData = data.filter(c => !c.data_aniversario);
   const ordenados = [...comData, ...semData];
@@ -5684,7 +5693,7 @@ async function carregarColaboradoresAniversario() {
         </div>
         <div style="text-align:right;flex-shrink:0;">
           <div style="font-size:13px;font-weight:600;color:#374151;">${fmtAniv(c.data_aniversario)}</div>
-          <div style="font-size:11px;color:#9ca3af;">${dias !== null ? (dias === 0 ? 'hoje' : `${dias} dias`) : 'sem data'}</div>
+          <div style="font-size:11px;color:#9ca3af;">${dias !== null ? (dias === 0 ? 'hoje' : `${dias} dias`) : 'sem data'}${calcIdadeColab(c.data_aniversario) !== null ? ` · ${calcIdadeColab(c.data_aniversario)} anos` : ''}</div>
         </div>
         <button onclick="abrirModalColabAniv('${c.id}')" style="flex-shrink:0;background:none;border:1px solid #e5e7eb;color:#6b7280;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;" onmouseover="this.style.borderColor='#6366f1';this.style.color='#6366f1'" onmouseout="this.style.borderColor='#e5e7eb';this.style.color='#6b7280'">Editar</button>
       </div>`;
@@ -7067,9 +7076,10 @@ async function renderAniversarios() {
   }
 
   // Toggle buttons
-  const toggleHtml = `<div style="display:flex;gap:6px;margin-bottom:16px;">
+  const toggleHtml = `<div style="display:flex;gap:6px;margin-bottom:16px;align-items:center;flex-wrap:wrap;">
     <button onclick="ANIVERSARIOS_MODO='semana';renderAniversarios()" style="padding:5px 14px;border-radius:20px;border:1px solid ${ANIVERSARIOS_MODO==='semana'?'#6366f1':'#e2e8f0'};background:${ANIVERSARIOS_MODO==='semana'?'#6366f1':'#fff'};color:${ANIVERSARIOS_MODO==='semana'?'#fff':'#64748b'};font-size:12px;font-weight:600;cursor:pointer;">Esta semana</button>
     <button onclick="ANIVERSARIOS_MODO='mes';renderAniversarios()" style="padding:5px 14px;border-radius:20px;border:1px solid ${ANIVERSARIOS_MODO==='mes'?'#6366f1':'#e2e8f0'};background:${ANIVERSARIOS_MODO==='mes'?'#6366f1':'#fff'};color:${ANIVERSARIOS_MODO==='mes'?'#fff':'#64748b'};font-size:12px;font-weight:600;cursor:pointer;">Este mês</button>
+    <button id="btn-sync-notion-aniv" onclick="sincronizarAniversariosNotion()" style="margin-left:auto;padding:5px 14px;border-radius:20px;border:1px solid #c7d2fe;background:#eef2ff;color:#4f46e5;font-size:12px;font-weight:600;cursor:pointer;" onmouseover="this.style.background='#e0e7ff'" onmouseout="this.style.background='#eef2ff'">⬆ Sincronizar do Notion</button>
   </div>`;
 
   let html = toggleHtml;
