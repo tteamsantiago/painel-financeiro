@@ -934,6 +934,17 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
         <label style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">WhatsApp</label>
         <input id="mca-telefone" type="tel" placeholder="(00) 00000-0000" class="fi" style="width:100%;box-sizing:border-box;">
       </div>
+      <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;">
+        <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Lembretes de Aniversário</div>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:4px 0;">
+          <input type="checkbox" id="mca-lembrete7" checked style="width:16px;height:16px;accent-color:#6366f1;cursor:pointer;">
+          <span style="font-size:13px;color:#374151;">Alertar <strong>1 semana antes</strong></span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:4px 0;margin-top:4px;">
+          <input type="checkbox" id="mca-lembrete2" checked style="width:16px;height:16px;accent-color:#6366f1;cursor:pointer;">
+          <span style="font-size:13px;color:#374151;">Alertar <strong>2 dias antes</strong></span>
+        </label>
+      </div>
     </div>
     <div style="display:flex;gap:8px;margin-top:22px;">
       <button onclick="salvarColabAniv()" class="btn bp" style="flex:1;">Salvar</button>
@@ -5571,14 +5582,18 @@ async function carregarColaboradoresAniversario() {
   loading.style.display = 'block';
   lista.style.display = 'none';
 
-  const { data, error } = await sb.from('colaboradores')
-    .select('id,nome,cargo,data_aniversario,telefone,email,role')
+  const { data, error } = await sb.from('equipe_aniversarios')
+    .select('id,nome,cargo,data_aniversario,telefone,lembrete_7dias,lembrete_2dias')
     .order('nome');
 
   loading.style.display = 'none';
   lista.style.display = 'block';
 
-  if (error || !data || !data.length) {
+  if (error) {
+    lista.innerHTML = `<p style="color:#ef4444;font-size:13px;text-align:center;padding:20px;">Erro ao carregar: ${error.message}</p>`;
+    return;
+  }
+  if (!data || !data.length) {
     lista.innerHTML = '<p style="color:#9ca3af;font-size:13px;text-align:center;padding:20px;">Nenhum colaborador cadastrado. Clique em Adicionar para começar.</p>';
     return;
   }
@@ -5602,21 +5617,47 @@ async function carregarColaboradoresAniversario() {
     return `${String(d).padStart(2,'0')} de ${MESES[m-1]}`;
   }
 
-  // Ordena: primeiro quem tem aniversário, por dias restantes; depois sem data
   const comData = data.filter(c => c.data_aniversario).sort((a, b) => diasParaAniversario(a.data_aniversario) - diasParaAniversario(b.data_aniversario));
   const semData = data.filter(c => !c.data_aniversario);
   const ordenados = [...comData, ...semData];
 
-  // Próximos aniversários (≤30 dias)
-  const proximos = comData.filter(c => diasParaAniversario(c.data_aniversario) <= 30);
+  // Alertas: hoje, 2 dias, 7 dias
+  const alertasHoje  = comData.filter(c => diasParaAniversario(c.data_aniversario) === 0);
+  const alertas2d    = comData.filter(c => diasParaAniversario(c.data_aniversario) === 2 && c.lembrete_2dias);
+  const alertas7d    = comData.filter(c => diasParaAniversario(c.data_aniversario) === 7 && c.lembrete_7dias);
+  const proximos30   = comData.filter(c => { const d = diasParaAniversario(c.data_aniversario); return d !== null && d <= 30; });
 
-  let bannerHtml = '';
-  if (proximos.length) {
-    bannerHtml = `<div style="background:#fef9c3;border:1px solid #fde68a;border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-      <span style="font-size:18px;">🎂</span>
-      <div style="font-size:13px;color:#78350f;font-weight:600;">Próximos aniversários (30 dias): ${proximos.map(c => {
+  let bannersHtml = '';
+
+  // Banner de hoje
+  if (alertasHoje.length) {
+    bannersHtml += `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px 16px;margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span style="font-size:20px;">🎉</span>
+      <div style="font-size:13px;color:#991b1b;font-weight:700;">Aniversário HOJE! ${alertasHoje.map(c=>`<span style="font-weight:800;">${c.nome.split(' ')[0]}</span>`).join(' e ')}</div>
+    </div>`;
+  }
+  // Banner de 2 dias
+  if (alertas2d.length) {
+    bannersHtml += `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px 16px;margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span style="font-size:18px;">⏰</span>
+      <div style="font-size:13px;color:#c2410c;font-weight:600;">Aniversário em <strong>2 dias</strong>: ${alertas2d.map(c=>`<span style="font-weight:700;">${c.nome.split(' ')[0]}</span>`).join(', ')}</div>
+    </div>`;
+  }
+  // Banner de 7 dias
+  if (alertas7d.length) {
+    bannersHtml += `<div style="background:#fefce8;border:1px solid #fde68a;border-radius:10px;padding:12px 16px;margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span style="font-size:18px;">📅</span>
+      <div style="font-size:13px;color:#a16207;font-weight:600;">Aniversário em <strong>1 semana</strong>: ${alertas7d.map(c=>`<span style="font-weight:700;">${c.nome.split(' ')[0]}</span>`).join(', ')}</div>
+    </div>`;
+  }
+  // Banner geral próximos 30 dias (excluindo os que já têm alerta específico)
+  const outrosProx = proximos30.filter(c => { const d = diasParaAniversario(c.data_aniversario); return d > 7; });
+  if (outrosProx.length) {
+    bannersHtml += `<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:12px 16px;margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span style="font-size:16px;">🎂</span>
+      <div style="font-size:13px;color:#0369a1;font-weight:600;">Próximos 30 dias: ${outrosProx.map(c => {
         const d = diasParaAniversario(c.data_aniversario);
-        return `<span style="font-weight:700;">${c.nome.split(' ')[0]}</span> ${d === 0 ? '<span style="color:#dc2626;">hoje!</span>' : `em ${d} dia${d > 1 ? 's' : ''}`}`;
+        return `<span style="font-weight:700;">${c.nome.split(' ')[0]}</span> em ${d}d`;
       }).join(' &nbsp;·&nbsp; ')}</div>
     </div>`;
   }
@@ -5626,18 +5667,20 @@ async function carregarColaboradoresAniversario() {
     let badge = '';
     if (dias !== null) {
       if (dias === 0) badge = '<span style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;">HOJE 🎉</span>';
-      else if (dias <= 7) badge = `<span style="background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;">em ${dias}d</span>`;
-      else if (dias <= 30) badge = `<span style="background:#fefce8;color:#a16207;border:1px solid #fde68a;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;">em ${dias}d</span>`;
+      else if (dias === 2) badge = `<span style="background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;">em 2 dias ⏰</span>`;
+      else if (dias === 7) badge = `<span style="background:#fefce8;color:#a16207;border:1px solid #fde68a;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;">em 1 semana 📅</span>`;
+      else if (dias <= 30) badge = `<span style="background:#f0f9ff;color:#0369a1;border:1px solid #bae6fd;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;">em ${dias}d</span>`;
     }
     const iniciais = c.nome.split(' ').slice(0,2).map(p => p[0]).join('').toUpperCase();
     const cores = ['#6366f1','#ec4899','#f59e0b','#10b981','#3b82f6','#8b5cf6','#ef4444','#14b8a6'];
     const cor = cores[c.nome.charCodeAt(0) % cores.length];
+    const lembretes = [c.lembrete_7dias && '7d', c.lembrete_2dias && '2d'].filter(Boolean).join(', ');
     return `
-      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f3f4f6;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''" style="cursor:default;border-radius:6px;">
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f3f4f6;border-radius:6px;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
         <div style="width:38px;height:38px;border-radius:50%;background:${cor};color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${iniciais}</div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;font-weight:700;color:#1e293b;">${c.nome} ${badge}</div>
-          <div style="font-size:11px;color:#6b7280;">${c.cargo || c.role || '—'} ${c.telefone ? '· ' + c.telefone : ''}</div>
+          <div style="font-size:11px;color:#6b7280;">${c.cargo || '—'}${c.telefone ? ' · ' + c.telefone : ''}${lembretes ? ' · alertas: ' + lembretes : ''}</div>
         </div>
         <div style="text-align:right;flex-shrink:0;">
           <div style="font-size:13px;font-weight:600;color:#374151;">${fmtAniv(c.data_aniversario)}</div>
@@ -5647,7 +5690,7 @@ async function carregarColaboradoresAniversario() {
       </div>`;
   }).join('');
 
-  lista.innerHTML = bannerHtml + `<div style="padding:0 2px;">${rows}</div>`;
+  lista.innerHTML = bannersHtml + `<div style="padding:0 2px;">${rows}</div>`;
   window._COLAB_ANIV_DATA = data;
 }
 
@@ -5658,6 +5701,8 @@ function abrirModalColabAniv(id) {
   document.getElementById('mca-aniversario').value = '';
   document.getElementById('mca-telefone').value = '';
   document.getElementById('mca-id').value = '';
+  document.getElementById('mca-lembrete7').checked = true;
+  document.getElementById('mca-lembrete2').checked = true;
   document.getElementById('mca-btn-excluir').style.display = 'none';
 
   if (id) {
@@ -5669,6 +5714,8 @@ function abrirModalColabAniv(id) {
       document.getElementById('mca-cargo').value = c.cargo || '';
       document.getElementById('mca-aniversario').value = c.data_aniversario || '';
       document.getElementById('mca-telefone').value = c.telefone || '';
+      document.getElementById('mca-lembrete7').checked = c.lembrete_7dias !== false;
+      document.getElementById('mca-lembrete2').checked = c.lembrete_2dias !== false;
       document.getElementById('mca-btn-excluir').style.display = 'inline-block';
     }
   } else {
@@ -5687,17 +5734,25 @@ async function salvarColabAniv() {
   const cargo = document.getElementById('mca-cargo').value.trim();
   const aniversario = document.getElementById('mca-aniversario').value || null;
   const telefone = document.getElementById('mca-telefone').value.trim();
+  const lembrete7 = document.getElementById('mca-lembrete7').checked;
+  const lembrete2 = document.getElementById('mca-lembrete2').checked;
 
   if (!nome) { toast('Nome é obrigatório', 'aviso'); return; }
 
-  const payload = { nome, cargo: cargo || null, data_aniversario: aniversario, telefone: telefone || null };
+  const payload = {
+    nome,
+    cargo: cargo || null,
+    data_aniversario: aniversario,
+    telefone: telefone || null,
+    lembrete_7dias: lembrete7,
+    lembrete_2dias: lembrete2
+  };
+
   let err;
   if (id) {
-    ({ error: err } = await sb.from('colaboradores').update(payload).eq('id', id));
+    ({ error: err } = await sb.from('equipe_aniversarios').update(payload).eq('id', id));
   } else {
-    payload.role = 'membro';
-    payload.ativo = true;
-    ({ error: err } = await sb.from('colaboradores').insert(payload));
+    ({ error: err } = await sb.from('equipe_aniversarios').insert(payload));
   }
   if (err) { toast('Erro ao salvar: ' + err.message, 'erro'); return; }
   toast('Colaborador salvo!', 'sucesso');
@@ -5708,7 +5763,7 @@ async function salvarColabAniv() {
 async function excluirColabAniv() {
   const id = document.getElementById('mca-id').value;
   if (!id || !confirm('Remover este colaborador da lista?')) return;
-  const { error } = await sb.from('colaboradores').delete().eq('id', id);
+  const { error } = await sb.from('equipe_aniversarios').delete().eq('id', id);
   if (error) { toast('Erro: ' + error.message, 'erro'); return; }
   toast('Removido!', 'sucesso');
   fecharModalColabAniv();
