@@ -6695,10 +6695,10 @@ function atualizarParcelasForm(fromTipo=false){
   // Quando tipo muda ou lista está vazia: gera parcelas do zero
   if(fromTipo||lista.children.length===0){
     lista.innerHTML='';
-    if(tipo==='avista'){adicionarLinhaParcela('Pagamento à vista',valor,hoje,null,true,'pix');}
-    else if(tipo==='credito'){adicionarLinhaParcela('Crédito (1 dia útil)',valor,addUtil(hoje,1),null,false,'cartao');}
-    else if(tipo==='sinal_parcelas'){adicionarLinhaParcela('Sinal',valor*0.5,hoje,null,false,'pix');adicionarLinhaParcela('Restante',valor*0.5,add(hoje,30),null,false,'cartao');}
-    else if(tipo==='parcelado_pix'){adicionarLinhaParcela('Parcela 1',valor,hoje,null,false,'pix');adicionarLinhaParcela('Parcela 2',0,add(hoje,30),null,false,'pix');}
+    if(tipo==='avista'){adicionarLinhaParcela('Pagamento à vista',valor,hoje,null,true,'','pix');}
+    else if(tipo==='credito'){adicionarLinhaParcela('Crédito (1 dia útil)',valor,addUtil(hoje,1),null,false,'','cartao');}
+    else if(tipo==='sinal_parcelas'){adicionarLinhaParcela('Sinal',valor*0.5,hoje,null,false,'','pix');adicionarLinhaParcela('Restante',valor*0.5,add(hoje,30),null,false,'','cartao');}
+    else if(tipo==='parcelado_pix'){adicionarLinhaParcela('Parcela 1',valor,hoje,null,false,'','pix');adicionarLinhaParcela('Parcela 2',0,add(hoje,30),null,false,'','pix');}
     return;
   }
   // Quando valor/data muda: atualiza in-place sem destruir checkboxes
@@ -6781,8 +6781,9 @@ async function salvarVenda(){
     // À Vista é sempre recebido — independente do estado do checkbox
     if(tipo==='avista')rec=true;
     const recEm=linha.dataset.recebidoEm||null;
+    const recEmValido=/^\d{4}-\d{2}-\d{2}$/.test(recEm)?recEm:null;
     const fnf=linha.dataset.formaNf||(tipo==='credito'?'cartao':'pix');
-    if(v>0)parcelas.push({venda_id:vendaId,descricao:d,valor:v,data_prevista:dp,recebido:rec,data_recebido:rec?(recEm||data||hoje):null,forma_pagamento_nf:fnf});
+    if(v>0)parcelas.push({venda_id:vendaId,descricao:d,valor:v,data_prevista:dp,recebido:rec,data_recebido:rec?(recEmValido||data||hoje):null,forma_pagamento_nf:fnf});
   });
   // Se a lista estava vazia (parcelas não geradas no formulário), cria automaticamente
   if(parcelas.length===0&&valor>0){
