@@ -4545,13 +4545,15 @@ function abrirEditarRole(email,nome,roleAtual){
       <div>
         <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Nova senha <span style="font-weight:400;color:#6b7280;">(deixe vazio para não alterar)</span></label>
         <div style="position:relative;">
-          <input id="er-senha" type="password" placeholder="Mínimo 6 caracteres" style="width:100%;padding:8px 40px 8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;">
+          <input id="er-senha" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres" style="width:100%;padding:8px 40px 8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;box-sizing:border-box;">
           <button type="button" onclick="toggleModalSenha('er-senha',this)" title="Mostrar senha" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;padding:2px;line-height:0;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
         </div>
       </div>
     </div>`;
   document.getElementById('modal-footer').innerHTML=`<button class="btn bp" onclick="salvarRole('${email}')" style="width:100%;">Salvar Alterações</button>`;
   document.getElementById('modal-bg').classList.add('open');
+  // Garante que o campo senha nunca vem preenchido pelo autofill do browser
+  setTimeout(()=>{ const s=document.getElementById('er-senha'); if(s) s.value=''; }, 50);
 }
 
 function erModoChange(){
