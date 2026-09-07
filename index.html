@@ -1650,6 +1650,15 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
     </div>
   </div>
 
+  <!-- 3b. Movimentação Mensal de Clientes -->
+  <div class="card" style="margin-bottom:16px;">
+    <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+      <span style="background:#fef3c7;color:#b45309;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">3+</span>
+      Movimentação Mensal de Clientes
+    </h3>
+    <div id="fech-mov-mensal" style="color:#9ca3af;font-size:13px;">Sincronize para ver entradas e saídas mês a mês.</div>
+  </div>
+
   <!-- Funil - Histórico Leads & Calls -->
   <div class="card" style="margin-bottom:16px;">
     <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">
@@ -3446,14 +3455,15 @@ async function carregarFechamento(){
     }
   }catch(e){console.warn('Comissões fechamento:',e.message);}
 
-  // ── 6. CAC & LTV das tabelas Notion ──
+  // ── 6. CAC & LTV + Movimentação de Clientes das tabelas Notion ──
   try{
     const cl=await fnCall('notion-cac-ltv',{},15000);
     if(cl&&!cl.error){
-      // Tenta encontrar a linha do mês selecionado
       const meses_pt=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
       const [yr,mo]=mes.split('-').map(Number);
       const mesPt=(meses_pt[mo-1]||'')+' '+yr;
+
+      // CAC do mês selecionado
       const cacRow=(cl.cac||[]).find(r=>{
         const m=(r.mes||'').trim().toLowerCase();
         return m===mesPt.toLowerCase()||
@@ -3463,6 +3473,7 @@ async function carregarFechamento(){
         const eT=document.getElementById('fech-trafego');if(eT)eT.textContent=brl(cacRow.gastoTrafego);
         const eC=document.getElementById('fech-cac');if(eC)eC.textContent=brl(cacRow.cac);
       }
+
       // LTV/CAC histórico
       const e1=document.getElementById('fech-ltv');if(e1)e1.textContent=brl(cl.ltvMedio);
       const e2=document.getElementById('fech-ltv-cac');if(e2)e2.textContent=brl(cl.cacMedio);
@@ -3472,6 +3483,58 @@ async function carregarFechamento(){
         e3.textContent=cl.ltvCacRatio+'x';
         const cor=cl.ltvCacRatio>=3?'verde':cl.ltvCacRatio>=2?'amarelo':'vermelho';
         if(kpi)kpi.className='kpi '+cor;
+      }
+
+      // Entradas & Saídas do mês selecionado (popula seção 3)
+      const ltv=cl.ltv||{};
+      const setT=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v??'—';};
+      setT('fech-ativos',ltv.totalAtivos);
+      const movMes=(cl.movimentacaoMensal||[]).find(m=>m.mes===mes)||{entradas:[],saidas:[]};
+      setT('fech-entradas-n',movMes.entradas.length||'0');
+      setT('fech-saidas-n',movMes.saidas.length||'0');
+      const entEl=document.getElementById('fech-entradas-lista');
+      if(entEl){
+        if(movMes.entradas.length>0){
+          entEl.innerHTML=movMes.entradas.map(s=>`<div style="padding:3px 0;border-bottom:1px solid #f3f4f6;"><strong>${s.nome}</strong><br><span style="color:#9ca3af;">${s.plano||''} · ${brl(s.ticket)}/mês</span></div>`).join('');
+        } else entEl.textContent='Nenhuma entrada.';
+      }
+      const saiEl=document.getElementById('fech-saidas-lista');
+      if(saiEl){
+        if(movMes.saidas.length>0){
+          saiEl.innerHTML=movMes.saidas.map(s=>`<div style="padding:3px 0;border-bottom:1px solid #f3f4f6;"><strong>${s.nome}</strong><br><span style="color:#9ca3af;">${s.motivo||'—'}</span></div>`).join('');
+        } else saiEl.textContent='Nenhuma saída.';
+      }
+
+      // Histórico de movimentação mês a mês
+      const movEl=document.getElementById('fech-mov-mensal');
+      if(movEl&&cl.movimentacaoMensal&&cl.movimentacaoMensal.length>0){
+        const nomesMes=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+        movEl.innerHTML=`<div class="tw"><table style="width:100%;font-size:12px;border-collapse:collapse;">
+          <thead><tr style="color:#6b7280;">
+            <th style="text-align:left;padding:6px 4px;border-bottom:1px solid #f3f4f6;">Mês</th>
+            <th style="text-align:right;padding:6px 4px;border-bottom:1px solid #f3f4f6;color:#15803d;">Entradas</th>
+            <th style="text-align:right;padding:6px 4px;border-bottom:1px solid #f3f4f6;color:#dc2626;">Saídas</th>
+            <th style="text-align:right;padding:6px 4px;border-bottom:1px solid #f3f4f6;">Balanço</th>
+            <th style="text-align:left;padding:6px 4px;border-bottom:1px solid #f3f4f6;">Quem entrou</th>
+            <th style="text-align:left;padding:6px 4px;border-bottom:1px solid #f3f4f6;">Quem saiu</th>
+          </tr></thead><tbody>
+          ${cl.movimentacaoMensal.map(m=>{
+            const [y,mo2]=m.mes.split('-');
+            const nm=nomesMes[+mo2-1]+'/'+String(y).slice(2);
+            const bal=m.entradas.length-m.saidas.length;
+            const isAtual=m.mes===mes;
+            return`<tr style="${isAtual?'background:#f0fdf4;font-weight:600;':''}">
+              <td style="padding:8px 4px;border-bottom:1px solid #f9fafb;">${nm}${isAtual?' ●':''}</td>
+              <td style="text-align:right;padding:8px 4px;border-bottom:1px solid #f9fafb;color:#15803d;font-weight:700;">+${m.entradas.length}</td>
+              <td style="text-align:right;padding:8px 4px;border-bottom:1px solid #f9fafb;color:#dc2626;font-weight:700;">-${m.saidas.length}</td>
+              <td style="text-align:right;padding:8px 4px;border-bottom:1px solid #f9fafb;font-weight:700;color:${bal>0?'#15803d':bal<0?'#dc2626':'#6b7280'};">${bal>0?'+':''}${bal}</td>
+              <td style="padding:8px 4px;border-bottom:1px solid #f9fafb;color:#374151;max-width:160px;">${m.entradas.map(c=>c.nome.split(' ')[0]).join(', ')||'—'}</td>
+              <td style="padding:8px 4px;border-bottom:1px solid #f9fafb;color:#6b7280;max-width:160px;">${m.saidas.map(c=>c.nome.split(' ')[0]).join(', ')||'—'}</td>
+            </tr>`;
+          }).join('')}
+          </tbody></table></div>`;
+      } else if(movEl&&cl.movimentacaoMensal){
+        movEl.textContent='Nenhuma movimentação cadastrada ainda.';
       }
     }
   }catch(e){console.warn('CAC/LTV fechamento:',e.message);}
