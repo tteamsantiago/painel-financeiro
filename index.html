@@ -1553,7 +1553,7 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
   </div>
 
   <!-- Churn & Planos -->
-  <div class="g2">
+  <div class="g2" style="margin-bottom:16px;">
     <div class="card">
       <h3>Motivos de Saída</h3>
       <div id="churn-lista" style="color:#9ca3af;font-size:13px;">Carregando...</div>
@@ -1562,6 +1562,12 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
       <h3>Retenção & LTV por Plano</h3>
       <div id="plano-lista" style="color:#9ca3af;font-size:13px;">Carregando...</div>
     </div>
+  </div>
+
+  <!-- Histórico Mensal -->
+  <div class="card">
+    <h3 style="margin-bottom:12px;">Histórico Mensal</h3>
+    <div id="cac-historico" style="color:#9ca3af;font-size:13px;">Sincronize para ver o histórico mês a mês.</div>
   </div>
 </div>
 
@@ -3277,6 +3283,64 @@ async function sincronizarCacLtv(){
       const arr=Object.entries(ltv.planos).sort((a,b)=>b[1].ltvMedio-a[1].ltvMedio);
       planoEl.innerHTML=`<div style="overflow-x:auto;"><table style="width:100%;font-size:12px;border-collapse:collapse;"><thead><tr style="color:#6b7280;"><th style="text-align:left;padding:6px 0;border-bottom:1px solid #f3f4f6;">Plano</th><th style="text-align:right;padding:6px 0;border-bottom:1px solid #f3f4f6;">Ticket/mês</th><th style="text-align:right;padding:6px 0;border-bottom:1px solid #f3f4f6;">Retenção</th><th style="text-align:right;padding:6px 0;border-bottom:1px solid #f3f4f6;">LTV médio</th></tr></thead><tbody>${arr.map(([plano,p])=>`<tr><td style="padding:8px 0;color:#374151;border-bottom:1px solid #f9fafb;">${plano} <span style="color:#9ca3af;">(${p.count})</span></td><td style="text-align:right;color:#374151;border-bottom:1px solid #f9fafb;">${brl(p.ticketMedio||0)}</td><td style="text-align:right;color:#374151;border-bottom:1px solid #f9fafb;">${p.tempoMedio||0}m</td><td style="text-align:right;font-weight:700;color:#111827;border-bottom:1px solid #f9fafb;">${brl(p.ltvMedio||0)}</td></tr>`).join('')}</tbody></table></div>`;
     } else if(planoEl)planoEl.textContent='Sem dados de planos ainda.';
+
+    // Histórico Mensal
+    const histEl=document.getElementById('cac-historico');
+    if(histEl){
+      const cacArr=d.cac||[];
+      const movArr=d.movimentacaoMensal||[];
+
+      // Normaliza mês do CAC ("Setembro 2026") para "2026-09"
+      const MESES_PT=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+      const cacByMes={};
+      cacArr.forEach(r=>{
+        const p=r.mes.toLowerCase().trim().split(/\s+/);
+        if(p.length===2){
+          const mi=MESES_PT.findIndex(m=>p[0].startsWith(m.slice(0,3)));
+          const ano=p[1];
+          if(mi>=0&&ano){
+            const key=`${ano}-${String(mi+1).padStart(2,'0')}`;
+            cacByMes[key]=r;
+          }
+        }
+      });
+
+      // Junta todos os meses presentes
+      const todasKeys=new Set([...Object.keys(cacByMes),...movArr.map(m=>m.mes)]);
+      const mesesOrdenados=[...todasKeys].sort((a,b)=>b.localeCompare(a));
+
+      if(!mesesOrdenados.length){histEl.textContent='Nenhum dado mensal ainda.';return;}
+
+      const fmtMes=k=>{const[a,m]=k.split('-');const n=MESES_PT[parseInt(m,10)-1];return (n?n.charAt(0).toUpperCase()+n.slice(1):k)+' '+a;};
+
+      histEl.innerHTML=`<div style="overflow-x:auto;"><table style="width:100%;font-size:12px;border-collapse:collapse;">
+        <thead><tr style="color:#6b7280;text-align:right;">
+          <th style="text-align:left;padding:7px 8px;border-bottom:2px solid #f3f4f6;white-space:nowrap;">Mês</th>
+          <th style="padding:7px 8px;border-bottom:2px solid #f3f4f6;white-space:nowrap;">Gasto Tráfego</th>
+          <th style="padding:7px 8px;border-bottom:2px solid #f3f4f6;">Leads</th>
+          <th style="padding:7px 8px;border-bottom:2px solid #f3f4f6;">CAC</th>
+          <th style="padding:7px 8px;border-bottom:2px solid #f3f4f6;">Entradas</th>
+          <th style="padding:7px 8px;border-bottom:2px solid #f3f4f6;">Saídas</th>
+          <th style="padding:7px 8px;border-bottom:2px solid #f3f4f6;white-space:nowrap;">Saldo</th>
+        </tr></thead><tbody>
+        ${mesesOrdenados.map(k=>{
+          const c=cacByMes[k]||{};
+          const mv=movArr.find(m=>m.mes===k)||{entradas:[],saidas:[]};
+          const ent=mv.entradas.length, sai=mv.saidas.length, saldo=ent-sai;
+          const saldoCor=saldo>0?'#16a34a':saldo<0?'#dc2626':'#6b7280';
+          return`<tr style="border-bottom:1px solid #f9fafb;">
+            <td style="padding:8px;color:#374151;font-weight:600;white-space:nowrap;">${fmtMes(k)}</td>
+            <td style="text-align:right;padding:8px;color:#374151;">${c.gastoTrafego?brl(c.gastoTrafego):'—'}</td>
+            <td style="text-align:right;padding:8px;color:#374151;">${c.leadsFechados??'—'}</td>
+            <td style="text-align:right;padding:8px;font-weight:700;color:#111827;">${c.cac?brl(c.cac):'—'}</td>
+            <td style="text-align:right;padding:8px;color:#16a34a;">${ent||'—'}</td>
+            <td style="text-align:right;padding:8px;color:#dc2626;">${sai||'—'}</td>
+            <td style="text-align:right;padding:8px;font-weight:700;color:${saldoCor};">${saldo>0?'+'+saldo:saldo||'—'}</td>
+          </tr>`;
+        }).join('')}
+        </tbody></table></div>`;
+    }
+
     toast('CAC & LTV sincronizados ✓','ok');
   }catch(e){toast('Erro: '+e.message,'erro');}
   finally{if(btn){btn.disabled=false;btn.textContent='⬆ CAC & LTV do Notion';}}
