@@ -3288,35 +3288,34 @@ async function sincronizarCacLtv(){
         const ultimo=funil[0];
         funilEl.innerHTML=`
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
-            <div class="kpi cinza"><div class="kl">Leads</div><div class="kv" style="font-size:20px;">${ultimo.numLeads||'—'}</div><div class="kvar" style="color:#6b7280;">${ultimo.mes}</div></div>
-            <div class="kpi cinza"><div class="kl">Calls Agendadas</div><div class="kv" style="font-size:20px;">${ultimo.callAgendada||'—'}</div><div class="kvar" style="color:#6b7280;">Agend. ${ultimo.taxaAgendamento}%</div></div>
-            <div class="kpi cinza"><div class="kl">Conversões</div><div class="kv" style="font-size:20px;">${ultimo.conversoes||'—'}</div><div class="kvar" style="color:#6b7280;">Conv. ${ultimo.taxaConversao}%</div></div>
-            <div class="kpi cinza"><div class="kl">Taxa de Renovação</div><div class="kv" style="font-size:20px;">${ultimo.taxaRenovacao!=null?ultimo.taxaRenovacao+'%':'—'}</div><div class="kvar" style="color:#6b7280;">Upsell / retenção</div></div>
+            <div class="kpi cinza"><div class="kl">Leads do Mês</div><div class="kv" style="font-size:20px;">${ultimo.numLeads||'—'}</div><div class="kvar" style="color:#6b7280;">${ultimo.mes}</div></div>
+            <div class="kpi cinza"><div class="kl">Calls Agendadas</div><div class="kv" style="font-size:20px;">${ultimo.callAgendada||'—'}</div><div class="kvar" style="color:#6b7280;">${ultimo.taxaAgendamento}% de agendamento</div></div>
+            <div class="kpi verde"><div class="kl">Vendas / Novos Alunos</div><div class="kv" style="font-size:20px;">${ultimo.conversoes||'—'}</div><div class="kvar" style="color:#166534;">${ultimo.taxaConversao}% conv. · ${ultimo.taxaGlobal}% global</div></div>
+            <div class="kpi cinza"><div class="kl">Renovações (Upsell)</div><div class="kv" style="font-size:20px;">${ultimo.taxaRenovacao||'—'}</div><div class="kvar" style="color:#6b7280;">retenções no mês</div></div>
           </div>
-          <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+          <div style="display:flex;gap:20px;margin-bottom:16px;flex-wrap:wrap;padding:10px 12px;background:#f9fafb;border-radius:8px;">
             <div style="font-size:12px;color:#6b7280;">Em negociação: <strong style="color:#374151;">${ultimo.leadsNegociacao||0}</strong></div>
-            <div style="font-size:12px;color:#6b7280;">Adormecidos: <strong style="color:#374151;">${ultimo.leadsAdormecidos||0}</strong></div>
-            <div style="font-size:12px;color:#6b7280;">Taxa global: <strong style="color:#374151;">${ultimo.taxaGlobal}%</strong> (lead → venda)</div>
+            <div style="font-size:12px;color:#6b7280;">Adormecidos (base): <strong style="color:#374151;">${ultimo.leadsAdormecidos||0}</strong></div>
           </div>
           ${funil.length>1?`<div style="overflow-x:auto;"><table style="width:100%;font-size:12px;border-collapse:collapse;">
             <thead><tr style="color:#6b7280;text-align:right;">
               <th style="text-align:left;padding:6px 8px;border-bottom:2px solid #f3f4f6;">Mês</th>
               <th style="padding:6px 8px;border-bottom:2px solid #f3f4f6;">Leads</th>
               <th style="padding:6px 8px;border-bottom:2px solid #f3f4f6;">Calls</th>
-              <th style="padding:6px 8px;border-bottom:2px solid #f3f4f6;">Conversões</th>
+              <th style="padding:6px 8px;border-bottom:2px solid #f3f4f6;color:#16a34a;font-weight:700;">Vendas</th>
+              <th style="padding:6px 8px;border-bottom:2px solid #f3f4f6;">Renovações</th>
               <th style="padding:6px 8px;border-bottom:2px solid #f3f4f6;">Agend.%</th>
               <th style="padding:6px 8px;border-bottom:2px solid #f3f4f6;">Conv.%</th>
-              <th style="padding:6px 8px;border-bottom:2px solid #f3f4f6;">Renovação%</th>
               <th style="padding:6px 8px;border-bottom:2px solid #f3f4f6;">Global%</th>
             </tr></thead><tbody>
             ${funil.map(r=>`<tr style="border-bottom:1px solid #f9fafb;">
               <td style="padding:7px 8px;font-weight:600;color:#374151;">${r.mes}</td>
               <td style="text-align:right;padding:7px 8px;color:#374151;">${r.numLeads||'—'}</td>
               <td style="text-align:right;padding:7px 8px;color:#374151;">${r.callAgendada||'—'}</td>
-              <td style="text-align:right;padding:7px 8px;color:#374151;">${r.conversoes||'—'}</td>
+              <td style="text-align:right;padding:7px 8px;font-weight:700;color:#16a34a;">${r.conversoes||'—'}</td>
+              <td style="text-align:right;padding:7px 8px;color:#374151;">${r.taxaRenovacao||'—'}</td>
               <td style="text-align:right;padding:7px 8px;color:#374151;">${r.taxaAgendamento}%</td>
               <td style="text-align:right;padding:7px 8px;color:#374151;">${r.taxaConversao}%</td>
-              <td style="text-align:right;padding:7px 8px;color:#374151;">${r.taxaRenovacao!=null?r.taxaRenovacao+'%':'—'}</td>
               <td style="text-align:right;padding:7px 8px;font-weight:700;color:#111827;">${r.taxaGlobal}%</td>
             </tr>`).join('')}
             </tbody></table></div>`:''}`
