@@ -655,17 +655,6 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cfg-chk-relatorio"/> Relatório semanal por e-mail</label>
         </div>
       </div>
-      <div>
-        <div class="fst">Contas bancárias</div>
-        <div class="tw" style="margin-top:12px;"><table>
-          <thead><tr><th>Banco</th><th>Tipo</th><th>Status</th><th></th></tr></thead>
-          <tbody>
-            <tr><td>Nubank</td><td>Conta Corrente</td><td><span class="badge verde">✓ Ativa</span></td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarConta('Nubank','Conta Corrente')">Editar</button></td></tr>
-            <tr><td>Itaú</td><td>Conta Corrente</td><td><span class="badge verde">✓ Ativa</span></td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarConta('Itaú','Conta Corrente')">Editar</button></td></tr>
-          </tbody>
-        </table></div>
-      </div>
-
       <div class="fs">
         <div class="fst">&#128279; Integra&#231;&#245;es</div>
         <!-- Notion Financeiro -->
@@ -1667,32 +1656,6 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
       Histórico de Leads & Calls (últimos 6 meses)
     </h3>
     <div id="fech-funil-hist" style="color:#9ca3af;font-size:13px;">Selecione o mês e clique em Carregar.</div>
-  </div>
-
-  <!-- 4. Conteúdo Instagram -->
-  <div class="card" style="margin-bottom:16px;">
-    <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">
-      <span style="background:#fce7f3;color:#9d174d;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">4</span>
-      Produção de Conteúdo & Instagram
-    </h3>
-    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px;">
-      <div class="kpi cinza"><div class="kl">Posts</div><div class="kv" id="fech-posts" style="font-size:22px;">—</div></div>
-      <div class="kpi cinza"><div class="kl">Visualizações</div><div class="kv" id="fech-viz" style="font-size:18px;">—</div></div>
-      <div class="kpi cinza"><div class="kl">Alcance</div><div class="kv" id="fech-alc" style="font-size:18px;">—</div></div>
-      <div class="kpi cinza"><div class="kl">Seguidores +</div><div class="kv" id="fech-seg" style="font-size:18px;">—</div></div>
-      <div class="kpi cinza"><div class="kl">Retenção 3s</div><div class="kv" id="fech-ret3s" style="font-size:18px;">—</div></div>
-      <div class="kpi cinza"><div class="kl">Salvamentos</div><div class="kv" id="fech-salv" style="font-size:18px;">—</div></div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-      <div>
-        <div style="font-size:11px;font-weight:700;color:#9ca3af;letter-spacing:1px;margin-bottom:8px;">DISTRIBUIÇÃO POR FUNIL</div>
-        <div id="fech-por-funil" style="font-size:12px;color:#6b7280;">—</div>
-      </div>
-      <div>
-        <div style="font-size:11px;font-weight:700;color:#9ca3af;letter-spacing:1px;margin-bottom:8px;">MELHOR POST DO MÊS</div>
-        <div id="fech-melhor-post" style="font-size:12px;color:#6b7280;">—</div>
-      </div>
-    </div>
   </div>
 
   <!-- 5. Comissões -->
@@ -2939,24 +2902,6 @@ async function carregarConfigSalva(){
   }catch(e){}
 }
 
-function editarConta(banco,tipo){
-  abrirModal(`Editar conta — ${banco}`,`
-    <div class="fg"><label class="fl">Banco</label><input type="text" id="cnt-banco" class="fi" value="${banco}"/></div>
-    <div class="fg"><label class="fl">Tipo</label>
-      <select id="cnt-tipo" class="fi">
-        <option${tipo==='Conta Corrente'?' selected':''}>Conta Corrente</option>
-        <option${tipo==='Cartão de Crédito'?' selected':''}>Cartão de Crédito</option>
-        <option>Conta Poupança</option>
-      </select></div>
-    <div class="fg"><label class="fl">Status</label>
-      <select id="cnt-status" class="fi">
-        <option>Ativa</option><option>Pausada</option>
-      </select></div>`,
-    `<button class="btn bs" onclick="fecharModal()">Cancelar</button>
-     <button class="btn bp" onclick="fecharModal();toast('Conta atualizada!','sucesso')">Salvar</button>`
-  );
-}
-
 // ══════════════════════════════════════════════
 // ALUNOS — Modal de edição manual
 // ══════════════════════════════════════════════
@@ -3411,16 +3356,12 @@ async function carregarFechamento(){
   if(msgEl) msgEl.style.display='none';
 
   // Buscar todos em paralelo
-  const [fin, crm, ltv, cnt] = await Promise.allSettled([
+  const [fin, crm] = await Promise.allSettled([
     fnCall('notion-financeiro',{meses:24}),
     fnCall('notion-crm',{mes}),
-    fnCall('notion-ltv',{mes}),
-    fnCall('notion-conteudo',{mes}),
   ]);
   const fD=fin.status==='fulfilled'?fin.value:null;
   const cD=crm.status==='fulfilled'?crm.value:null;
-  const lD=ltv.status==='fulfilled'?ltv.value:null;
-  const ctD=cnt.status==='fulfilled'?cnt.value:null;
 
   // ── 1. Financeiro ──
   if(fD&&fD.rows){
@@ -3481,66 +3422,6 @@ async function carregarFechamento(){
         }).join('')}
         </tbody></table></div>`;
     } else if(funilHistEl) funilHistEl.textContent='Sem dados de histórico para este período.';
-  }
-
-  // ── 3. LTV – Clientes ──
-  if(lD&&!lD.error){
-    const setT=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v??'—';};
-    setT('fech-ativos',lD.totalAtivos);
-    setT('fech-entradas-n',(lD.entradasMes||[]).length||'0');
-    setT('fech-saidas-n',(lD.saidasMes||[]).length||'0');
-
-    // Lista entradas
-    const entEl=document.getElementById('fech-entradas-lista');
-    if(entEl){
-      if(lD.entradasMes&&lD.entradasMes.length>0){
-        entEl.innerHTML=lD.entradasMes.map(s=>`<div style="padding:3px 0;border-bottom:1px solid #f3f4f6;"><strong>${s.nome}</strong><br><span style="color:#9ca3af;">${s.plano||''} · R$ ${(s.ticket||0).toLocaleString('pt-BR')}/mês</span></div>`).join('');
-      } else entEl.textContent='Nenhuma entrada.';
-    }
-    // Lista saídas
-    const saiEl=document.getElementById('fech-saidas-lista');
-    if(saiEl){
-      if(lD.saidasMes&&lD.saidasMes.length>0){
-        saiEl.innerHTML=lD.saidasMes.map(s=>`<div style="padding:3px 0;border-bottom:1px solid #f3f4f6;"><strong>${s.nome}</strong><br><span style="color:#9ca3af;">${s.motivo||'—'}</span></div>`).join('');
-      } else saiEl.textContent='Nenhuma saída.';
-    }
-
-    // LTV/CAC histórico
-    const e1=document.getElementById('fech-ltv');if(e1)e1.textContent=brl(lD.ltvMedio);
-    const e2=document.getElementById('fech-ltv-cac');if(e2)e2.textContent=brl(lD.cacMedio);
-    const e3=document.getElementById('fech-ratio');
-    const kpi=document.getElementById('fech-ratio-kpi');
-    if(e3&&lD.ltvCacRatio!=null){
-      e3.textContent=lD.ltvCacRatio+'x';
-      const cor=lD.ltvCacRatio>=3?'verde':lD.ltvCacRatio>=2?'amarelo':'vermelho';
-      if(kpi)kpi.className='kpi '+cor;
-    }
-  }
-
-  // ── 4. Conteúdo ──
-  if(ctD&&!ctD.error&&!ctD.semDados){
-    const setT=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v??'—';};
-    setT('fech-posts',ctD.totalPublicados);
-    setT('fech-viz',(ctD.totalViz||0).toLocaleString('pt-BR'));
-    setT('fech-alc',(ctD.totalAlcance||0).toLocaleString('pt-BR'));
-    setT('fech-seg',(ctD.totalSeguidores||0)>0?'+'+ctD.totalSeguidores:'0');
-    setT('fech-ret3s',ctD.avgRetencao3s?ctD.avgRetencao3s+'%':'—');
-    setT('fech-salv',(ctD.totalSalv||0).toLocaleString('pt-BR'));
-
-    // Por funil
-    const funilEl=document.getElementById('fech-por-funil');
-    if(funilEl&&ctD.porFunil&&Object.keys(ctD.porFunil).length>0){
-      funilEl.innerHTML=Object.entries(ctD.porFunil).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #f9fafb;"><span>${k}</span><strong>${v}</strong></div>`).join('');
-    } else if(funilEl) funilEl.textContent='Sem dados.';
-
-    // Melhor post
-    const mpEl=document.getElementById('fech-melhor-post');
-    if(mpEl&&ctD.melhorPost){
-      const mp=ctD.melhorPost;
-      mpEl.innerHTML=`<strong style="color:#111827;">${mp.titulo||'—'}</strong><br><span style="color:#9ca3af;">${mp.visualizacoes?.toLocaleString('pt-BR')||0} visualizações · ${mp.funil||''}</span>`;
-    } else if(mpEl) mpEl.textContent='Sem dados.';
-  } else if(ctD&&ctD.semDados){
-    ['fech-posts','fech-viz','fech-alc','fech-seg','fech-ret3s','fech-salv'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='—';});
   }
 
   // ── 5. Comissões (Supabase vendas) ──
@@ -5013,9 +4894,6 @@ function gerarRelatorioMensal() {
     ['Leads em Negociação', g('fech-neg')], ['Leads Adormecidos', g('fech-adorm')],
     ['CLIENTES'],
     ['Clientes Ativos', g('fech-ativos')], ['Entradas', g('fech-entradas-n')], ['Saídas', g('fech-saidas-n')],
-    ['CONTEÚDO & INSTAGRAM'],
-    ['Posts', g('fech-posts')], ['Visualizações', g('fech-viz')], ['Alcance', g('fech-alc')],
-    ['Seguidores +/-', g('fech-seg')], ['Retenção 3s', g('fech-ret3s')], ['Salvamentos', g('fech-salv')],
     ['COMISSÕES'],
     ['Faturamento Vendas', g('fech-fat-vendas')], ['Qtd Vendas', g('fech-n-vendas')],
     ['Comissão Éllid', g('fech-comissao-ellid')], ['% Comissão', g('fech-pct-ellid')],
