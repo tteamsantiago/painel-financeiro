@@ -366,9 +366,6 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
     <div class="nl" data-page="importar" onclick="irPara('importar',this)">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Notas Fiscais
     </div>
-    <div class="nl" data-page="categorias" onclick="irPara('categorias',this)">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h18"/></svg>Categorias
-    </div>
     <div class="nl" data-page="crm" onclick="irPara('crm',this)" id="nav-crm">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>CRM, Alunos e Finan&#231;as
     </div>
@@ -586,42 +583,6 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
       </div>
     </div>
   </div>
-</div>
-
-<!-- ── CATEGORIAS ── -->
-<div class="page" id="page-categorias">
-  <div class="ph">
-    <div><h2>Categorias</h2><p>Gerencie as categorias de lançamentos</p></div>
-    <button class="btn bp" data-write onclick="abrirModalNovaCategoria()">+ Nova Categoria</button>
-  </div>
-  <div class="g2">
-    <div class="card">
-      <h3>Categorias de Entrada</h3>
-      <div class="tw"><table>
-        <thead><tr><th>Cor</th><th>Nome</th><th>Lançamentos</th><th>Total (Abr)</th><th></th></tr></thead>
-        <tbody id="tbody-cat-e">
-          <tr><td><span class="cc" style="background:#10b981;"></span></td><td>Mensalidade Presencial</td><td>14</td><td class="ve">R$ 42.000,00</td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('Mensalidade Presencial','#10b981','entrada')">Editar</button></td></tr>
-          <tr><td><span class="cc" style="background:#6366f1;"></span></td><td>Pagamento de Consultoria</td><td>5</td><td class="ve">R$ 16.800,00</td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('Pagamento de Consultoria','#6366f1','entrada')">Editar</button></td></tr>
-          <tr><td><span class="cc" style="background:#94a3b8;"></span></td><td>Outros</td><td>2</td><td class="ve">R$ 2.300,00</td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('Outros','#94a3b8','entrada')">Editar</button></td></tr>
-        </tbody>
-      </table></div>
-    </div>
-    <div class="card">
-      <h3>Categorias de Saída</h3>
-      <div class="tw"><table>
-        <thead><tr><th>Cor</th><th>Nome</th><th>Lançamentos</th><th>Total (Abr)</th><th></th></tr></thead>
-        <tbody id="tbody-cat-s">
-          <tr><td><span class="cc" style="background:#6366f1;"></span></td><td>Custo de Equipe</td><td>8</td><td class="vs">R$ 18.500,00</td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('Custo de Equipe','#6366f1','saida')">Editar</button></td></tr>
-          <tr><td><span class="cc" style="background:#ef4444;"></span></td><td>Imposto</td><td>4</td><td class="vs">R$ 9.200,00</td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('Imposto','#ef4444','saida')">Editar</button></td></tr>
-          <tr><td><span class="cc" style="background:#f59e0b;"></span></td><td>Cursos e Mentorias</td><td>3</td><td class="vs">R$ 5.800,00</td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('Cursos e Mentorias','#f59e0b','saida')">Editar</button></td></tr>
-          <tr><td><span class="cc" style="background:#8b5cf6;"></span></td><td>Equipamento Audiovisual</td><td>2</td><td class="vs">R$ 4.100,00</td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('Equipamento Audiovisual','#8b5cf6','saida')">Editar</button></td></tr>
-          <tr><td><span class="cc" style="background:#3b82f6;"></span></td><td>Ferramentas Digitais</td><td>7</td><td class="vs">R$ 2.900,00</td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('Ferramentas Digitais','#3b82f6','saida')">Editar</button></td></tr>
-          <tr><td><span class="cc" style="background:#10b981;"></span></td><td>Anúncios</td><td>6</td><td class="vs">R$ 500,00</td><td><button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('Anúncios','#10b981','saida')">Editar</button></td></tr>
-        </tbody>
-      </table></div>
-    </div>
-  </div>
-  <div class="demo-footer" style="margin-top:16px;">⚠ Dados fictícios — apenas para demonstração visual</div>
 </div>
 
 <!-- ── CONFIGURAÇÕES ── -->
@@ -2802,58 +2763,6 @@ function fecharMes(nome){
     `<button class="btn bs" onclick="fecharModal()">Cancelar</button>
      <button class="btn bp" onclick="fecharModal();toast('${nome} fechado com sucesso!','sucesso')">Confirmar fechamento</button>`
   );
-}
-
-// ══════════════════════════════════════════════
-// CATEGORIAS
-// ══════════════════════════════════════════════
-function abrirModalNovaCategoria(){
-  abrirModal('Nova Categoria',`
-    <div class="fg"><label class="fl">Nome</label><input type="text" id="nc-nome" class="fi" placeholder="Nome da categoria"/></div>
-    <div class="fr">
-      <div class="fg"><label class="fl">Tipo</label>
-        <select id="nc-tipo" class="fi"><option value="entrada">Entrada</option><option value="saida">Saída</option></select></div>
-      <div class="fg"><label class="fl">Cor</label><input type="color" id="nc-cor" class="fi" value="#6366f1" style="height:38px;padding:4px;cursor:pointer;"/></div>
-    </div>`,
-    `<button class="btn bs" onclick="fecharModal()">Cancelar</button>
-     <button class="btn bp" onclick="salvarNovaCategoria()">Salvar</button>`
-  );
-}
-
-async function salvarNovaCategoria(){
-  const nome=document.getElementById('nc-nome').value.trim();
-  if(!nome){toast('Informe o nome','erro');return;}
-  const tipo=document.getElementById('nc-tipo').value;
-  const cor=document.getElementById('nc-cor').value;
-    const {error}=await sb.from('categorias').insert({nome,tipo,cor});
-  if(error){toast('Erro ao salvar categoria','erro');return;}
-  fecharModal();
-  await carregarCategorias();
-  toast(`Categoria "${nome}" criada!`,'sucesso');
-}
-function editarCategoria(nome,cor,tipo,id){
-  abrirModal('Editar Categoria',`
-    <div class="fg"><label class="fl">Nome</label><input type="text" id="ec-nome" class="fi" value="${nome}"/></div>
-    <div class="fr">
-      <div class="fg"><label class="fl">Tipo</label>
-        <select id="ec-tipo" class="fi"><option value="entrada"${tipo==='entrada'?' selected':''}>Entrada</option><option value="saida"${tipo==='saida'?' selected':''}>Saída</option></select></div>
-      <div class="fg"><label class="fl">Cor</label><input type="color" id="ec-cor" class="fi" value="${cor}" style="height:38px;padding:4px;cursor:pointer;"/></div>
-    </div>`,
-    `<button class="btn bs" onclick="fecharModal()">Cancelar</button>
-     <button class="btn bp" onclick="salvarEdicaoCategoria('${id}')">Salvar</button>`
-  );
-}
-async function salvarEdicaoCategoria(id){
-  if(!id){toast('ID da categoria não encontrado','erro');return;}
-  const nome=(document.getElementById('ec-nome')?.value||'').trim();
-  const tipo=document.getElementById('ec-tipo')?.value||'entrada';
-  const cor=document.getElementById('ec-cor')?.value||'#6366f1';
-  if(!nome){toast('Informe o nome','erro');return;}
-  const {error}=await sb.from('categorias').update({nome,tipo,cor}).eq('id',id);
-  if(error){toast('Erro ao salvar: '+error.message,'erro');return;}
-  fecharModal();
-  await carregarCategorias();
-  toast(`Categoria "${nome}" atualizada!`,'sucesso');
 }
 
 // ══════════════════════════════════════════════
@@ -5306,42 +5215,12 @@ async function logoutUser(){
   toast('Sessão encerrada. Até logo!','sucesso');
 }
 
-// ══════════════════════════════════════════════
-// CATEGORIAS — Supabase
-// ══════════════════════════════════════════════
 async function carregarCategorias(){
   const {data,error}=await sb.from('categorias').select('*').order('nome');
-  if(error){toast('Erro ao carregar categorias','erro');return;}
+  if(error) return;
   CAT_ENTRADA=data.filter(c=>c.tipo==='entrada').map(c=>({n:c.nome,c:c.cor,id:c.id}));
   CAT_SAIDA  =data.filter(c=>c.tipo==='saida'  ).map(c=>({n:c.nome,c:c.cor,id:c.id}));
-  renderizarCategorias();
-}
-function renderizarCategorias(){
-  const tbE=document.getElementById('tbody-cat-e');
-  const tbS=document.getElementById('tbody-cat-s');
-  if(!tbE||!tbS) return;
-  const row=(cat,tipo)=>{
-    const cnt=LANCS.filter(l=>l.cat===cat.n).length;
-    const tot=LANCS.filter(l=>l.cat===cat.n).reduce((a,b)=>a+b.valor,0);
-    return `<tr>
-      <td><span class="cc" style="background:${cat.c};"></span></td>
-      <td>${cat.n}</td><td>${cnt}</td>
-      <td class="${tipo==='entrada'?'ve':'vs'}">${fmt(tot)}</td>
-      <td>
-        <button class="btn bs" style="padding:3px 8px;font-size:11px;" onclick="editarCategoria('${cat.n}','${cat.c}','${tipo}','${cat.id}')">Editar</button>
-        <button class="btn" style="padding:3px 8px;font-size:11px;color:#ef4444;border:1px solid #fca5a5;border-radius:6px;cursor:pointer;" onclick="excluirCategoria('${cat.id}','${cat.n}')">Excluir</button>
-      </td></tr>`;
-  };
-  tbE.innerHTML=CAT_ENTRADA.map(c=>row(c,'entrada')).join('')||'<tr><td colspan="5" class="empty">Nenhuma categoria de entrada</td></tr>';
-  tbS.innerHTML=CAT_SAIDA.map(c=>row(c,'saida')).join('')||'<tr><td colspan="5" class="empty">Nenhuma categoria de saída</td></tr>';
   atualizarFiltrosCat();
-}
-async function excluirCategoria(id,nome){
-  if(!confirm('Excluir categoria "'+nome+'"?')) return;
-  const {error}=await sb.from('categorias').delete().eq('id',id);
-  if(error){toast('Erro ao excluir categoria','erro');return;}
-  await carregarCategorias();
-  toast('Categoria excluída!','sucesso');
 }
 
 // ══════════════════════════════════════════════
