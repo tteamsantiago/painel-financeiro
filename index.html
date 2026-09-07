@@ -1553,6 +1553,12 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
     </div>
   </div>
 
+  <!-- Funil Real -->
+  <div class="card" style="margin-bottom:16px;">
+    <h3 style="margin-bottom:12px;">Funil de Vendas Real</h3>
+    <div id="funil-real" style="color:#9ca3af;font-size:13px;">Sincronize para ver os dados reais do funil.</div>
+  </div>
+
   <!-- Histórico Mensal -->
   <div class="card">
     <h3 style="margin-bottom:12px;">Histórico Mensal</h3>
@@ -3272,6 +3278,50 @@ async function sincronizarCacLtv(){
       const arr=Object.entries(ltv.planos).sort((a,b)=>b[1].ltvMedio-a[1].ltvMedio);
       planoEl.innerHTML=`<div style="overflow-x:auto;"><table style="width:100%;font-size:12px;border-collapse:collapse;"><thead><tr style="color:#6b7280;"><th style="text-align:left;padding:6px 0;border-bottom:1px solid #f3f4f6;">Plano</th><th style="text-align:right;padding:6px 0;border-bottom:1px solid #f3f4f6;">Ticket/mês</th><th style="text-align:right;padding:6px 0;border-bottom:1px solid #f3f4f6;">Retenção</th><th style="text-align:right;padding:6px 0;border-bottom:1px solid #f3f4f6;">LTV médio</th></tr></thead><tbody>${arr.map(([plano,p])=>`<tr><td style="padding:8px 0;color:#374151;border-bottom:1px solid #f9fafb;">${plano} <span style="color:#9ca3af;">(${p.count})</span></td><td style="text-align:right;color:#374151;border-bottom:1px solid #f9fafb;">${brl(p.ticketMedio||0)}</td><td style="text-align:right;color:#374151;border-bottom:1px solid #f9fafb;">${p.tempoMedio||0}m</td><td style="text-align:right;font-weight:700;color:#111827;border-bottom:1px solid #f9fafb;">${brl(p.ltvMedio||0)}</td></tr>`).join('')}</tbody></table></div>`;
     } else if(planoEl)planoEl.textContent='Sem dados de planos ainda.';
+
+    // Funil Real
+    const funilEl=document.getElementById('funil-real');
+    if(funilEl){
+      const funil=(d.funil||[]).sort((a,b)=>b.mes.localeCompare(a.mes));
+      if(!funil.length){funilEl.textContent='Nenhum dado de funil ainda.';}
+      else {
+        const ultimo=funil[0];
+        funilEl.innerHTML=`
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+            <div class="kpi cinza"><div class="kl">Leads</div><div class="kv" style="font-size:20px;">${ultimo.numLeads||'—'}</div><div class="kvar" style="color:#6b7280;">${ultimo.mes}</div></div>
+            <div class="kpi cinza"><div class="kl">Calls Agendadas</div><div class="kv" style="font-size:20px;">${ultimo.callAgendada||'—'}</div><div class="kvar" style="color:#6b7280;">Agend. ${ultimo.taxaAgendamento}%</div></div>
+            <div class="kpi cinza"><div class="kl">Conversões</div><div class="kv" style="font-size:20px;">${ultimo.conversoes||'—'}</div><div class="kvar" style="color:#6b7280;">Conv. ${ultimo.taxaConversao}%</div></div>
+            <div class="kpi cinza"><div class="kl">Taxa de Renovação</div><div class="kv" style="font-size:20px;">${ultimo.taxaRenovacao!=null?ultimo.taxaRenovacao+'%':'—'}</div><div class="kvar" style="color:#6b7280;">Upsell / retenção</div></div>
+          </div>
+          <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+            <div style="font-size:12px;color:#6b7280;">Em negociação: <strong style="color:#374151;">${ultimo.leadsNegociacao||0}</strong></div>
+            <div style="font-size:12px;color:#6b7280;">Adormecidos: <strong style="color:#374151;">${ultimo.leadsAdormecidos||0}</strong></div>
+            <div style="font-size:12px;color:#6b7280;">Taxa global: <strong style="color:#374151;">${ultimo.taxaGlobal}%</strong> (lead → venda)</div>
+          </div>
+          ${funil.length>1?`<div style="overflow-x:auto;"><table style="width:100%;font-size:12px;border-collapse:collapse;">
+            <thead><tr style="color:#6b7280;text-align:right;">
+              <th style="text-align:left;padding:6px 8px;border-bottom:2px solid #f3f4f6;">Mês</th>
+              <th style="padding:6px 8px;border-bottom:2px solid #f3f4f6;">Leads</th>
+              <th style="padding:6px 8px;border-bottom:2px solid #f3f4f6;">Calls</th>
+              <th style="padding:6px 8px;border-bottom:2px solid #f3f4f6;">Conversões</th>
+              <th style="padding:6px 8px;border-bottom:2px solid #f3f4f6;">Agend.%</th>
+              <th style="padding:6px 8px;border-bottom:2px solid #f3f4f6;">Conv.%</th>
+              <th style="padding:6px 8px;border-bottom:2px solid #f3f4f6;">Renovação%</th>
+              <th style="padding:6px 8px;border-bottom:2px solid #f3f4f6;">Global%</th>
+            </tr></thead><tbody>
+            ${funil.map(r=>`<tr style="border-bottom:1px solid #f9fafb;">
+              <td style="padding:7px 8px;font-weight:600;color:#374151;">${r.mes}</td>
+              <td style="text-align:right;padding:7px 8px;color:#374151;">${r.numLeads||'—'}</td>
+              <td style="text-align:right;padding:7px 8px;color:#374151;">${r.callAgendada||'—'}</td>
+              <td style="text-align:right;padding:7px 8px;color:#374151;">${r.conversoes||'—'}</td>
+              <td style="text-align:right;padding:7px 8px;color:#374151;">${r.taxaAgendamento}%</td>
+              <td style="text-align:right;padding:7px 8px;color:#374151;">${r.taxaConversao}%</td>
+              <td style="text-align:right;padding:7px 8px;color:#374151;">${r.taxaRenovacao!=null?r.taxaRenovacao+'%':'—'}</td>
+              <td style="text-align:right;padding:7px 8px;font-weight:700;color:#111827;">${r.taxaGlobal}%</td>
+            </tr>`).join('')}
+            </tbody></table></div>`:''}`
+      }
+    }
 
     // Histórico Mensal
     const histEl=document.getElementById('cac-historico');
