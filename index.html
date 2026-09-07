@@ -1489,6 +1489,7 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
       <button class="btn bs" onclick="carregarMetasPage()" style="display:flex;align-items:center;gap:6px;">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.63-4.14"/></svg>Sincronizar
       </button>
+      <button id="btn-sync-cac-ltv" onclick="sincronizarCacLtv()" style="padding:6px 14px;border-radius:20px;border:1px solid #c7d2fe;background:#eef2ff;color:#4f46e5;font-size:12px;font-weight:600;cursor:pointer;">⬆ CAC & LTV do Notion</button>
     </div>
   </div>
 
@@ -3228,6 +3229,50 @@ async function carregarMetasPage(){
   }catch(e){ console.warn('Metas page:',e.message); }
 }
 
+async function sincronizarCacLtv(){
+  const btn=document.getElementById('btn-sync-cac-ltv');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Sincronizando...';}
+  try{
+    const d=await fnCall('notion-cac-ltv',{},20000);
+    if(!d||d.error){toast(d?.error||'Erro ao sincronizar CAC/LTV','erro');return;}
+    const ltv=d.ltv||{};
+    // KPIs Metas
+    const se=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+    se('kv-cac',d.cacMedio?brl(d.cacMedio):'—');
+    se('kv-ltv',d.ltvMedio?brl(d.ltvMedio):'—');
+    const ltvVar=document.getElementById('kvar-ltv');
+    if(ltvVar)ltvVar.textContent=`Ticket ${brl(ltv.ticketMedio||0)} · ${ltv.totalAtivos||0} ativos`;
+    const ratioEl=document.getElementById('kv-ratio');
+    const ratioVar=document.getElementById('kvar-ratio');
+    const kpiRatio=document.getElementById('kpi-ratio');
+    if(ratioEl&&d.ltvCacRatio!=null){
+      ratioEl.textContent=d.ltvCacRatio+'x';
+      const cor=d.ltvCacRatio>=3?'verde':d.ltvCacRatio>=2?'amarelo':'vermelho';
+      const msg=d.ltvCacRatio>=3?'✓ Excelente (≥ 3x)':d.ltvCacRatio>=2?'⚠ Razoável (2–3x)':'✗ Atenção (< 2x)';
+      if(kpiRatio)kpiRatio.className='kpi '+cor;
+      if(ratioVar)ratioVar.textContent=msg+' · meta ≥ 3x';
+    }
+    // Churn
+    const churnEl=document.getElementById('churn-lista');
+    if(churnEl&&ltv.churn&&Object.keys(ltv.churn).length>0){
+      const arr=Object.entries(ltv.churn).sort((a,b)=>b[1]-a[1]);
+      const total=arr.reduce((s,[,v])=>s+v,0);
+      churnEl.innerHTML=arr.map(([motivo,count])=>{
+        const pct=Math.round((count/total)*100);
+        return`<div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span style="color:#374151;font-weight:500;">${motivo}</span><span style="color:#6b7280;">${count} · ${pct}%</span></div><div style="background:#f3f4f6;border-radius:6px;height:8px;overflow:hidden;"><div style="background:#6366f1;height:8px;width:${pct}%;border-radius:6px;"></div></div></div>`;
+      }).join('');
+    } else if(churnEl)churnEl.textContent='Sem dados de saída ainda.';
+    // Por plano
+    const planoEl=document.getElementById('plano-lista');
+    if(planoEl&&ltv.planos&&Object.keys(ltv.planos).length>0){
+      const arr=Object.entries(ltv.planos).sort((a,b)=>b[1].ltvMedio-a[1].ltvMedio);
+      planoEl.innerHTML=`<div style="overflow-x:auto;"><table style="width:100%;font-size:12px;border-collapse:collapse;"><thead><tr style="color:#6b7280;"><th style="text-align:left;padding:6px 0;border-bottom:1px solid #f3f4f6;">Plano</th><th style="text-align:right;padding:6px 0;border-bottom:1px solid #f3f4f6;">Ticket/mês</th><th style="text-align:right;padding:6px 0;border-bottom:1px solid #f3f4f6;">Retenção</th><th style="text-align:right;padding:6px 0;border-bottom:1px solid #f3f4f6;">LTV médio</th></tr></thead><tbody>${arr.map(([plano,p])=>`<tr><td style="padding:8px 0;color:#374151;border-bottom:1px solid #f9fafb;">${plano} <span style="color:#9ca3af;">(${p.count})</span></td><td style="text-align:right;color:#374151;border-bottom:1px solid #f9fafb;">${brl(p.ticketMedio||0)}</td><td style="text-align:right;color:#374151;border-bottom:1px solid #f9fafb;">${p.tempoMedio||0}m</td><td style="text-align:right;font-weight:700;color:#111827;border-bottom:1px solid #f9fafb;">${brl(p.ltvMedio||0)}</td></tr>`).join('')}</tbody></table></div>`;
+    } else if(planoEl)planoEl.textContent='Sem dados de planos ainda.';
+    toast('CAC & LTV sincronizados ✓','ok');
+  }catch(e){toast('Erro: '+e.message,'erro');}
+  finally{if(btn){btn.disabled=false;btn.textContent='⬆ CAC & LTV do Notion';}}
+}
+
 function brl(v){ return v!=null?'R$ '+Math.round(v).toLocaleString('pt-BR'):'—'; }
 
 async function carregarFechamento(){
@@ -3400,6 +3445,37 @@ async function carregarFechamento(){
       if(obs)obs.textContent=`Éllid: ${pct}% sobre R$ ${Math.round(fat).toLocaleString('pt-BR')} ${fat>20000?'(acima de R$ 20.000 → 5%)':'(até R$ 20.000 → 2%)'}`;
     }
   }catch(e){console.warn('Comissões fechamento:',e.message);}
+
+  // ── 6. CAC & LTV das tabelas Notion ──
+  try{
+    const cl=await fnCall('notion-cac-ltv',{},15000);
+    if(cl&&!cl.error){
+      // Tenta encontrar a linha do mês selecionado
+      const meses_pt=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+      const [yr,mo]=mes.split('-').map(Number);
+      const mesPt=(meses_pt[mo-1]||'')+' '+yr;
+      const cacRow=(cl.cac||[]).find(r=>{
+        const m=(r.mes||'').trim().toLowerCase();
+        return m===mesPt.toLowerCase()||
+          (m.includes(String(yr))&&m.includes((meses_pt[mo-1]||'').toLowerCase().slice(0,3)));
+      })||null;
+      if(cacRow){
+        const eT=document.getElementById('fech-trafego');if(eT)eT.textContent=brl(cacRow.gastoTrafego);
+        const eC=document.getElementById('fech-cac');if(eC)eC.textContent=brl(cacRow.cac);
+      }
+      // LTV/CAC histórico
+      const e1=document.getElementById('fech-ltv');if(e1)e1.textContent=brl(cl.ltvMedio);
+      const e2=document.getElementById('fech-ltv-cac');if(e2)e2.textContent=brl(cl.cacMedio);
+      const e3=document.getElementById('fech-ratio');
+      const kpi=document.getElementById('fech-ratio-kpi');
+      if(e3&&cl.ltvCacRatio!=null){
+        e3.textContent=cl.ltvCacRatio+'x';
+        const cor=cl.ltvCacRatio>=3?'verde':cl.ltvCacRatio>=2?'amarelo':'vermelho';
+        if(kpi)kpi.className='kpi '+cor;
+      }
+    }
+  }catch(e){console.warn('CAC/LTV fechamento:',e.message);}
+
   const tsF=await salvarSyncTs('sync_fech_ts');exibirSyncTs(tsF,'fech-sync-ts');
   carregarFechamentoNotionFin();
   if(fIcon) fIcon.style.animation='';
