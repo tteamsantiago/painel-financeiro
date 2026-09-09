@@ -425,25 +425,10 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
 <!-- ── DASHBOARD ── -->
 <div class="page active" id="page-dashboard">
   <div class="ph">
-    <div><h2>Dashboard</h2><p id="mes-label">Agosto 2026</p></div>
+    <div><h2>Dashboard</h2><p id="mes-label">—</p></div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
       <span id="dash-sync-ts" style="font-size:11px;color:#94a3b8;"></span>
-      <select id="mes-select" onchange="trocarMes(this.value)">
-        <option value="2026-12">Dezembro 2026</option>
-        <option value="2026-11">Novembro 2026</option>
-        <option value="2026-10">Outubro 2026</option>
-        <option value="2026-09">Setembro 2026</option>
-        <option value="2026-08" selected>Agosto 2026</option>
-        <option value="2026-07">Julho 2026</option>
-        <option value="2026-06">Junho 2026</option>
-        <option value="2026-05">Maio 2026</option>
-        <option value="2026-04">Abril 2026</option>
-        <option value="2026-03">Março 2026</option>
-        <option value="2026-02">Fevereiro 2026</option>
-        <option value="2026-01">Janeiro 2026</option>
-        <option value="2025-12">Dezembro 2025</option>
-        <option value="2025-11">Novembro 2025</option>
-      </select>
+      <select id="mes-select" onchange="trocarMes(this.value)"></select>
       <button class="btn bs" id="btn-dash-sync" onclick="sincronizarDashboard()" style="display:flex;align-items:center;gap:6px;">
         <svg id="dash-sync-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.63-4.14"/></svg>
         <span id="dash-sync-label">Sincronizar</span>
@@ -2136,6 +2121,7 @@ function irPara(p,el){
   document.getElementById('page-'+p).classList.add('active');
   el.classList.add('active');
   if(p==='dashboard'){
+    popularMesSelect();
     carregarDashboardCRM();
     carregarDashboardVendas();
     carregarMetasComerciais();
@@ -2243,7 +2229,35 @@ function renderDashLanc(mes){
     :'<div class="empty">Sem lançamentos neste mês</div>';
 }
 
+function popularMesSelect(){
+  const sel=document.getElementById('mes-select');
+  if(!sel) return;
+  const MESES_NOMES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const hoje=new Date();
+  const anoAtual=hoje.getFullYear();
+  const mesAtualIdx=hoje.getMonth(); // 0-based
+  const opts=[];
+  // 3 meses futuros + mês atual + 12 meses passados
+  for(let i=-3;i<=12;i++){
+    let m=mesAtualIdx-i;
+    let a=anoAtual;
+    while(m<0){m+=12;a--;}
+    while(m>11){m-=12;a++;}
+    const val=`${a}-${String(m+1).padStart(2,'0')}`;
+    const label=`${MESES_NOMES[m]} ${a}`;
+    opts.push(`<option value="${val}"${i===0?' selected':''}>${label}</option>`);
+  }
+  sel.innerHTML=opts.join('');
+  // atualiza o label do cabeçalho
+  const lbl=document.getElementById('mes-label');
+  if(lbl) lbl.textContent=`${MESES_NOMES[mesAtualIdx]} ${anoAtual}`;
+}
+
 function trocarMes(mes){
+  const MESES_NOMES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const [a,m]=mes.split('-');
+  const lbl=document.getElementById('mes-label');
+  if(lbl) lbl.textContent=`${MESES_NOMES[parseInt(m,10)-1]} ${a}`;
   carregarDashboardCRM();
   carregarDashboardVendas();
   carregarMetasComerciais();
@@ -2252,7 +2266,7 @@ function trocarMes(mes){
 
 function mesAtual(){
   const sel=document.getElementById('mes-select');
-  return sel?sel.value:'2026-04';
+  return sel&&sel.value?sel.value:new Date().toISOString().slice(0,7);
 }
 
 // Recalcula DADOS e HIST a partir dos lançamentos reais (LANCS)
@@ -3720,6 +3734,7 @@ async function editarRelatorio(id){
 /* ═══════════════════════════════════════════ */
 
 window.addEventListener('DOMContentLoaded',()=>{
+  popularMesSelect();
   initAuth();
   loadCUTokenInput();
   carregarConfigSalva();
