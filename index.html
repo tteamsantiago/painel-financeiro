@@ -1776,6 +1776,93 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
     </div>
   </div>
 
+  <!-- ── Leads Adormecidos ── -->
+  <div class="card" style="margin-bottom:16px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div>
+        <h3 style="margin-bottom:2px;">Leads Adormecidos</h3>
+        <p style="font-size:12px;color:#6b7280;margin:0;">Leads que chegaram à negociação mas não converteram — registre ao longo do mês</p>
+      </div>
+      <button class="btn bp" onclick="abrirFormAdormecido()" style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Registrar Lead
+      </button>
+    </div>
+
+    <!-- Form inline -->
+    <div id="adorm-form-wrap" style="display:none;background:#f9fafb;border-radius:10px;padding:16px;margin-bottom:16px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="fg"><label class="fl">Nome do lead</label><input type="text" id="adorm-nome" class="fi" placeholder="Ex: Maria Silva"></div>
+        <div class="fg"><label class="fl">Data</label><input type="date" id="adorm-data" class="fi"></div>
+        <div class="fg">
+          <label class="fl">Etapa que chegou</label>
+          <select id="adorm-etapa" class="fi">
+            <option value="Abordagem inicial">Abordagem inicial</option>
+            <option value="Call agendada">Call agendada</option>
+            <option value="Call realizada">Call realizada</option>
+            <option value="Proposta enviada">Proposta enviada</option>
+            <option value="Negociando">Negociando</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">Motivo de esfriamento</label>
+          <select id="adorm-motivo" class="fi">
+            <option value="Sumiu sem resposta">Sumiu sem resposta</option>
+            <option value="Preço alto">Preço alto</option>
+            <option value="Precisa pensar">Precisa pensar</option>
+            <option value="Sem dinheiro no momento">Sem dinheiro no momento</option>
+            <option value="Escolheu outro serviço">Escolheu outro serviço</option>
+            <option value="Situação pessoal">Situação pessoal</option>
+            <option value="Marido / Família">Marido / Família</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+        <div class="fg" style="grid-column:1/-1;"><label class="fl">Observação (opcional)</label><input type="text" id="adorm-obs" class="fi" placeholder="Algum detalhe relevante sobre esse lead..."></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
+        <button class="btn" onclick="fecharFormAdormecido()" style="background:#f3f4f6;color:#374151;">Cancelar</button>
+        <button class="btn bp" onclick="salvarLeadAdormecido()">Salvar</button>
+      </div>
+    </div>
+
+    <!-- KPIs mês -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
+      <div class="kpi cinza"><div class="kl">Adormecidos (mês)</div><div class="kv" id="adorm-kpi-total" style="font-size:22px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Chegaram à negociação</div><div class="kv" id="adorm-kpi-negoc" style="font-size:22px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Motivo mais comum</div><div class="kv" id="adorm-kpi-motivo" style="font-size:14px;line-height:1.3;">—</div></div>
+    </div>
+
+    <!-- Gráficos por etapa e motivo -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Por etapa atingida</div>
+        <div id="adorm-chart-etapa" style="color:#9ca3af;font-size:13px;">Sem dados</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Por motivo</div>
+        <div id="adorm-chart-motivo" style="color:#9ca3af;font-size:13px;">Sem dados</div>
+      </div>
+    </div>
+
+    <!-- Lista -->
+    <div style="overflow-x:auto;">
+      <table style="width:100%;font-size:12px;border-collapse:collapse;" id="adorm-table">
+        <thead>
+          <tr style="color:#6b7280;border-bottom:2px solid #f3f4f6;">
+            <th style="text-align:left;padding:8px 6px;">Data</th>
+            <th style="text-align:left;padding:8px 6px;">Nome</th>
+            <th style="text-align:left;padding:8px 6px;">Etapa</th>
+            <th style="text-align:left;padding:8px 6px;">Motivo</th>
+            <th style="text-align:left;padding:8px 6px;">Observação</th>
+            <th style="padding:8px 6px;"></th>
+          </tr>
+        </thead>
+        <tbody id="adorm-tbody">
+          <tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:20px;">Nenhum lead registrado ainda.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- Histórico -->
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
@@ -3470,6 +3557,7 @@ function carregarRelatorioPage(){
   if(sellerInp && !sellerInp.value && USUARIO_EMAIL) sellerInp.value = USUARIO_EMAIL.split('@')[0];
   carregarHistoricoRelatorio();
   carregarDashboardRelatorio();
+  carregarLeadsAdormecidos();
 }
 
 function abrirFormRelatorio(){
@@ -3698,6 +3786,132 @@ async function carregarDashboardRelatorio(){
           </div>`).join('');
     }
   }catch(e){console.warn('rel charts 30d:',e);}
+}
+
+/* ── Leads Adormecidos ── */
+function abrirFormAdormecido(){
+  const w=document.getElementById('adorm-form-wrap');
+  if(!w) return;
+  const d=document.getElementById('adorm-data');
+  if(d&&!d.value) d.value=new Date().toISOString().slice(0,10);
+  const n=document.getElementById('adorm-nome');
+  if(n) n.value='';
+  const o=document.getElementById('adorm-obs');
+  if(o) o.value='';
+  w.style.display='block';
+  w.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function fecharFormAdormecido(){
+  const w=document.getElementById('adorm-form-wrap');
+  if(w) w.style.display='none';
+}
+
+async function salvarLeadAdormecido(){
+  const nome=(document.getElementById('adorm-nome')?.value||'').trim();
+  const data=document.getElementById('adorm-data')?.value||'';
+  const etapa=document.getElementById('adorm-etapa')?.value||'';
+  const motivo=document.getElementById('adorm-motivo')?.value||'';
+  const obs=(document.getElementById('adorm-obs')?.value||'').trim();
+  if(!nome||!data||!etapa||!motivo){toast('Preencha nome, data, etapa e motivo.','erro');return;}
+  const {error}=await sb.from('leads_adormecidos').insert({
+    nome,data_registro:data,etapa_atingida:etapa,motivo,observacao:obs,
+    user_email:USUARIO_EMAIL||''
+  });
+  if(error){toast('Erro ao salvar: '+error.message,'erro');return;}
+  toast('Lead registrado!','sucesso');
+  fecharFormAdormecido();
+  carregarLeadsAdormecidos();
+}
+
+async function excluirLeadAdormecido(id){
+  if(!confirm('Remover este lead?')) return;
+  const {error}=await sb.from('leads_adormecidos').delete().eq('id',id);
+  if(error){toast('Erro: '+error.message,'erro');return;}
+  carregarLeadsAdormecidos();
+}
+
+async function carregarLeadsAdormecidos(){
+  const tbody=document.getElementById('adorm-tbody');
+  if(!tbody) return;
+
+  // Busca últimos 90 dias
+  const desde=new Date(); desde.setDate(desde.getDate()-90);
+  const {data,error}=await sb.from('leads_adormecidos')
+    .select('*').gte('data_registro',desde.toISOString().slice(0,10))
+    .order('data_registro',{ascending:false});
+  if(error||!data){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:20px;">Erro ao carregar.</td></tr>';return;}
+
+  // KPIs do mês atual
+  const hoje=new Date();
+  const inicioMes=`${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-01`;
+  const doMes=data.filter(r=>r.data_registro>=inicioMes);
+  const negocMes=doMes.filter(r=>r.etapa_atingida==='Negociando'||r.etapa_atingida==='Proposta enviada').length;
+  const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setEl('adorm-kpi-total', doMes.length||'0');
+  setEl('adorm-kpi-negoc', negocMes||'0');
+
+  // Motivo mais comum do mês
+  const motivoCount={};
+  doMes.forEach(r=>{motivoCount[r.motivo]=(motivoCount[r.motivo]||0)+1;});
+  const topMotivo=Object.entries(motivoCount).sort((a,b)=>b[1]-a[1])[0];
+  setEl('adorm-kpi-motivo', topMotivo?topMotivo[0]:'—');
+
+  // Gráfico por etapa (90 dias)
+  const etapaCount={};
+  data.forEach(r=>{etapaCount[r.etapa_atingida]=(etapaCount[r.etapa_atingida]||0)+1;});
+  const etapaOrder=['Abordagem inicial','Call agendada','Call realizada','Proposta enviada','Negociando'];
+  const etapaSorted=etapaOrder.map(k=>[k,etapaCount[k]||0]).filter(([,v])=>v>0);
+  const maxEtapa=etapaSorted[0]?Math.max(...etapaSorted.map(([,v])=>v)):1;
+  const etapaEl=document.getElementById('adorm-chart-etapa');
+  const ETAPA_COLORS={'Abordagem inicial':'#94a3b8','Call agendada':'#60a5fa','Call realizada':'#34d399','Proposta enviada':'#fbbf24','Negociando':'#f87171'};
+  if(etapaEl) etapaEl.innerHTML=etapaSorted.length===0?'<span style="color:#9ca3af">Sem dados</span>':
+    etapaSorted.map(([k,v])=>`
+      <div style="margin-bottom:7px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
+          <span style="color:#374151;">${k}</span><span style="font-weight:600;color:#374151;">${v}</span>
+        </div>
+        <div style="background:#f3f4f6;border-radius:4px;height:6px;overflow:hidden;">
+          <div style="height:100%;background:${ETAPA_COLORS[k]||'#6366f1'};border-radius:4px;width:${Math.round(v/maxEtapa*100)}%;"></div>
+        </div>
+      </div>`).join('');
+
+  // Gráfico por motivo (90 dias)
+  const motivoSorted=Object.entries(motivoCount).length?
+    Object.entries(motivoCount).sort((a,b)=>b[1]-a[1]).slice(0,6):
+    Object.entries({}).sort();
+  // recalc com todos os 90 dias
+  const mCount90={};
+  data.forEach(r=>{mCount90[r.motivo]=(mCount90[r.motivo]||0)+1;});
+  const mSorted=Object.entries(mCount90).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const maxM=mSorted[0]?mSorted[0][1]:1;
+  const motiEl=document.getElementById('adorm-chart-motivo');
+  if(motiEl) motiEl.innerHTML=mSorted.length===0?'<span style="color:#9ca3af">Sem dados</span>':
+    mSorted.map(([k,v])=>`
+      <div style="margin-bottom:7px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
+          <span style="color:#374151;">${k}</span><span style="font-weight:600;color:#374151;">${v}</span>
+        </div>
+        <div style="background:#f3f4f6;border-radius:4px;height:6px;overflow:hidden;">
+          <div style="height:100%;background:#6366f1;border-radius:4px;width:${Math.round(v/maxM*100)}%;"></div>
+        </div>
+      </div>`).join('');
+
+  // Tabela
+  if(data.length===0){
+    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:20px;">Nenhum lead registrado ainda.</td></tr>';
+    return;
+  }
+  const ETAPA_BADGE={'Negociando':'background:#fef2f2;color:#b91c1c;','Proposta enviada':'background:#fffbeb;color:#b45309;','Call realizada':'background:#f0fdf4;color:#15803d;','Call agendada':'background:#eff6ff;color:#1d4ed8;','Abordagem inicial':'background:#f9fafb;color:#374151;'};
+  tbody.innerHTML=data.map(r=>`
+    <tr style="border-bottom:1px solid #f3f4f6;">
+      <td style="padding:8px 6px;color:#6b7280;">${r.data_registro||''}</td>
+      <td style="padding:8px 6px;font-weight:500;">${r.nome||''}</td>
+      <td style="padding:8px 6px;"><span style="font-size:11px;padding:2px 8px;border-radius:20px;${ETAPA_BADGE[r.etapa_atingida]||''}">${r.etapa_atingida||''}</span></td>
+      <td style="padding:8px 6px;color:#374151;">${r.motivo||''}</td>
+      <td style="padding:8px 6px;color:#6b7280;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.observacao||'—'}</td>
+      <td style="padding:8px 6px;text-align:right;"><button onclick="excluirLeadAdormecido('${r.id}')" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:13px;">✕</button></td>
+    </tr>`).join('');
 }
 
 async function editarRelatorio(id){
