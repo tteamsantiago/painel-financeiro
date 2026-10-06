@@ -1588,12 +1588,18 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;">
         <div>
-          <div style="font-weight:600;color:#15803d;margin-bottom:6px;">Entraram</div>
-          <div id="fech-entradas-lista" style="color:#6b7280;">—</div>
+          <div style="font-weight:600;color:#15803d;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;">
+            Entraram
+            <button onclick="toggleLista('fech-entradas-lista','btn-toggle-ent')" id="btn-toggle-ent" style="background:none;border:1px solid #d1fae5;border-radius:4px;cursor:pointer;font-size:10px;color:#15803d;padding:1px 6px;">▾ ver</button>
+          </div>
+          <div id="fech-entradas-lista" style="color:#6b7280;display:none;">—</div>
         </div>
         <div>
-          <div style="font-weight:600;color:#dc2626;margin-bottom:6px;">Saíram</div>
-          <div id="fech-saidas-lista" style="color:#6b7280;">—</div>
+          <div style="font-weight:600;color:#dc2626;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;">
+            Saíram
+            <button onclick="toggleLista('fech-saidas-lista','btn-toggle-sai')" id="btn-toggle-sai" style="background:none;border:1px solid #fee2e2;border-radius:4px;cursor:pointer;font-size:10px;color:#dc2626;padding:1px 6px;">▾ ver</button>
+          </div>
+          <div id="fech-saidas-lista" style="color:#6b7280;display:none;">—</div>
         </div>
       </div>
     </div>
@@ -1604,8 +1610,9 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
     <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">
       <span style="background:#fef3c7;color:#b45309;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">3+</span>
       Movimentação Mensal de Clientes
+      <button onclick="toggleLista('fech-mov-mensal','btn-toggle-mov')" id="btn-toggle-mov" style="margin-left:auto;background:none;border:1px solid #e5e7eb;border-radius:4px;cursor:pointer;font-size:10px;color:#6b7280;padding:2px 8px;">▾ expandir</button>
     </h3>
-    <div id="fech-mov-mensal" style="color:#9ca3af;font-size:13px;">Sincronize para ver entradas e saídas mês a mês.</div>
+    <div id="fech-mov-mensal" style="color:#9ca3af;font-size:13px;display:none;">Sincronize para ver entradas e saídas mês a mês.</div>
   </div>
 
   <!-- Funil - Histórico Leads & Calls -->
@@ -3465,35 +3472,37 @@ async function carregarFechamento(){
 
   // ── 5. Comissões + CAC Real (Supabase vendas + pagamentos) ──
   try{
-    const [rVendas,rPags,rInf,rVen,rSeller]=await Promise.all([
+    const [rVendas,rPags,rInf,rVen,rSeller,rVendasCom]=await Promise.all([
       sb.from('vendas').select('id,valor_total,data_venda,influencer_id,vendedora_id,aluno_nome').gte('data_venda',mesIni).lt('data_venda',mesFim),
       sb.from('pagamentos').select('valor,venda_id,recebido,data_prevista').eq('recebido',true).gte('data_prevista',mesIni).lt('data_prevista',mesFim),
       sb.from('influenciadoras').select('id,nome,percentual'),
       sb.from('vendedoras').select('id,nome,percentual,percentual_bonus,teto_base'),
       sb.from('app_config').select('valor').eq('chave','social_seller_salario').maybeSingle(),
+      sb.from('vendas').select('id,influencer_id,vendedora_id'), // todas as vendas para vincular pagamentos (inclui parcelados de meses anteriores)
     ]);
     const vendasMes=rVendas.data||[];
     const pagsMes=rPags.data||[];
     const infList=rInf.data||[];
     const venList=rVen.data||[];
-    const salarioEllid=parseFloat(rSeller.data?.valor||'0')||0;
+    const salarioSeller=parseFloat(rSeller.data?.valor||'0')||0;
+    const vendasCom=rVendasCom.data||[]; // usado apenas para vincular pagamentos a vendedoras/influencers
 
     // Faturamento (soma valor_total das vendas do mês)
     const fat=vendasMes.reduce((s,v)=>s+(parseFloat(v.valor_total)||0),0);
-    // Comissão Éllid (sobre pagamentos recebidos no mês, por vendedora)
-    let comissaoEllid=0;
+    // Comissão Social Seller (sobre pagamentos recebidos no mês, de qualquer venda)
+    let comissaoSeller=0;
     for(const ven of venList){
       const pgVen=pagsMes.filter(p=>{
-        const venda=vendasMes.find(v=>v.id===p.venda_id);
+        const venda=vendasCom.find(v=>v.id===p.venda_id);
         return venda?.vendedora_id===ven.id;
       });
       const totalPgVen=pgVen.reduce((s,p)=>s+(p.valor||0),0);
-      comissaoEllid+=calcComissaoVendedora(totalPgVen,ven);
+      comissaoSeller+=calcComissaoVendedora(totalPgVen,ven);
     }
-    // Comissão influencers (% sobre pagamentos recebidos no mês)
+    // Comissão influencers (% sobre pagamentos recebidos no mês, de qualquer venda)
     let comissaoInf=0;
     for(const p of pagsMes){
-      const venda=vendasMes.find(v=>v.id===p.venda_id);
+      const venda=vendasCom.find(v=>v.id===p.venda_id);
       if(venda?.influencer_id){
         const inf=infList.find(i=>i.id===venda.influencer_id);
         if(inf) comissaoInf+=(p.valor||0)*(inf.percentual||0)/100;
@@ -3501,16 +3510,16 @@ async function carregarFechamento(){
     }
     // Tráfego pago (do notion-crm)
     const gastoTrafego=cD?.gastoTrafego||0;
-    // CAC Real = (tráfego + salário + comissão Éllid + comissão influencers) / novas vendas
-    const custoTotal=gastoTrafego+salarioEllid+comissaoEllid+comissaoInf;
+    // CAC Real = (tráfego + salário + comissão social seller + comissão influencers) / novas vendas
+    const custoTotal=gastoTrafego+salarioSeller+comissaoSeller+comissaoInf;
     const cacReal=vendasMes.length>0?Math.round(custoTotal/vendasMes.length):null;
 
     const g=id=>document.getElementById(id);
     if(g('fech-fat-vendas'))g('fech-fat-vendas').textContent=brl(fat);
     if(g('fech-n-vendas'))g('fech-n-vendas').textContent=vendasMes.length;
     if(g('fech-trafego-com'))g('fech-trafego-com').textContent=brl(gastoTrafego);
-    if(g('fech-salario-ellid'))g('fech-salario-ellid').textContent=brl(salarioEllid);
-    if(g('fech-comissao-ellid'))g('fech-comissao-ellid').textContent=brl(comissaoEllid);
+    if(g('fech-salario-ellid'))g('fech-salario-ellid').textContent=brl(salarioSeller);
+    if(g('fech-comissao-ellid'))g('fech-comissao-ellid').textContent=brl(comissaoSeller);
     if(g('fech-comissao-inf'))g('fech-comissao-inf').textContent=brl(comissaoInf);
     if(g('fech-cac-real'))g('fech-cac-real').textContent=cacReal!=null?brl(cacReal):'—';
     // Atualiza também o CAC na seção 2
@@ -3519,8 +3528,8 @@ async function carregarFechamento(){
     if(obs){
       const itens=[
         `Tráfego: ${brl(gastoTrafego)}`,
-        `Salário Social Seller: ${brl(salarioEllid)}`,
-        `Comissão Social Seller: ${brl(comissaoEllid)}`,
+        `Salário Social Seller: ${brl(salarioSeller)}`,
+        `Comissão Social Seller: ${brl(comissaoSeller)}`,
         `Influencers: ${brl(comissaoInf)}`,
         `Total custo aquisição: ${brl(custoTotal)}`,
         vendasMes.length>0?`÷ ${vendasMes.length} vendas = CAC ${brl(cacReal)}`:'',
@@ -6884,6 +6893,15 @@ function renderComissoesVendas(){
       return`<div class="com-card"><div class="com-card-nome">${ven.nome}</div><div class="com-card-row"><span>Vendas recebidas</span><span>${nv}</span></div><div class="com-card-row"><span>Total recebido</span><span>${fmt(tot)}</span></div><div class="com-card-row"><span>Cálculo</span><span style="font-size:11px;">${det}</span></div><div class="com-card-total"><span>A pagar</span><span>${fmt(com)}</span></div><button onclick="toggleComDetail(this)" style="width:100%;margin-top:10px;padding:5px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;cursor:pointer;font-size:11px;color:#6b7280;">▾ Ver vendas</button><div class="com-detalhe" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #f3f4f6;">${detalhe}</div></div>`;
     }).join('');
   }
+}
+
+function toggleLista(listaId,btnId){
+  const el=document.getElementById(listaId);
+  const btn=document.getElementById(btnId);
+  if(!el)return;
+  const aberto=el.style.display!=='none';
+  el.style.display=aberto?'none':'block';
+  if(btn)btn.textContent=aberto?'▾ ver':'▴ ocultar';
 }
 
 function toggleComDetail(btn){
