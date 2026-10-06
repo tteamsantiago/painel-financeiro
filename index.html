@@ -622,6 +622,16 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
           <div id="notion-cfg-status" style="font-size:12px;color:#6b7280;margin-top:8px;"></div>
         </div>
 
+        <!-- Salário Social Seller -->
+        <div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px;margin-bottom:4px;margin-top:12px;">
+          <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">💼 Social Seller — Salário Fixo</div>
+          <div class="fg" style="margin-bottom:10px;">
+            <label class="fl">Salário mensal fixo (R$)</label>
+            <input type="number" class="fi" id="fc-social-seller" placeholder="2000" min="0" step="100" onchange="salvarSocialSeller(this.value)"/>
+          </div>
+          <div style="font-size:11px;color:#6b7280;">Usado no cálculo do CAC Real no Fechamento Mensal.</div>
+        </div>
+
         <!-- Windsor Instagram -->
         <div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px;margin-bottom:4px;margin-top:12px;">
           <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">📊 Windsor AI — Métricas Instagram</div>
