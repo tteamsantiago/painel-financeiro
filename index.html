@@ -1564,9 +1564,12 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
 
     <!-- 3. Clientes / LTV -->
     <div class="card">
-      <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+      <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <span style="background:#fef3c7;color:#b45309;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">3</span>
         Entradas & Saídas de Clientes
+        <button class="btn bs" onclick="atualizarClientesMes()" id="btn-atualizar-clientes" style="margin-left:auto;font-size:11px;padding:4px 10px;display:flex;align-items:center;gap:5px;">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.63-4.14"/></svg>Atualizar
+        </button>
       </h3>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;">
         <div class="kpi cinza"><div class="kl">Ativos</div><div class="kv" id="fech-ativos" style="font-size:22px;">—</div></div>
@@ -1608,13 +1611,18 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
   <div class="card" style="margin-bottom:16px;">
     <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">
       <span style="background:#ede9fe;color:#6d28d9;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">5</span>
-      Comissões & Influencers
+      Comissões, Influencers & CAC Real
     </h3>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;">
       <div class="kpi cinza"><div class="kl">Faturamento Mês</div><div class="kv" id="fech-fat-vendas" style="font-size:18px;">—</div></div>
       <div class="kpi cinza"><div class="kl">Vendas no Mês</div><div class="kv" id="fech-n-vendas" style="font-size:22px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Tráfego Pago</div><div class="kv" id="fech-trafego-com" style="font-size:18px;">—</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+      <div class="kpi cinza"><div class="kl">Salário Éllid</div><div class="kv" id="fech-salario-ellid" style="font-size:18px;">—</div></div>
       <div class="kpi cinza"><div class="kl">Comissão Éllid</div><div class="kv" id="fech-comissao-ellid" style="font-size:18px;">—</div></div>
-      <div class="kpi cinza"><div class="kl">% Comissão</div><div class="kv" id="fech-pct-ellid" style="font-size:22px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Comissão Influencers</div><div class="kv" id="fech-comissao-inf" style="font-size:18px;">—</div></div>
+      <div class="kpi amarelo"><div class="kl">CAC Real do Mês</div><div class="kv" id="fech-cac-real" style="font-size:18px;">—</div></div>
     </div>
     <div id="fech-comissao-obs" style="margin-top:10px;font-size:12px;color:#6b7280;"></div>
   </div>
@@ -3361,17 +3369,22 @@ async function carregarFechamento(){
     inp.value=d.toISOString().slice(0,7);
   }
   const mes=inp.value;
+  const mesIni=mes+'-01';
+  const [mesYr,mesMo]=mes.split('-').map(Number);
+  const mesFim=mesMo===12?`${mesYr+1}-01-01`:`${mesYr}-${String(mesMo+1).padStart(2,'0')}-01`;
 
   const msgEl=document.getElementById('fech-msg');
   if(msgEl) msgEl.style.display='none';
 
   // Buscar todos em paralelo
-  const [fin, crm] = await Promise.allSettled([
+  const [fin, crm, ltvRes] = await Promise.allSettled([
     fnCall('notion-financeiro',{meses:24}),
     fnCall('notion-crm',{mes}),
+    fnCall('notion-ltv',{mes},15000),
   ]);
   const fD=fin.status==='fulfilled'?fin.value:null;
   const cD=crm.status==='fulfilled'?crm.value:null;
+  const clD=ltvRes.status==='fulfilled'?ltvRes.value:null;
 
   // ── 1. Financeiro ──
   if(fD&&fD.rows){
@@ -3395,7 +3408,13 @@ async function carregarFechamento(){
   // ── 2. CRM – Calls & Conversões ──
   if(cD&&!cD.error){
     const setT=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v??'—';};
-    setT('fech-calls',cD.callsMes);
+    // Calls do relatorios_diarios (preenchido pela vendedora), não do Notion
+    let callsRealizadas=0;
+    try{
+      const {data:rDiarios}=await sb.from('relatorios_diarios').select('calls_realizadas').gte('data',mesIni).lt('data',mesFim);
+      callsRealizadas=(rDiarios||[]).reduce((s,r)=>s+(r.calls_realizadas||0),0);
+    }catch(e){console.warn('relatorios_diarios calls:',e.message);}
+    setT('fech-calls',callsRealizadas||null);
     setT('fech-conv',cD.conversoesMes);
     const eT=document.getElementById('fech-trafego');if(eT)eT.textContent=brl(cD.gastoTrafego);
     const eC=document.getElementById('fech-cac');if(eC)eC.textContent=brl(cD.cac);
@@ -3434,79 +3453,115 @@ async function carregarFechamento(){
     } else if(funilHistEl) funilHistEl.textContent='Sem dados de histórico para este período.';
   }
 
-  // ── 5. Comissões (Supabase vendas) ──
+  // ── 5. Comissões + CAC Real (Supabase vendas + pagamentos) ──
   try{
-    // sb is global
-    const mesIni=mes+'-01';
-    const [yr,mo]=mes.split('-').map(Number);
-    const mesFim=mo===12?`${yr+1}-01-01`:`${yr}-${String(mo+1).padStart(2,'0')}-01`;
-    const {data:vendas}=await sb.from('vendas').select('valor_total,data_venda').gte('data_venda',mesIni).lt('data_venda',mesFim);
-    if(vendas&&vendas.length>0){
-      const fat=vendas.reduce((s,v)=>s+(parseFloat(v.valor_total)||0),0);
-      const pct=fat>20000?5:2;
-      const comissao=fat*(pct/100);
-      const efv=document.getElementById('fech-fat-vendas');if(efv)efv.textContent=brl(fat);
-      const env=document.getElementById('fech-n-vendas');if(env)env.textContent=vendas.length;
-      const ece=document.getElementById('fech-comissao-ellid');if(ece)ece.textContent=brl(comissao);
-      const epe=document.getElementById('fech-pct-ellid');if(epe)epe.textContent=pct+'%';
-      const obs=document.getElementById('fech-comissao-obs');
-      if(obs)obs.textContent=`Éllid: ${pct}% sobre R$ ${Math.round(fat).toLocaleString('pt-BR')} ${fat>20000?'(acima de R$ 20.000 → 5%)':'(até R$ 20.000 → 2%)'}`;
+    const [rVendas,rPags,rInf,rVen,rSeller]=await Promise.all([
+      sb.from('vendas').select('id,valor_total,data_venda,influencer_id,vendedora_id,aluno_nome').gte('data_venda',mesIni).lt('data_venda',mesFim),
+      sb.from('pagamentos').select('valor,venda_id,recebido,data_prevista').eq('recebido',true).gte('data_prevista',mesIni).lt('data_prevista',mesFim),
+      sb.from('influenciadoras').select('id,nome,percentual'),
+      sb.from('vendedoras').select('id,nome,percentual,percentual_bonus,teto_base'),
+      sb.from('app_config').select('valor').eq('chave','social_seller_salario').maybeSingle(),
+    ]);
+    const vendasMes=rVendas.data||[];
+    const pagsMes=rPags.data||[];
+    const infList=rInf.data||[];
+    const venList=rVen.data||[];
+    const salarioEllid=parseFloat(rSeller.data?.valor||'0')||0;
+
+    // Faturamento (soma valor_total das vendas do mês)
+    const fat=vendasMes.reduce((s,v)=>s+(parseFloat(v.valor_total)||0),0);
+    // Comissão Éllid (sobre pagamentos recebidos no mês, por vendedora)
+    let comissaoEllid=0;
+    for(const ven of venList){
+      const pgVen=pagsMes.filter(p=>{
+        const venda=vendasMes.find(v=>v.id===p.venda_id);
+        return venda?.vendedora_id===ven.id;
+      });
+      const totalPgVen=pgVen.reduce((s,p)=>s+(p.valor||0),0);
+      comissaoEllid+=calcComissaoVendedora(totalPgVen,ven);
+    }
+    // Comissão influencers (% sobre pagamentos recebidos no mês)
+    let comissaoInf=0;
+    for(const p of pagsMes){
+      const venda=vendasMes.find(v=>v.id===p.venda_id);
+      if(venda?.influencer_id){
+        const inf=infList.find(i=>i.id===venda.influencer_id);
+        if(inf) comissaoInf+=(p.valor||0)*(inf.percentual||0)/100;
+      }
+    }
+    // Tráfego pago (do notion-crm)
+    const gastoTrafego=cD?.gastoTrafego||0;
+    // CAC Real = (tráfego + salário + comissão Éllid + comissão influencers) / novas vendas
+    const custoTotal=gastoTrafego+salarioEllid+comissaoEllid+comissaoInf;
+    const cacReal=vendasMes.length>0?Math.round(custoTotal/vendasMes.length):null;
+
+    const g=id=>document.getElementById(id);
+    if(g('fech-fat-vendas'))g('fech-fat-vendas').textContent=brl(fat);
+    if(g('fech-n-vendas'))g('fech-n-vendas').textContent=vendasMes.length;
+    if(g('fech-trafego-com'))g('fech-trafego-com').textContent=brl(gastoTrafego);
+    if(g('fech-salario-ellid'))g('fech-salario-ellid').textContent=brl(salarioEllid);
+    if(g('fech-comissao-ellid'))g('fech-comissao-ellid').textContent=brl(comissaoEllid);
+    if(g('fech-comissao-inf'))g('fech-comissao-inf').textContent=brl(comissaoInf);
+    if(g('fech-cac-real'))g('fech-cac-real').textContent=cacReal!=null?brl(cacReal):'—';
+    // Atualiza também o CAC na seção 2
+    if(g('fech-cac'))g('fech-cac').textContent=cacReal!=null?brl(cacReal):'—';
+    const obs=g('fech-comissao-obs');
+    if(obs){
+      const itens=[
+        `Tráfego: ${brl(gastoTrafego)}`,
+        `Salário Éllid: ${brl(salarioEllid)}`,
+        `Comissão Éllid: ${brl(comissaoEllid)}`,
+        `Influencers: ${brl(comissaoInf)}`,
+        `Total custo aquisição: ${brl(custoTotal)}`,
+        vendasMes.length>0?`÷ ${vendasMes.length} vendas = CAC ${brl(cacReal)}`:'',
+      ].filter(Boolean).join(' · ');
+      obs.textContent=itens;
     }
   }catch(e){console.warn('Comissões fechamento:',e.message);}
 
-  // ── 6. CAC & LTV + Movimentação de Clientes das tabelas Notion ──
+  // ── 6. LTV / Ativos + Entradas & Saídas de Clientes ──
   try{
-    const cl=await fnCall('notion-cac-ltv',{},15000);
-    if(cl&&!cl.error){
-      const meses_pt=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-      const [yr,mo]=mes.split('-').map(Number);
-      const mesPt=(meses_pt[mo-1]||'')+' '+yr;
-
-      // CAC do mês selecionado
-      const cacRow=(cl.cac||[]).find(r=>{
-        const m=(r.mes||'').trim().toLowerCase();
-        return m===mesPt.toLowerCase()||
-          (m.includes(String(yr))&&m.includes((meses_pt[mo-1]||'').toLowerCase().slice(0,3)));
-      })||null;
-      if(cacRow){
-        const eT=document.getElementById('fech-trafego');if(eT)eT.textContent=brl(cacRow.gastoTrafego);
-        const eC=document.getElementById('fech-cac');if(eC)eC.textContent=brl(cacRow.cac);
-      }
+    if(clD&&!clD.error){
+      const setT=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v??'—';};
 
       // LTV/CAC histórico
-      const e1=document.getElementById('fech-ltv');if(e1)e1.textContent=brl(cl.ltvMedio);
-      const e2=document.getElementById('fech-ltv-cac');if(e2)e2.textContent=brl(cl.cacMedio);
+      const e1=document.getElementById('fech-ltv');if(e1)e1.textContent=brl(clD.ltvMedio);
+      const e2=document.getElementById('fech-ltv-cac');if(e2)e2.textContent=brl(clD.cacMedio);
       const e3=document.getElementById('fech-ratio');
       const kpi=document.getElementById('fech-ratio-kpi');
-      if(e3&&cl.ltvCacRatio!=null){
-        e3.textContent=cl.ltvCacRatio+'x';
-        const cor=cl.ltvCacRatio>=3?'verde':cl.ltvCacRatio>=2?'amarelo':'vermelho';
+      if(e3&&clD.ltvCacRatio!=null){
+        e3.textContent=clD.ltvCacRatio+'x';
+        const cor=clD.ltvCacRatio>=3?'verde':clD.ltvCacRatio>=2?'amarelo':'vermelho';
         if(kpi)kpi.className='kpi '+cor;
       }
 
-      // Entradas & Saídas do mês selecionado (popula seção 3)
-      const ltv=cl.ltv||{};
-      const setT=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v??'—';};
-      setT('fech-ativos',ltv.totalAtivos);
-      const movMes=(cl.movimentacaoMensal||[]).find(m=>m.mes===mes)||{entradas:[],saidas:[]};
-      setT('fech-entradas-n',movMes.entradas.length||'0');
-      setT('fech-saidas-n',movMes.saidas.length||'0');
+      // Total ativos
+      setT('fech-ativos',clD.totalAtivos);
+
+      // Entradas = novas vendas do mês no Supabase
+      const {data:vendasEntradas}=await sb.from('vendas').select('aluno_nome,plano,valor_total').gte('data_venda',mesIni).lt('data_venda',mesFim);
+      const entList=vendasEntradas||[];
+      setT('fech-entradas-n',entList.length||'0');
       const entEl=document.getElementById('fech-entradas-lista');
       if(entEl){
-        if(movMes.entradas.length>0){
-          entEl.innerHTML=movMes.entradas.map(s=>`<div style="padding:3px 0;border-bottom:1px solid #f3f4f6;"><strong>${s.nome}</strong><br><span style="color:#9ca3af;">${s.plano||''} · ${brl(s.ticket)}/mês</span></div>`).join('');
+        if(entList.length>0){
+          entEl.innerHTML=entList.map(s=>`<div style="padding:3px 0;border-bottom:1px solid #f3f4f6;"><strong>${s.aluno_nome||'—'}</strong><br><span style="color:#9ca3af;">${s.plano||''} · ${brl(s.valor_total)}</span></div>`).join('');
         } else entEl.textContent='Nenhuma entrada.';
       }
+
+      // Saídas = Data de Saída do Notion (noção-ltv)
+      const saiList=clD.saidasMes||[];
+      setT('fech-saidas-n',saiList.length||'0');
       const saiEl=document.getElementById('fech-saidas-lista');
       if(saiEl){
-        if(movMes.saidas.length>0){
-          saiEl.innerHTML=movMes.saidas.map(s=>`<div style="padding:3px 0;border-bottom:1px solid #f3f4f6;"><strong>${s.nome}</strong><br><span style="color:#9ca3af;">${s.motivo||'—'}</span></div>`).join('');
+        if(saiList.length>0){
+          saiEl.innerHTML=saiList.map(s=>`<div style="padding:3px 0;border-bottom:1px solid #f3f4f6;"><strong>${s.nome}</strong><br><span style="color:#9ca3af;">${s.motivo||'—'}</span></div>`).join('');
         } else saiEl.textContent='Nenhuma saída.';
       }
 
-      // Histórico de movimentação mês a mês
+      // Histórico de movimentação mês a mês (Notion)
       const movEl=document.getElementById('fech-mov-mensal');
-      if(movEl&&cl.movimentacaoMensal&&cl.movimentacaoMensal.length>0){
+      if(movEl&&clD.movimentacaoMensal&&clD.movimentacaoMensal.length>0){
         const nomesMes=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
         movEl.innerHTML=`<div class="tw"><table style="width:100%;font-size:12px;border-collapse:collapse;">
           <thead><tr style="color:#6b7280;">
@@ -3517,7 +3572,7 @@ async function carregarFechamento(){
             <th style="text-align:left;padding:6px 4px;border-bottom:1px solid #f3f4f6;">Quem entrou</th>
             <th style="text-align:left;padding:6px 4px;border-bottom:1px solid #f3f4f6;">Quem saiu</th>
           </tr></thead><tbody>
-          ${cl.movimentacaoMensal.map(m=>{
+          ${clD.movimentacaoMensal.map(m=>{
             const [y,mo2]=m.mes.split('-');
             const nm=nomesMes[+mo2-1]+'/'+String(y).slice(2);
             const bal=m.entradas.length-m.saidas.length;
@@ -3532,17 +3587,54 @@ async function carregarFechamento(){
             </tr>`;
           }).join('')}
           </tbody></table></div>`;
-      } else if(movEl&&cl.movimentacaoMensal){
-        movEl.textContent='Nenhuma movimentação cadastrada ainda.';
-      }
+      } else if(movEl) movEl.textContent='Nenhuma movimentação cadastrada ainda.';
     }
-  }catch(e){console.warn('CAC/LTV fechamento:',e.message);}
+  }catch(e){console.warn('LTV/Clientes fechamento:',e.message);}
 
   const tsF=await salvarSyncTs('sync_fech_ts');exibirSyncTs(tsF,'fech-sync-ts');
   carregarFechamentoNotionFin();
   if(fIcon) fIcon.style.animation='';
   if(fLabel) fLabel.textContent='Sincronizar Notion';
   if(fBtn) fBtn.disabled=false;
+}
+
+async function atualizarClientesMes(){
+  const inp=document.getElementById('fech-mes');
+  if(!inp?.value){toast('Selecione um mês primeiro','erro');return;}
+  const mes=inp.value;
+  const mesIni=mes+'-01';
+  const [yr,mo]=mes.split('-').map(Number);
+  const mesFim=mo===12?`${yr+1}-01-01`:`${yr}-${String(mo+1).padStart(2,'0')}-01`;
+  const btn=document.getElementById('btn-atualizar-clientes');
+  if(btn){btn.disabled=true;btn.textContent='Atualizando...';}
+  try{
+    const [ltvRes,vendasRes]=await Promise.all([
+      fnCall('notion-ltv',{mes},15000),
+      sb.from('vendas').select('aluno_nome,plano,valor_total').gte('data_venda',mesIni).lt('data_venda',mesFim),
+    ]);
+    const cl=ltvRes&&!ltvRes.error?ltvRes:null;
+    const entList=vendasRes.data||[];
+    const saiList=cl?.saidasMes||[];
+    const setT=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v??'—';};
+    setT('fech-ativos',cl?.totalAtivos);
+    setT('fech-entradas-n',entList.length||'0');
+    setT('fech-saidas-n',saiList.length||'0');
+    const entEl=document.getElementById('fech-entradas-lista');
+    if(entEl){
+      if(entList.length>0){
+        entEl.innerHTML=entList.map(s=>`<div style="padding:3px 0;border-bottom:1px solid #f3f4f6;"><strong>${s.aluno_nome||'—'}</strong><br><span style="color:#9ca3af;">${s.plano||''} · ${brl(s.valor_total)}</span></div>`).join('');
+      } else entEl.textContent='Nenhuma entrada.';
+    }
+    const saiEl=document.getElementById('fech-saidas-lista');
+    if(saiEl){
+      if(saiList.length>0){
+        saiEl.innerHTML=saiList.map(s=>`<div style="padding:3px 0;border-bottom:1px solid #f3f4f6;"><strong>${s.nome}</strong><br><span style="color:#9ca3af;">${s.motivo||'—'}</span></div>`).join('');
+      } else saiEl.textContent='Nenhuma saída.';
+    }
+    toast('Entradas e saídas atualizadas','sucesso');
+  }catch(e){toast('Erro ao atualizar clientes','erro');}finally{
+    if(btn){btn.disabled=false;btn.innerHTML='<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.63-4.14"/></svg> Atualizar';}
+  }
 }
 
 /* ═══════════════════════════════════════════
@@ -5034,7 +5126,8 @@ function gerarRelatorioMensal() {
     ['Clientes Ativos', g('fech-ativos')], ['Entradas', g('fech-entradas-n')], ['Saídas', g('fech-saidas-n')],
     ['COMISSÕES'],
     ['Faturamento Vendas', g('fech-fat-vendas')], ['Qtd Vendas', g('fech-n-vendas')],
-    ['Comissão Éllid', g('fech-comissao-ellid')], ['% Comissão', g('fech-pct-ellid')],
+    ['Salário Éllid', g('fech-salario-ellid')], ['Comissão Éllid', g('fech-comissao-ellid')],
+    ['Comissão Influencers', g('fech-comissao-inf')], ['CAC Real', g('fech-cac-real')],
     ['LTV / CAC'],
     ['LTV Médio', g('fech-ltv')], ['CAC Médio', g('fech-ltv-cac')], ['Ratio LTV/CAC', g('fech-ratio')],
     ['RESERVAS'],

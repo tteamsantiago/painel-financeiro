@@ -187,6 +187,24 @@ serve(async (req) => {
         .map((s: any) => ({ nome: s.nome, plano: s.plano, motivo: s.motivo, ticket: s.ticket }))
     }
 
+    // Movimentação mês a mês (últimos 12 meses)
+    const todayD = new Date()
+    const movimentacaoMensal: any[] = []
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(todayD.getFullYear(), todayD.getMonth() - i, 1)
+      const mesKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      const iniM  = `${mesKey}-01`
+      const nextD = new Date(d.getFullYear(), d.getMonth() + 1, 1)
+      const nextM = `${nextD.getFullYear()}-${String(nextD.getMonth() + 1).padStart(2, '0')}-01`
+      const ent = students.filter((s: any) => s.entrada >= iniM && s.entrada < nextM)
+        .map((s: any) => ({ nome: s.nome, plano: s.plano, ticket: s.ticket }))
+      const sai = students.filter((s: any) => s.saida && s.saida >= iniM && s.saida < nextM)
+        .map((s: any) => ({ nome: s.nome, plano: s.plano, motivo: s.motivo, ticket: s.ticket }))
+      if (ent.length > 0 || sai.length > 0) {
+        movimentacaoMensal.push({ mes: mesKey, entradas: ent, saidas: sai })
+      }
+    }
+
     return json({
       ltvMedio,
       ticketMedio,
@@ -199,6 +217,7 @@ serve(async (req) => {
       porPlano,
       entradasMes,
       saidasMes,
+      movimentacaoMensal,
     })
   } catch (e: any) {
     console.error('notion-ltv error:', e)
