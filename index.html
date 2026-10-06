@@ -3538,14 +3538,13 @@ async function carregarFechamento(){
       // Total ativos
       setT('fech-ativos',clD.totalAtivos);
 
-      // Entradas = novas vendas do mês no Supabase
-      const {data:vendasEntradas}=await sb.from('vendas').select('aluno_nome,plano,valor_total').gte('data_venda',mesIni).lt('data_venda',mesFim);
-      const entList=vendasEntradas||[];
+      // Entradas = Data de Entrada do Notion (notion-ltv)
+      const entList=clD.entradasMes||[];
       setT('fech-entradas-n',entList.length||'0');
       const entEl=document.getElementById('fech-entradas-lista');
       if(entEl){
         if(entList.length>0){
-          entEl.innerHTML=entList.map(s=>`<div style="padding:3px 0;border-bottom:1px solid #f3f4f6;"><strong>${s.aluno_nome||'—'}</strong><br><span style="color:#9ca3af;">${s.plano||''} · ${brl(s.valor_total)}</span></div>`).join('');
+          entEl.innerHTML=entList.map(s=>`<div style="padding:3px 0;border-bottom:1px solid #f3f4f6;"><strong>${s.nome||'—'}</strong><br><span style="color:#9ca3af;">${s.plano||''} · ${brl(s.ticket)}</span></div>`).join('');
         } else entEl.textContent='Nenhuma entrada.';
       }
 
@@ -3608,12 +3607,9 @@ async function atualizarClientesMes(){
   const btn=document.getElementById('btn-atualizar-clientes');
   if(btn){btn.disabled=true;btn.textContent='Atualizando...';}
   try{
-    const [ltvRes,vendasRes]=await Promise.all([
-      fnCall('notion-ltv',{mes},15000),
-      sb.from('vendas').select('aluno_nome,plano,valor_total').gte('data_venda',mesIni).lt('data_venda',mesFim),
-    ]);
+    const ltvRes=await fnCall('notion-ltv',{mes},15000);
     const cl=ltvRes&&!ltvRes.error?ltvRes:null;
-    const entList=vendasRes.data||[];
+    const entList=cl?.entradasMes||[];
     const saiList=cl?.saidasMes||[];
     const setT=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v??'—';};
     setT('fech-ativos',cl?.totalAtivos);
@@ -3622,7 +3618,7 @@ async function atualizarClientesMes(){
     const entEl=document.getElementById('fech-entradas-lista');
     if(entEl){
       if(entList.length>0){
-        entEl.innerHTML=entList.map(s=>`<div style="padding:3px 0;border-bottom:1px solid #f3f4f6;"><strong>${s.aluno_nome||'—'}</strong><br><span style="color:#9ca3af;">${s.plano||''} · ${brl(s.valor_total)}</span></div>`).join('');
+        entEl.innerHTML=entList.map(s=>`<div style="padding:3px 0;border-bottom:1px solid #f3f4f6;"><strong>${s.nome||'—'}</strong><br><span style="color:#9ca3af;">${s.plano||''} · ${brl(s.ticket)}</span></div>`).join('');
       } else entEl.textContent='Nenhuma entrada.';
     }
     const saiEl=document.getElementById('fech-saidas-lista');
