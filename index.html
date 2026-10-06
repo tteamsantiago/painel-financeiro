@@ -1629,8 +1629,8 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
       <div class="kpi cinza"><div class="kl">Tráfego Pago</div><div class="kv" id="fech-trafego-com" style="font-size:18px;">—</div></div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
-      <div class="kpi cinza"><div class="kl">Salário Éllid</div><div class="kv" id="fech-salario-ellid" style="font-size:18px;">—</div></div>
-      <div class="kpi cinza"><div class="kl">Comissão Éllid</div><div class="kv" id="fech-comissao-ellid" style="font-size:18px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Salário Social Seller</div><div class="kv" id="fech-salario-ellid" style="font-size:18px;">—</div></div>
+      <div class="kpi cinza"><div class="kl">Comissão Social Seller</div><div class="kv" id="fech-comissao-ellid" style="font-size:18px;">—</div></div>
       <div class="kpi cinza"><div class="kl">Comissão Influencers</div><div class="kv" id="fech-comissao-inf" style="font-size:18px;">—</div></div>
       <div class="kpi amarelo"><div class="kl">CAC Real do Mês</div><div class="kv" id="fech-cac-real" style="font-size:18px;">—</div></div>
     </div>
@@ -3519,8 +3519,8 @@ async function carregarFechamento(){
     if(obs){
       const itens=[
         `Tráfego: ${brl(gastoTrafego)}`,
-        `Salário Éllid: ${brl(salarioEllid)}`,
-        `Comissão Éllid: ${brl(comissaoEllid)}`,
+        `Salário Social Seller: ${brl(salarioEllid)}`,
+        `Comissão Social Seller: ${brl(comissaoEllid)}`,
         `Influencers: ${brl(comissaoInf)}`,
         `Total custo aquisição: ${brl(custoTotal)}`,
         vendasMes.length>0?`÷ ${vendasMes.length} vendas = CAC ${brl(cacReal)}`:'',
@@ -5136,7 +5136,7 @@ function gerarRelatorioMensal() {
     ['Clientes Ativos', g('fech-ativos')], ['Entradas', g('fech-entradas-n')], ['Saídas', g('fech-saidas-n')],
     ['COMISSÕES'],
     ['Faturamento Vendas', g('fech-fat-vendas')], ['Qtd Vendas', g('fech-n-vendas')],
-    ['Salário Éllid', g('fech-salario-ellid')], ['Comissão Éllid', g('fech-comissao-ellid')],
+    ['Salário Social Seller', g('fech-salario-ellid')], ['Comissão Social Seller', g('fech-comissao-ellid')],
     ['Comissão Influencers', g('fech-comissao-inf')], ['CAC Real', g('fech-cac-real')],
     ['LTV / CAC'],
     ['LTV Médio', g('fech-ltv')], ['CAC Médio', g('fech-ltv-cac')], ['Ratio LTV/CAC', g('fech-ratio')],
