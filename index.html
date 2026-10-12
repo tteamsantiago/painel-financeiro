@@ -907,9 +907,9 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
         Limpar campos
       </button>
-      <button class="btn bp" onclick="gerarCtrPdf()" style="display:flex;align-items:center;gap:6px;">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-        Gerar PDF
+      <button class="btn bp" onclick="gerarDocx()" style="display:flex;align-items:center;gap:6px;">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Baixar .docx
       </button>
     </div>
   </div>
@@ -967,9 +967,9 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
         <div style="font-size:11px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Etapa 3</div>
         <div style="font-size:15px;font-weight:600;color:#111827;">Visualização do Contrato</div>
       </div>
-      <button onclick="gerarCtrPdf()" style="display:flex;align-items:center;gap:6px;background:#4f46e5;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-        Imprimir / Salvar PDF
+      <button onclick="gerarDocx()" style="display:flex;align-items:center;gap:6px;background:#4f46e5;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Baixar .docx preenchido
       </button>
     </div>
     <div id="ctr-preview-box" style="background:#fafafa;border:1px solid #e5e7eb;border-radius:8px;padding:40px 48px;min-height:400px;color:#1e293b;font-family:Georgia,'Times New Roman',serif;font-size:13px;line-height:1.8;">
@@ -6537,7 +6537,7 @@ function salvarTokenClickUp(){ toast('CRM já funciona automaticamente via Supab
 // ══════════════════════════════════════════════
 // CONTRATOS
 // ══════════════════════════════════════════════
-let ctrHtmlBase='', ctrCamposVermelhos=[], ctrNomeArquivo='';
+let ctrHtmlBase='', ctrCamposVermelhos=[], ctrNomeArquivo='', ctrDocBuffer=null;
 
 function initContratos(){
   const savedHtml=localStorage.getItem('ctr_template_html');
@@ -6611,6 +6611,7 @@ async function processarTemplate(file){
   }
   try{
     const buf=await ctrLerArquivo(file);
+    ctrDocBuffer=buf.slice(0);
 
     // 1. Extrai campos vermelhos via XML
     const zip=new PizZip(buf.slice(0));
@@ -6656,7 +6657,7 @@ function ctrRenderStatus(nome){
 
 function ctrLimparTemplate(){
   ['ctr_template_html','ctr_campos_vermelhos','ctr_template_nome'].forEach(k=>localStorage.removeItem(k));
-  ctrHtmlBase='';ctrCamposVermelhos=[];ctrNomeArquivo='';
+  ctrHtmlBase='';ctrCamposVermelhos=[];ctrNomeArquivo='';ctrDocBuffer=null;
   document.getElementById('ctr-dropzone').style.display='flex';
   const st=document.getElementById('ctr-template-status');
   st.style.display='none';st.innerHTML='';
@@ -7359,22 +7360,41 @@ function fmtDataV(d){
   return`${dia}/${m}/${y}`;
 }
 
-function gerarCtrPdf(){
-  if(!ctrHtmlBase){toast('Faça upload do contrato primeiro','erro');return;}
+function gerarDocx(){
+  if(!ctrDocBuffer){toast('Faça upload do contrato primeiro','erro');return;}
   const vals=ctrGetValores();
-  let html=ctrHtmlBase;
-  const ordenados=[...ctrCamposVermelhos].sort((a,b)=>b.length-a.length);
-  ordenados.forEach(c=>{
-    const esc=c.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-    html=html.replace(new RegExp(esc,'g'),vals[c]||c);
-  });
-  const w=window.open('','_blank');
-  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Contrato</title>'
-    +'<style>body{font-family:Georgia,"Times New Roman",serif;font-size:12pt;line-height:1.8;color:#000;padding:2cm;max-width:21cm;margin:0 auto;}'
-    +'p{margin-bottom:1em;}strong{font-weight:bold;}table{border-collapse:collapse;width:100%;}'
-    +'td,th{border:1px solid #999;padding:6px 10px;}@media print{body{padding:0;}}</style>'
-    +'</head><body>'+html+'<script>window.onload=function(){window.print();};<\/script></body></html>');
-  w.document.close();
+  try{
+    const zip=new PizZip(ctrDocBuffer.slice(0));
+    let xml=zip.file('word/document.xml').asText();
+
+    // Substituir do mais longo para o mais curto (evita substituição parcial)
+    const sorted=[...ctrCamposVermelhos].sort((a,b)=>b.length-a.length);
+    sorted.forEach(campo=>{
+      const valor=vals[campo];
+      if(!valor)return;
+      const esc=campo.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      // Substituir dentro de tags <w:t>
+      xml=xml.replace(new RegExp('(<w:t[^>]*>)'+esc+'(</w:t>)','g'),'$1'+valor+'$2');
+    });
+
+    // Remover cor vermelha dos runs substituídos (fica na cor padrão do doc)
+    xml=xml.replace(/<w:color w:val="(?:FF0000|C00000|ff0000|c00000|FF0000)"\s*\/>/g,'');
+
+    zip.file('word/document.xml',xml);
+    const out=zip.generate({type:'arraybuffer',compression:'DEFLATE'});
+    const blob=new Blob([out],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=ctrNomeArquivo.replace(/\.docx$/i,'')+'_preenchido.docx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('Contrato gerado! Verifique a pasta de downloads.','sucesso');
+  }catch(e){
+    toast('Erro ao gerar contrato: '+e.message,'erro');
+  }
 }
 
 async function preencherComIA(){
