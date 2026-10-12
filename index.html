@@ -7365,31 +7365,82 @@ function gerarDocx(){
   const vals=ctrGetValores();
   try{
     const zip=new PizZip(ctrDocBuffer.slice(0));
-    let xml=zip.file('word/document.xml').asText();
+    const xmlOriginal=zip.file('word/document.xml').asText();
+    const W='http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 
-    // Substituir do mais longo para o mais curto (evita substituição parcial)
+    function getRunColorEl(run){
+      const rpr=[...run.childNodes].find(n=>n.nodeType===1&&n.localName==='rPr');
+      if(!rpr)return null;
+      const c=[...rpr.childNodes].find(n=>n.nodeType===1&&n.localName==='color');
+      if(!c)return null;
+      const v=c.getAttributeNS(W,'val')||c.getAttribute('w:val')||'';
+      return /^(FF0000|C00000)$/i.test(v)?c:null;
+    }
+
+    function getRunText(run){
+      return [...run.getElementsByTagNameNS(W,'t')].map(t=>t.textContent).join('');
+    }
+
+    function setRunText(run,text){
+      const ts=[...run.getElementsByTagNameNS(W,'t')];
+      if(!ts[0])return;
+      ts[0].textContent=text;
+      ts[0].setAttribute('xml:space','preserve');
+      ts.slice(1).forEach(t=>t.parentNode.removeChild(t));
+    }
+
+    const parser=new DOMParser();
+    const doc=parser.parseFromString(xmlOriginal,'application/xml');
+    if(doc.querySelector('parsererror'))throw new Error('Erro ao analisar XML do documento');
+
     const sorted=[...ctrCamposVermelhos].sort((a,b)=>b.length-a.length);
-    sorted.forEach(campo=>{
-      const valor=vals[campo];
-      if(!valor)return;
-      const esc=campo.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-      // Substituir dentro de tags <w:t>
-      xml=xml.replace(new RegExp('(<w:t[^>]*>)'+esc+'(</w:t>)','g'),'$1'+valor+'$2');
-    });
 
-    // Remover cor vermelha dos runs substituídos (fica na cor padrão do doc)
-    xml=xml.replace(/<w:color w:val="(?:FF0000|C00000|ff0000|c00000|FF0000)"\s*\/>/g,'');
+    for(let para of doc.getElementsByTagNameNS(W,'p')){
+      let runs=[...para.childNodes].filter(n=>n.nodeType===1&&n.localName==='r');
 
-    zip.file('word/document.xml',xml);
+      // Mesclar runs vermelhos consecutivos (resolve texto dividido em múltiplos runs)
+      for(let i=0;i<runs.length;){
+        if(getRunColorEl(runs[i])){
+          let j=i+1;
+          while(j<runs.length&&getRunColorEl(runs[j]))j++;
+          if(j>i+1){
+            const combined=runs.slice(i,j).map(getRunText).join('');
+            setRunText(runs[i],combined);
+            runs.slice(i+1,j).forEach(r=>r.parentNode&&r.parentNode.removeChild(r));
+            runs.splice(i+1,j-i-1);
+          }
+          i++;
+        }else i++;
+      }
+
+      // Substituir texto nos runs vermelhos
+      for(let run of [...para.childNodes].filter(n=>n.nodeType===1&&n.localName==='r')){
+        const colorEl=getRunColorEl(run);
+        if(!colorEl)continue;
+        const runText=getRunText(run);
+        for(let campo of sorted){
+          if(runText===campo&&vals[campo]){
+            setRunText(run,vals[campo]);
+            // Muda cor para preto (só no elemento color do run, sem afetar formatação do parágrafo)
+            try{colorEl.setAttributeNS(W,'val','000000');}
+            catch(_){colorEl.setAttribute('w:val','000000');}
+            break;
+          }
+        }
+      }
+    }
+
+    let newXml=new XMLSerializer().serializeToString(doc);
+    newXml=newXml.replace(/^<\?xml[^>]*\?>\s*/,'');
+
+    zip.file('word/document.xml',newXml);
     const out=zip.generate({type:'arraybuffer',compression:'DEFLATE'});
     const blob=new Blob([out],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
     a.href=url;
     a.download=ctrNomeArquivo.replace(/\.docx$/i,'')+'_preenchido.docx';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
     URL.revokeObjectURL(url);
     toast('Contrato gerado! Verifique a pasta de downloads.','sucesso');
   }catch(e){
