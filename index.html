@@ -6713,6 +6713,7 @@ function limparCtrForm(){
     const el=document.getElementById('ctr-inp-'+i);
     if(el)el.value='';
   });
+  document.getElementById('ctr-ia-contexto').value='';
   ctrAtualizarPreview();
   toast('Campos limpos','sucesso');
 }
