@@ -939,6 +939,18 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
     <div class="card" style="overflow-y:auto;max-height:480px;">
       <div style="font-size:11px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Etapa 2</div>
       <div style="font-size:15px;font-weight:600;color:#111827;margin-bottom:16px;">Preencher Dados</div>
+
+      <!-- Preenchimento com IA -->
+      <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:14px;margin-bottom:16px;">
+        <div style="font-size:11px;font-weight:700;color:#0369a1;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">&#10024; Preencher com IA</div>
+        <div style="font-size:12px;color:#0369a1;margin-bottom:8px;">Cole os dados do aluno em texto livre — a IA preenche todos os campos automaticamente.</div>
+        <textarea id="ctr-ia-contexto" placeholder="Ex: Bruna Szeckir, brasileira, personal trainer, solteira, RG 12345678, CPF 123.456.789-00, Rua das Flores 123, Divinópolis/MG. Plano anual, R$5.000 em 5x de R$1.000 no boleto, primeira parcela 28/07/2025, contrato de 05/10/2026 a 10/10/2027." style="width:100%;height:90px;border:1px solid #bae6fd;border-radius:8px;padding:10px;font-size:12px;resize:vertical;box-sizing:border-box;font-family:inherit;outline:none;"></textarea>
+        <button id="ctr-ia-btn" onclick="preencherComIA()" style="margin-top:8px;background:#0ea5e9;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Preencher automaticamente
+        </button>
+      </div>
+
       <div id="ctr-form-fields">
         <div style="text-align:center;padding:40px 0;color:#94a3b8;font-size:13px;">
           <svg width="32" height="32" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 10px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -7363,6 +7375,30 @@ function gerarCtrPdf(){
     +'td,th{border:1px solid #999;padding:6px 10px;}@media print{body{padding:0;}}</style>'
     +'</head><body>'+html+'<script>window.onload=function(){window.print();};<\/script></body></html>');
   w.document.close();
+}
+
+async function preencherComIA(){
+  const contexto=(document.getElementById('ctr-ia-contexto')?.value||'').trim();
+  if(!contexto){toast('Cole os dados do aluno no campo de texto primeiro.','erro');return;}
+  if(ctrCamposVermelhos.length===0){toast('Faça upload do contrato primeiro.','erro');return;}
+  const btn=document.getElementById('ctr-ia-btn');
+  if(btn){btn.disabled=true;btn.innerHTML='<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Processando...';}
+  try{
+    const result=await fnCall('contrato-ia',{campos:ctrCamposVermelhos,contexto},30000);
+    if(result?.error) throw new Error(result.error);
+    const mapa=result?.campos||{};
+    let preenchidos=0;
+    ctrCamposVermelhos.forEach((c,i)=>{
+      const el=document.getElementById('ctr-inp-'+i);
+      if(el&&mapa[c]&&mapa[c]!==c){el.value=mapa[c];preenchidos++;}
+    });
+    ctrAtualizarPreview();
+    toast(preenchidos>0?preenchidos+' campo(s) preenchido(s) pela IA!':'IA não encontrou dados suficientes para preencher.', preenchidos>0?'sucesso':'erro');
+  }catch(e){
+    toast('Erro: '+e.message,'erro');
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML='<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Preencher automaticamente';}
+  }
 }
 
 // ══ ANIVERSÁRIOS ══════════════════════════════
