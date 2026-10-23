@@ -1694,7 +1694,7 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
   <div class="ph">
     <div><h2>Relatório Diário</h2><p>Acompanhamento diário da Social Seller — leads, calls, conversões e objeções</p></div>
     <div style="display:flex;gap:8px;">
-      <button class="btn" onclick="exportarRelatorioSemanaPDF()" style="display:flex;align-items:center;gap:6px;background:#fff;color:#374151;border:1px solid #d1d5db;">
+      <button class="btn" onclick="exportarRelatorioSemanaPDF(this)" style="display:flex;align-items:center;gap:6px;background:#fff;color:#374151;border:1px solid #d1d5db;">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Exportar semana (PDF)
       </button>
       <button class="btn bp" onclick="abrirFormRelatorio()" style="display:flex;align-items:center;gap:6px;">
@@ -2159,6 +2159,7 @@ let LANCS = [ // dados carregados do Supabase
 let nextId=21;
 
 const fmt=v=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
 // ══════════════════════════════════════════════
 // TOAST
@@ -3872,12 +3873,12 @@ async function carregarHistoricoRelatorio(){
     }).join('');
   }catch(e){
     console.error('carregarHistoricoRelatorio:',e);
-    tbody.innerHTML='<tr><td colspan="15" style="text-align:center;color:#ef4444;padding:20px;">Erro: '+e.message+'</td></tr>';
+    tbody.innerHTML='<tr><td colspan="15" style="text-align:center;color:#ef4444;padding:20px;">Erro: '+esc(e.message)+'</td></tr>';
   }
 }
 
-async function exportarRelatorioSemanaPDF(){
-  const btn=event?.target?.closest('button');
+async function exportarRelatorioSemanaPDF(btnEl){
+  const btn=btnEl||null;
   if(btn){btn.disabled=true;btn.textContent='Gerando...';}
   const hoje=new Date();
   const desde=new Date();desde.setDate(hoje.getDate()-6);
@@ -5549,22 +5550,22 @@ async function minerarLeads() {
     data = await fnCall('apify-leads', { plataforma: minAtualPlataforma, tipo, busca, limite: Math.min(Math.max(parseInt(limite) || 20, 1), 100), min_seguidores: minSeg, max_seguidores: maxSeg });
   } catch (err) {
     resetBtn();
-    area.innerHTML = '<div style="text-align:center;padding:40px;color:#ef4444;">Erro de conexao: ' + (err.message || err) + '</div>';
+    area.innerHTML = '<div style="text-align:center;padding:40px;color:#ef4444;">Erro de conexao: ' + esc(err.message || err) + '</div>';
     return;
   }
   resetBtn();
 
   if (data.setup || data.error) {
     if (data.setup) { document.getElementById('min-setup-banner').style.display = 'block'; area.innerHTML = ''; return; }
-    area.innerHTML = '<div style="text-align:center;padding:40px;color:#ef4444;">' + data.error + '</div>';
+    area.innerHTML = '<div style="text-align:center;padding:40px;color:#ef4444;">' + esc(data.error) + '</div>';
     return;
   }
 
   const items = data.items || [];
   if (!items.length) {
     const dbg = (data.debug||[]).join('\n');
-    const debugHtml = dbg ? '<p style="font-size:11px;color:#94a3b8;margin:12px 0 0;font-family:monospace;white-space:pre-wrap;text-align:left;background:#f8fafc;padding:8px 10px;border-radius:6px;">'+dbg+'</p>' : '';
-    area.innerHTML = '<div style="text-align:center;padding:32px 20px;color:#6b7280;">'+(data.message||'Nenhum resultado encontrado. Tente filtros menos restritivos.')+debugHtml+'</div>';
+    const debugHtml = dbg ? '<p style="font-size:11px;color:#94a3b8;margin:12px 0 0;font-family:monospace;white-space:pre-wrap;text-align:left;background:#f8fafc;padding:8px 10px;border-radius:6px;">'+esc(dbg)+'</p>' : '';
+    area.innerHTML = '<div style="text-align:center;padding:32px 20px;color:#6b7280;">'+esc(data.message||'Nenhum resultado encontrado. Tente filtros menos restritivos.')+debugHtml+'</div>';
     return;
   }
 
