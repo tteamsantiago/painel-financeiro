@@ -1238,7 +1238,12 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
 <div class="page" id="page-vendas">
   <div class="ph">
     <div><h2>Vendas & Comissões</h2><p>Registre vendas, acompanhe parcelas e calcule comissões automaticamente</p></div>
-    <button class="btn bp" data-write onclick="abrirModalVenda()">+ Nova Venda</button>
+    <div style="display:flex;gap:8px;">
+      <button class="btn" onclick="exportarVendasPDF()" style="display:flex;align-items:center;gap:6px;background:#fff;color:#374151;border:1px solid #d1d5db;">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Exportar resumo (PDF)
+      </button>
+      <button class="btn bp" data-write onclick="abrirModalVenda()">+ Nova Venda</button>
+    </div>
   </div>
   <!-- Tabs -->
   <div class="vtabs">
@@ -1688,9 +1693,14 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
 <div class="page" id="page-relatorio">
   <div class="ph">
     <div><h2>Relatório Diário</h2><p>Acompanhamento diário da Social Seller — leads, calls, conversões e objeções</p></div>
-    <button class="btn bp" onclick="abrirFormRelatorio()" style="display:flex;align-items:center;gap:6px;">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Preencher Hoje
-    </button>
+    <div style="display:flex;gap:8px;">
+      <button class="btn" onclick="exportarRelatorioSemanaPDF()" style="display:flex;align-items:center;gap:6px;background:#fff;color:#374151;border:1px solid #d1d5db;">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Exportar semana (PDF)
+      </button>
+      <button class="btn bp" onclick="abrirFormRelatorio()" style="display:flex;align-items:center;gap:6px;">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Preencher Hoje
+      </button>
+    </div>
   </div>
 
   <!-- Formulário (oculto por padrão) -->
@@ -3863,6 +3873,112 @@ async function carregarHistoricoRelatorio(){
   }catch(e){
     console.error('carregarHistoricoRelatorio:',e);
     tbody.innerHTML='<tr><td colspan="15" style="text-align:center;color:#ef4444;padding:20px;">Erro: '+e.message+'</td></tr>';
+  }
+}
+
+async function exportarRelatorioSemanaPDF(){
+  const btn=event?.target?.closest('button');
+  if(btn){btn.disabled=true;btn.textContent='Gerando...';}
+  const hoje=new Date();
+  const desde=new Date();desde.setDate(hoje.getDate()-6);
+  const desdeStr=desde.toISOString().slice(0,10);
+  const hojeStr=hoje.toISOString().slice(0,10);
+  try{
+    let q=sb.from('relatorio_diario').select('*').gte('data',desdeStr).lte('data',hojeStr).order('data',{ascending:true});
+    if(USUARIO_ROLE==='crm'&&USUARIO_EMAIL) q=q.eq('user_email',USUARIO_EMAIL);
+    const{data,error}=await q;
+    if(error)throw error;
+    if(!data||data.length===0){toast('Nenhum relatório nos últimos 7 dias','aviso');return;}
+    const tot={
+      dias:data.length,
+      lNovos:data.reduce((s,r)=>s+(r.leads_novos||0),0),
+      lRetom:data.reduce((s,r)=>s+(r.leads_retomados||0),0),
+      lOrg:data.reduce((s,r)=>s+(r.leads_organicos||0),0),
+      lResp:data.reduce((s,r)=>s+(r.leads_responderam||0),0),
+      lNResp:data.reduce((s,r)=>s+(r.leads_nao_responderam||0),0),
+      cAg:data.reduce((s,r)=>s+(r.calls_agendadas||0),0),
+      cReal:data.reduce((s,r)=>s+(r.calls_realizadas||0),0),
+      vend:data.reduce((s,r)=>s+(r.vendas_geradas||0),0),
+    };
+    tot.totalLeads=tot.lNovos+tot.lRetom+tot.lOrg;
+    tot.taxaResp=tot.totalLeads>0?Math.round(tot.lResp/tot.totalLeads*100)+'%':'—';
+    tot.showup=tot.cAg>0?Math.round(tot.cReal/tot.cAg*100)+'%':'—';
+    tot.conv=tot.cReal>0?Math.round(tot.vend/tot.cReal*100)+'%':'—';
+    const objCount={};
+    data.forEach(r=>{
+      (r.objecoes||[]).forEach(o=>{objCount[o]=(objCount[o]||0)+1;});
+      if(r.objecoes_livre)r.objecoes_livre.split(',').map(s=>s.trim()).filter(Boolean).forEach(o=>{objCount[o]=(objCount[o]||0)+1;});
+    });
+    const objList=Object.entries(objCount).sort((a,b)=>b[1]-a[1]);
+    const dtIni=desdeStr.split('-').reverse().join('/');
+    const dtFim=hojeStr.split('-').reverse().join('/');
+    const geradoEm=hoje.toLocaleString('pt-BR');
+    const linhas=data.map((r,i)=>{
+      const dFmt=r.data?r.data.split('-').reverse().join('/'):'—';
+      const su=r.calls_agendadas>0?Math.round(r.calls_realizadas/r.calls_agendadas*100)+'%':'—';
+      const cv=r.calls_realizadas>0?Math.round(r.vendas_geradas/r.calls_realizadas*100)+'%':'—';
+      const tl=(r.leads_novos||0)+(r.leads_retomados||0)+(r.leads_organicos||0);
+      const tr=tl>0?Math.round((r.leads_responderam||0)/tl*100)+'%':'—';
+      const bg=i%2===0?'#fff':'#f9fafb';
+      return`<tr style="background:${bg};">
+        <td style="padding:7px 9px;border-bottom:1px solid #f0f0f0;white-space:nowrap;">${dFmt}</td>
+        <td style="padding:7px 9px;border-bottom:1px solid #f0f0f0;">${r.social_seller||'—'}</td>
+        <td style="padding:7px 9px;border-bottom:1px solid #f0f0f0;text-align:center;">${r.leads_novos||0}</td>
+        <td style="padding:7px 9px;border-bottom:1px solid #f0f0f0;text-align:center;">${r.leads_retomados||0}</td>
+        <td style="padding:7px 9px;border-bottom:1px solid #f0f0f0;text-align:center;">${r.leads_organicos||0}</td>
+        <td style="padding:7px 9px;border-bottom:1px solid #f0f0f0;text-align:center;color:#15803d;font-weight:600;">${r.leads_responderam||0}</td>
+        <td style="padding:7px 9px;border-bottom:1px solid #f0f0f0;text-align:center;color:#b91c1c;font-weight:600;">${r.leads_nao_responderam||0}</td>
+        <td style="padding:7px 9px;border-bottom:1px solid #f0f0f0;text-align:center;font-weight:600;">${tr}</td>
+        <td style="padding:7px 9px;border-bottom:1px solid #f0f0f0;text-align:center;">${r.calls_agendadas||0}</td>
+        <td style="padding:7px 9px;border-bottom:1px solid #f0f0f0;text-align:center;">${r.calls_realizadas||0}</td>
+        <td style="padding:7px 9px;border-bottom:1px solid #f0f0f0;text-align:center;color:#15803d;font-weight:600;">${r.vendas_geradas||0}</td>
+        <td style="padding:7px 9px;border-bottom:1px solid #f0f0f0;text-align:center;">${su}</td>
+        <td style="padding:7px 9px;border-bottom:1px solid #f0f0f0;text-align:center;">${cv}</td>
+      </tr>`;
+    }).join('');
+    const objHtml=objList.length>0?objList.map(([o,n])=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f3f4f6;"><span style="background:#f3f4f6;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:700;min-width:26px;text-align:center;">${n}x</span><span style="font-size:13px;">${o}</span></div>`).join(''):'<p style="color:#9ca3af;font-size:13px;">Nenhuma objeção registrada.</p>';
+    const notasHtml=data.filter(r=>r.problemas||r.observacoes).map(r=>`<div style="border-left:3px solid #e5e7eb;padding:8px 12px;margin-bottom:10px;"><div style="font-size:11px;color:#6b7280;font-weight:700;margin-bottom:4px;">${r.data?r.data.split('-').reverse().join('/'):'—'}</div>${r.problemas?`<div style="font-size:13px;color:#374151;margin-bottom:3px;"><strong>Problemas:</strong> ${r.problemas}</div>`:''} ${r.observacoes?`<div style="font-size:13px;color:#374151;"><strong>Obs:</strong> ${r.observacoes}</div>`:''}</div>`).join('')||'<p style="color:#9ca3af;font-size:13px;">Nenhuma observação registrada.</p>';
+    const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório Semanal — Team Santiago</title>
+<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;font-size:13px;color:#111827;background:#fff;padding:28px;}h1{font-size:19px;color:#111827;margin-bottom:2px;}.sub{font-size:12px;color:#6b7280;margin-bottom:18px;}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}.kpi{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px;text-align:center;}.kl{font-size:10px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}.kv{font-size:20px;font-weight:700;color:#111827;}.verde{color:#15803d;}.azul{color:#1d4ed8;}.roxo{color:#7c3aed;}.vermelho{color:#b91c1c;}h2{font-size:13px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.8px;margin:18px 0 8px;border-bottom:2px solid #e5e7eb;padding-bottom:5px;}table{width:100%;border-collapse:collapse;font-size:11px;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;}thead{background:#f3f4f6;}th{padding:7px 9px;text-align:left;font-size:10px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.5px;}th.r{text-align:center;}@media print{body{padding:14px;}tr{page-break-inside:avoid;}}</style>
+</head><body>
+<h1>Relatório Semanal — Team Santiago</h1>
+<p class="sub">Período: ${dtIni} a ${dtFim} &bull; ${tot.dias} dia(s) com dados &bull; Gerado em ${geradoEm}</p>
+<h2>Resumo da Semana</h2>
+<div class="kpis">
+  <div class="kpi"><div class="kl">Total de Leads</div><div class="kv">${tot.totalLeads}</div></div>
+  <div class="kpi"><div class="kl">Responderam</div><div class="kv verde">${tot.lResp}</div></div>
+  <div class="kpi"><div class="kl">Não responderam</div><div class="kv vermelho">${tot.lNResp}</div></div>
+  <div class="kpi"><div class="kl">Taxa de Resposta</div><div class="kv roxo">${tot.taxaResp}</div></div>
+  <div class="kpi"><div class="kl">Calls Agendadas</div><div class="kv">${tot.cAg}</div></div>
+  <div class="kpi"><div class="kl">Calls Realizadas</div><div class="kv">${tot.cReal}</div></div>
+  <div class="kpi"><div class="kl">Show-up</div><div class="kv azul">${tot.showup}</div></div>
+  <div class="kpi"><div class="kl">Vendas</div><div class="kv verde">${tot.vend}</div></div>
+</div>
+<div class="kpis">
+  <div class="kpi"><div class="kl">Conversão</div><div class="kv azul">${tot.conv}</div></div>
+  <div class="kpi"><div class="kl">Leads Novos</div><div class="kv">${tot.lNovos}</div></div>
+  <div class="kpi"><div class="kl">Leads Retomados</div><div class="kv">${tot.lRetom}</div></div>
+  <div class="kpi"><div class="kl">Leads Orgânicos</div><div class="kv">${tot.lOrg}</div></div>
+</div>
+<h2>Detalhamento por Dia</h2>
+<table><thead><tr>
+  <th>Data</th><th>Seller</th><th class="r">L.Nov</th><th class="r">L.Ret</th><th class="r">L.Org</th>
+  <th class="r" style="color:#15803d;">Resp.</th><th class="r" style="color:#b91c1c;">S.Resp</th><th class="r">Taxa%</th>
+  <th class="r">C.Ag</th><th class="r">C.Real</th><th class="r" style="color:#15803d;">Vend.</th><th class="r">Show-up</th><th class="r">Conv.</th>
+</tr></thead><tbody>${linhas}</tbody></table>
+<h2>Objeções no Período</h2>
+<div style="max-width:480px;">${objHtml}</div>
+<h2>Problemas e Observações</h2>
+<div>${notasHtml}</div>
+<script>window.onload=function(){window.print();}<\/script>
+</body></html>`;
+    const w=window.open('','_blank');
+    if(w){w.document.write(html);w.document.close();}
+    else toast('Permita popups para gerar o PDF','aviso');
+  }catch(e){
+    toast('Erro ao gerar PDF: '+e.message,'erro');
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML='<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Exportar semana (PDF)';}
   }
 }
 
@@ -6757,6 +6873,91 @@ async function carregarDadosVendas(){
   ]);
   VENDAS_DATA=r1.data||[]; PAGAMENTOS_DATA=r2.data||[];
   INF_LIST_V=r3.data||[]; VEN_LIST_V=r4.data||[];
+}
+
+function exportarVendasPDF(){
+  const mes=VENDAS_MES_COM||'';
+  const hoje=new Date();
+  const mesLabel=mes?new Date(mes+'-01').toLocaleDateString('pt-BR',{month:'long',year:'numeric'}):'Todos os meses';
+  const fmt2=v=>'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const fmtD=d=>{if(!d)return'—';const[y,m,dd]=d.split('-');return`${dd}/${m}/${y}`;};
+  const tipoLabel=t=>({avista:'À Vista',credito:'Cartão',sinal_parcelas:'Sinal+Parc.',parcelado_pix:'Parc.Pix'})[t]||t||'—';
+
+  const vendas=mes?VENDAS_DATA.filter(v=>v.data_venda?.startsWith(mes)):VENDAS_DATA;
+  const pgRec=PAGAMENTOS_DATA.filter(p=>p.recebido&&(mes?p.data_prevista?.startsWith(mes):true));
+  const pgPend=PAGAMENTOS_DATA.filter(p=>!p.recebido);
+
+  const totalVendas=vendas.length;
+  const valorTotal=vendas.reduce((s,v)=>s+(v.valor_total||0),0);
+  const valorRecebido=pgRec.reduce((s,p)=>s+(p.valor||0),0);
+  const valorPendente=pgPend.reduce((s,p)=>s+(p.valor||0),0);
+
+  let comTotal=0;
+  pgRec.forEach(pg=>{
+    const venda=VENDAS_DATA.find(v=>v.id===pg.venda_id);
+    if(!venda)return;
+    if(venda.influencer_id){const inf=INF_LIST_V.find(i=>i.id===venda.influencer_id);if(inf)comTotal+=(pg.valor||0)*(inf.percentual||0)/100;}
+  });
+  const comVend={};
+  VEN_LIST_V.forEach(ven=>{
+    const pgVen=pgRec.filter(p=>VENDAS_DATA.find(v=>v.id===p.venda_id)?.vendedora_id===ven.id);
+    const tot=pgVen.reduce((s,p)=>s+(p.valor||0),0);
+    const com=calcComissaoVendedora(tot,ven);
+    comTotal+=com;
+    if(tot>0||com>0)comVend[ven.nome||ven.id]={recebido:tot,comissao:com};
+  });
+
+  const linhasVendas=vendas.map(v=>{
+    const pgtos=PAGAMENTOS_DATA.filter(p=>p.venda_id===v.id);
+    const rec=pgtos.filter(p=>p.recebido).reduce((s,p)=>s+(p.valor||0),0);
+    const tot=pgtos.reduce((s,p)=>s+(p.valor||0),0);
+    const status=rec>=tot&&tot>0?'Recebido':rec>0?'Parcial':'Pendente';
+    const sc=rec>=tot&&tot>0?'#dcfce7;color:#166534':rec>0?'#fef3c7;color:#92400e':'#fee2e2;color:#991b1b';
+    return`<tr style="border-bottom:1px solid #f3f4f6;">
+      <td style="padding:7px 8px;font-weight:600;">${v.aluno_nome||'—'}</td>
+      <td style="padding:7px 8px;">${fmtD(v.data_venda)}</td>
+      <td style="padding:7px 8px;text-align:right;">${fmt2(v.valor_total)}</td>
+      <td style="padding:7px 8px;">${tipoLabel(v.tipo_pagamento)}</td>
+      <td style="padding:7px 8px;">${v.vendedoras?.nome||'—'}</td>
+      <td style="padding:7px 8px;">${v.influenciadoras?.nome||'—'}</td>
+      <td style="padding:7px 8px;"><span style="background:${sc};padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">${status}</span></td>
+    </tr>`;
+  }).join('');
+
+  const linhasCom=Object.entries(comVend).map(([nome,d])=>`<tr style="border-bottom:1px solid #f3f4f6;">
+    <td style="padding:7px 8px;font-weight:600;">${nome}</td>
+    <td style="padding:7px 8px;text-align:right;">${fmt2(d.recebido)}</td>
+    <td style="padding:7px 8px;text-align:right;font-weight:600;">${fmt2(d.comissao)}</td>
+  </tr>`).join('');
+
+  const dataGer=hoje.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+  const kpiStyle='background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:14px 18px;min-width:120px;';
+  const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Resumo Vendas - Team Santiago</title>
+  <style>body{font-family:Arial,sans-serif;color:#111827;margin:0;padding:24px;font-size:13px;}
+  h1{font-size:18px;margin:0 0 2px;}h2{font-size:14px;margin:16px 0 8px;border-bottom:2px solid #e5e7eb;padding-bottom:4px;}
+  table{width:100%;border-collapse:collapse;}th{background:#f3f4f6;text-align:left;padding:7px 8px;font-size:12px;color:#6b7280;}
+  @media print{body{padding:12px;}}
+  </style></head><body>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+    <div><h1>Resumo de Vendas &amp; Comissões</h1><p style="margin:0;color:#6b7280;font-size:12px;">Team Santiago · ${mesLabel} · Gerado em ${dataGer}</p></div>
+  </div>
+  <h2>KPIs do Mês</h2>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
+    <div style="${kpiStyle}"><div style="font-size:11px;color:#6b7280;text-transform:uppercase;">Vendas</div><div style="font-size:22px;font-weight:700;">${totalVendas}</div></div>
+    <div style="${kpiStyle}"><div style="font-size:11px;color:#6b7280;text-transform:uppercase;">Valor Total</div><div style="font-size:18px;font-weight:700;">${fmt2(valorTotal)}</div></div>
+    <div style="${kpiStyle}"><div style="font-size:11px;color:#6b7280;text-transform:uppercase;">Recebido</div><div style="font-size:18px;font-weight:700;color:#166534;">${fmt2(valorRecebido)}</div></div>
+    <div style="${kpiStyle}"><div style="font-size:11px;color:#6b7280;text-transform:uppercase;">Pendente</div><div style="font-size:18px;font-weight:700;color:#dc2626;">${fmt2(valorPendente)}</div></div>
+    <div style="${kpiStyle}"><div style="font-size:11px;color:#6b7280;text-transform:uppercase;">Comissões</div><div style="font-size:18px;font-weight:700;color:#2563eb;">${fmt2(comTotal)}</div></div>
+  </div>
+  <h2>Vendas do Período (${totalVendas})</h2>
+  ${vendas.length?`<table><thead><tr><th>Aluno</th><th>Data</th><th>Valor</th><th>Tipo</th><th>Vendedora</th><th>Influencer</th><th>Status</th></tr></thead><tbody>${linhasVendas}</tbody></table>`:'<p style="color:#9ca3af;">Nenhuma venda no período.</p>'}
+  ${Object.keys(comVend).length?`<h2>Comissões por Vendedora</h2><table><thead><tr><th>Vendedora</th><th>Valor Recebido</th><th>Comissão</th></tr></thead><tbody>${linhasCom}</tbody></table>`:''}
+  <script>window.onload=function(){window.print();}<\/script></body></html>`;
+
+  const w=window.open('','_blank');
+  if(!w){alert('Permita pop-ups para exportar o PDF.');return;}
+  w.document.write(html);
+  w.document.close();
 }
 
 async function renderVendas(){
