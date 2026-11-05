@@ -1317,8 +1317,8 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
     <div class="card">
       <div class="tw">
         <table>
-          <thead><tr><th>Aluno</th><th>Data</th><th>Valor Total</th><th>Tipo</th><th>NF</th><th>Influencer</th><th>Vendedora</th><th>Parcelas</th><th></th></tr></thead>
-          <tbody id="v-tbody-vendas"><tr><td colspan="9" class="empty">Carregando...</td></tr></tbody>
+          <thead><tr><th>Aluno</th><th>Data</th><th>Valor Total</th><th>Tipo</th><th>NF</th><th>Influencer</th><th>Vendedora</th><th>Origem</th><th>Parcelas</th><th></th></tr></thead>
+          <tbody id="v-tbody-vendas"><tr><td colspan="10" class="empty">Carregando...</td></tr></tbody>
         </table>
       </div>
       <div id="v-lista-rodape" style="font-size:12px;color:#94a3b8;padding:8px 0 0;text-align:right;"></div>
@@ -2055,6 +2055,15 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
               <option value="">— Nenhuma —</option>
             </select>
           </div>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Origem do Lead</label>
+          <select id="mv-origem" style="width:100%;">
+            <option value="">— Não informado —</option>
+            <option value="captacao_fria">Captação fria (abordagem ativa)</option>
+            <option value="retomado">Lead retomado</option>
+            <option value="organico">Orgânico (veio por conta)</option>
+          </select>
         </div>
         <div>
           <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Dados do Cliente <span style="font-weight:400;color:#6b7280;">(para nota fiscal)</span></label>
@@ -3470,7 +3479,7 @@ async function carregarFechamento(){
       callsRealizadas=(rDiarios||[]).reduce((s,r)=>s+(r.calls_realizadas||0),0);
     }catch(e){console.warn('relatorios_diarios calls:',e.message);}
     setT('fech-calls',callsRealizadas||null);
-    setT('fech-conv',cD.conversoesMes);
+    // fech-conv é atualizado na seção 5 com dados reais do Supabase
     const eT=document.getElementById('fech-trafego');if(eT)eT.textContent=brl(cD.gastoTrafego);
     const eC=document.getElementById('fech-cac');if(eC)eC.textContent=brl(cD.cac);
     setT('fech-neg',cD.leadsNegociacao);
@@ -3555,6 +3564,7 @@ async function carregarFechamento(){
     const g=id=>document.getElementById(id);
     if(g('fech-fat-vendas'))g('fech-fat-vendas').textContent=brl(fat);
     if(g('fech-n-vendas'))g('fech-n-vendas').textContent=vendasMes.length;
+    if(g('fech-conv'))g('fech-conv').textContent=vendasMes.length;
     if(g('fech-trafego-com'))g('fech-trafego-com').textContent=brl(gastoTrafego);
     if(g('fech-salario-ellid'))g('fech-salario-ellid').textContent=brl(salarioSeller);
     if(g('fech-comissao-ellid'))g('fech-comissao-ellid').textContent=brl(comissaoSeller);
@@ -3567,7 +3577,7 @@ async function carregarFechamento(){
       const itens=[
         `Tráfego: ${brl(gastoTrafego)}`,
         `Salário Social Seller: ${brl(salarioSeller)}`,
-        `Comissão Social Seller: ${brl(comissaoSeller)}`,
+        `Comissão Social Seller: ${brl(comissaoSeller)} (incl. parcelas de meses anteriores)`,
         `Influencers: ${brl(comissaoInf)}`,
         `Total custo aquisição: ${brl(custoTotal)}`,
         vendasMes.length>0?`÷ ${vendasMes.length} vendas = CAC ${brl(cacReal)}`:'',
@@ -3902,6 +3912,8 @@ async function exportarRelatorioSemanaPDF(btnEl){
       vend:data.reduce((s,r)=>s+(r.vendas_geradas||0),0),
     };
     tot.totalLeads=tot.lNovos+tot.lRetom+tot.lOrg;
+    tot.captacao=tot.lNovos+tot.lRetom;
+    tot.organico=tot.lOrg;
     tot.taxaResp=tot.totalLeads>0?Math.round(tot.lResp/tot.totalLeads*100)+'%':'—';
     tot.showup=tot.cAg>0?Math.round(tot.cReal/tot.cAg*100)+'%':'—';
     tot.conv=tot.cReal>0?Math.round(tot.vend/tot.cReal*100)+'%':'—';
@@ -3960,6 +3972,13 @@ async function exportarRelatorioSemanaPDF(btnEl){
   <div class="kpi"><div class="kl">Leads Novos</div><div class="kv">${tot.lNovos}</div></div>
   <div class="kpi"><div class="kl">Leads Retomados</div><div class="kv">${tot.lRetom}</div></div>
   <div class="kpi"><div class="kl">Leads Orgânicos</div><div class="kv">${tot.lOrg}</div></div>
+</div>
+<h2>Captação vs Orgânico</h2>
+<div class="kpis">
+  <div class="kpi" style="border-left:3px solid #1d4ed8;"><div class="kl">Captação (fria + retomado)</div><div class="kv azul">${tot.captacao}</div></div>
+  <div class="kpi" style="border-left:3px solid #15803d;"><div class="kl">Orgânico (inbound)</div><div class="kv verde">${tot.organico}</div></div>
+  <div class="kpi"><div class="kl">Taxa Captação</div><div class="kv">${tot.totalLeads>0?Math.round(tot.captacao/tot.totalLeads*100)+'%':'—'}</div></div>
+  <div class="kpi"><div class="kl">Taxa Orgânico</div><div class="kv">${tot.totalLeads>0?Math.round(tot.organico/tot.totalLeads*100)+'%':'—'}</div></div>
 </div>
 <h2>Detalhamento por Dia</h2>
 <table><thead><tr>
@@ -4599,7 +4618,7 @@ async function carregarDashboardCRM(){
     ]);
 
     // KPI Alunos Ativos
-    const ativos = (ra.data||[]).filter(a=>a.status==='alunos ativos');
+    const ativos = (ra.data||[]).filter(a=>(a.status||'').toLowerCase().includes('ativo'));
     const upsells = ativos.filter(a=>a.upsell).length;
     document.getElementById('dash-kpi-alunos').textContent = ativos.length;
     document.getElementById('dash-kpi-alunos-sub').textContent = upsells ? upsells+' Upsell' : '';
@@ -6879,7 +6898,7 @@ async function carregarDadosVendas(){
 function exportarVendasPDF(){
   const mes=VENDAS_MES_COM||'';
   const hoje=new Date();
-  const mesLabel=mes?new Date(mes+'-01').toLocaleDateString('pt-BR',{month:'long',year:'numeric'}):'Todos os meses';
+  const mesLabel=mes?(()=>{const[y,m]=mes.split('-');const MN=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];return MN[+m-1]+' de '+y;})():'Todos os meses';
   const fmt2=v=>'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   const fmtD=d=>{if(!d)return'—';const[y,m,dd]=d.split('-');return`${dd}/${m}/${y}`;};
   const tipoLabel=t=>({avista:'À Vista',credito:'Cartão',sinal_parcelas:'Sinal+Parc.',parcelado_pix:'Parc.Pix'})[t]||t||'—';
@@ -6908,6 +6927,13 @@ function exportarVendasPDF(){
     if(tot>0||com>0)comVend[ven.nome||ven.id]={recebido:tot,comissao:com};
   });
 
+  const origemLblPdf={'captacao_fria':'Captação fria','retomado':'Retomado','organico':'Orgânico'};
+  const vCaptacao=vendas.filter(v=>v.origem==='captacao_fria'||v.origem==='retomado');
+  const vOrganico=vendas.filter(v=>v.origem==='organico');
+  const vSemOrigem=vendas.filter(v=>!v.origem);
+  const valCaptacao=vCaptacao.reduce((s,v)=>s+(v.valor_total||0),0);
+  const valOrganico=vOrganico.reduce((s,v)=>s+(v.valor_total||0),0);
+
   const linhasVendas=vendas.map(v=>{
     const pgtos=PAGAMENTOS_DATA.filter(p=>p.venda_id===v.id);
     const rec=pgtos.filter(p=>p.recebido).reduce((s,p)=>s+(p.valor||0),0);
@@ -6921,6 +6947,7 @@ function exportarVendasPDF(){
       <td style="padding:7px 8px;">${tipoLabel(v.tipo_pagamento)}</td>
       <td style="padding:7px 8px;">${v.vendedoras?.nome||'—'}</td>
       <td style="padding:7px 8px;">${v.influenciadoras?.nome||'—'}</td>
+      <td style="padding:7px 8px;">${origemLblPdf[v.origem]||'<span style="color:#9ca3af;">Sem origem</span>'}</td>
       <td style="padding:7px 8px;"><span style="background:${sc};padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">${status}</span></td>
     </tr>`;
   }).join('');
@@ -6951,8 +6978,14 @@ function exportarVendasPDF(){
     <div style="${kpiStyle}"><div style="font-size:11px;color:#6b7280;text-transform:uppercase;">Comissões</div><div style="font-size:18px;font-weight:700;color:#2563eb;">${fmt2(comTotal)}</div></div>
   </div>
   <h2>Vendas do Período (${totalVendas})</h2>
-  ${vendas.length?`<table><thead><tr><th>Aluno</th><th>Data</th><th>Valor</th><th>Tipo</th><th>Vendedora</th><th>Influencer</th><th>Status</th></tr></thead><tbody>${linhasVendas}</tbody></table>`:'<p style="color:#9ca3af;">Nenhuma venda no período.</p>'}
-  ${Object.keys(comVend).length?`<h2>Comissões por Vendedora</h2><table><thead><tr><th>Vendedora</th><th>Valor Recebido</th><th>Comissão</th></tr></thead><tbody>${linhasCom}</tbody></table>`:''}
+  <h2>Captação vs Orgânico</h2>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
+    <div style="${kpiStyle}"><div style="font-size:11px;color:#6b7280;text-transform:uppercase;">Captação (fria + retomado)</div><div style="font-size:18px;font-weight:700;color:#1d4ed8;">${vCaptacao.length} vendas · ${fmt2(valCaptacao)}</div></div>
+    <div style="${kpiStyle}"><div style="font-size:11px;color:#6b7280;text-transform:uppercase;">Orgânico</div><div style="font-size:18px;font-weight:700;color:#15803d;">${vOrganico.length} vendas · ${fmt2(valOrganico)}</div></div>
+    ${vSemOrigem.length?`<div style="${kpiStyle}"><div style="font-size:11px;color:#6b7280;text-transform:uppercase;">Sem origem (antigas)</div><div style="font-size:18px;font-weight:700;color:#9ca3af;">${vSemOrigem.length} vendas</div></div>`:''}
+  </div>
+  ${vendas.length?`<h2>Vendas do Período (${totalVendas})</h2><table><thead><tr><th>Aluno</th><th>Data</th><th>Valor</th><th>Tipo</th><th>Vendedora</th><th>Influencer</th><th>Origem</th><th>Status</th></tr></thead><tbody>${linhasVendas}</tbody></table>`:'<p style="color:#9ca3af;">Nenhuma venda no período.</p>'}
+  ${Object.keys(comVend).length?`<h2>Comissões por Vendedora</h2><p style="font-size:11px;color:#6b7280;margin-bottom:6px;">* Inclui pagamentos de parcelas de meses anteriores</p><table><thead><tr><th>Vendedora</th><th>Valor Recebido</th><th>Comissão</th></tr></thead><tbody>${linhasCom}</tbody></table>`:''}
   <script>window.onload=function(){window.print();}<\/script></body></html>`;
 
   const w=window.open('','_blank');
@@ -7048,8 +7081,9 @@ function renderListaVendas(){
   }
   const tbody=document.getElementById('v-tbody-vendas');
   if(!tbody)return;
-  if(!dados.length){tbody.innerHTML='<tr><td colspan="9" class="empty">Nenhuma venda encontrada</td></tr>';return;}
+  if(!dados.length){tbody.innerHTML='<tr><td colspan="10" class="empty">Nenhuma venda encontrada</td></tr>';return;}
   const tipoLabel=t=>({avista:'À Vista',credito:'Cartão',sinal_parcelas:'Sinal+Parc.',parcelado_pix:'Parc.Pix'})[t]||t;
+  const origemLabel={'captacao_fria':'Captação fria','retomado':'Retomado','organico':'Orgânico'};
   const totalFiltrado=dados.reduce((s,v)=>s+(v.valor_total||0),0);
   const nfBreakdown=pgtos=>{
     const pix=pgtos.filter(p=>p.recebido&&(p.forma_pagamento_nf||'pix')==='pix').reduce((s,p)=>s+(p.valor||0),0);
@@ -7067,7 +7101,7 @@ function renderListaVendas(){
     const tot=pgtos.reduce((s,p)=>s+(p.valor||0),0);
     const sc=rec>=tot&&tot>0?'badge-recebido':rec>0?'badge-parcial':'badge-pendente';
     const sl=rec>=tot&&tot>0?'Recebido':rec>0?'Parcial':'Pendente';
-    return'<tr><td><strong>'+v.aluno_nome+'</strong></td><td>'+fmtDataV(v.data_venda)+'</td><td>'+fmt(v.valor_total)+'</td><td>'+tipoLabel(v.tipo_pagamento)+'</td><td>'+nfBreakdown(pgtos)+'</td><td>'+(v.influenciadoras?.nome||'—')+'</td><td>'+(v.vendedoras?.nome||'—')+'</td><td><span class="badge-status '+sc+'">'+sl+'</span><small style="color:#9ca3af;margin-left:6px;">'+pgtos.filter(p=>p.recebido).length+'/'+pgtos.length+'</small></td><td>'+(USUARIO_PODE_EDITAR?'<button class="btn" style="padding:3px 8px;font-size:11px;" onclick="editarVenda(\''+v.id+'\')">Editar</button>':'')+'</td></tr>';
+    return'<tr><td><strong>'+v.aluno_nome+'</strong></td><td>'+fmtDataV(v.data_venda)+'</td><td>'+fmt(v.valor_total)+'</td><td>'+tipoLabel(v.tipo_pagamento)+'</td><td>'+nfBreakdown(pgtos)+'</td><td>'+(v.influenciadoras?.nome||'—')+'</td><td>'+(v.vendedoras?.nome||'—')+'</td><td>'+(origemLabel[v.origem]||'<span style="color:#9ca3af;font-size:11px;">—</span>')+'</td><td><span class="badge-status '+sc+'">'+sl+'</span><small style="color:#9ca3af;margin-left:6px;">'+pgtos.filter(p=>p.recebido).length+'/'+pgtos.length+'</small></td><td>'+(USUARIO_PODE_EDITAR?'<button class="btn" style="padding:3px 8px;font-size:11px;" onclick="editarVenda(\''+v.id+'\')">Editar</button>':'')+'</td></tr>';
   }).join('');
 }
 
@@ -7274,6 +7308,7 @@ function abrirModalVenda(){
   document.getElementById('mv-influencer').value='';document.getElementById('mv-vendedora').value='';
   document.getElementById('mv-obs').value='';
   document.getElementById('mv-dados-cliente').value='';
+  const mvOri=document.getElementById('mv-origem');if(mvOri)mvOri.value='';
   const si=document.getElementById('mv-influencer');const sv=document.getElementById('mv-vendedora');
   if(si)si.innerHTML='<option value="">— Nenhuma —</option>'+INF_LIST_V.filter(i=>i.status==='ativa').map(i=>`<option value="${i.id}">${i.nome}</option>`).join('');
   if(sv)sv.innerHTML='<option value="">— Nenhuma —</option>'+VEN_LIST_V.filter(v=>v.status==='ativa').map(v=>`<option value="${v.id}">${v.nome}</option>`).join('');
@@ -7296,6 +7331,7 @@ function editarVenda(id){
   document.getElementById('mv-vendedora').value=venda.vendedora_id||'';
   document.getElementById('mv-obs').value=venda.observacoes||'';
   document.getElementById('mv-dados-cliente').value=venda.dados_cliente||'';
+  const mvOriEdit=document.getElementById('mv-origem');if(mvOriEdit)mvOriEdit.value=venda.origem||'';
   const parcelas=PAGAMENTOS_DATA.filter(p=>p.venda_id===id);
   const lista=document.getElementById('mv-parcelas-list');
   if(lista){lista.innerHTML='';parcelas.forEach(p=>adicionarLinhaParcela(p.descricao,p.valor,p.data_prevista,p.id,p.recebido,p.data_recebido||'',p.forma_pagamento_nf||'pix'));}
@@ -7375,10 +7411,11 @@ async function salvarVenda(){
   const vendedora_id=document.getElementById('mv-vendedora').value||null;
   const obs=document.getElementById('mv-obs').value.trim()||null;
   const dadosCliente=document.getElementById('mv-dados-cliente').value.trim()||null;
+  const origem=document.getElementById('mv-origem')?.value||null;
   if(!aluno){toast('Informe o nome do aluno','erro');if(btn){btn.disabled=false;btn.textContent='Salvar';}return;}
   if(!data){toast('Informe a data','erro');if(btn){btn.disabled=false;btn.textContent='Salvar';}return;}
   if(!valor||valor<=0){toast('Informe o valor','erro');if(btn){btn.disabled=false;btn.textContent='Salvar';}return;}
-  const vendaDados={aluno_nome:aluno,data_venda:data,valor_total:valor,tipo_pagamento:tipo,influencer_id,vendedora_id,observacoes:obs,dados_cliente:dadosCliente};
+  const vendaDados={aluno_nome:aluno,data_venda:data,valor_total:valor,tipo_pagamento:tipo,influencer_id,vendedora_id,observacoes:obs,dados_cliente:dadosCliente,origem};
   let vendaId=VENDA_EDITING_ID,error;
   if(vendaId){
     ({error}=await sb.from('vendas').update(vendaDados).eq('id',vendaId));
