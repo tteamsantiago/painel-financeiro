@@ -7159,7 +7159,7 @@ function renderResumoVendas(){
   const mesAtual=VENDAS_MES_COM||(()=>{const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`})();
   const vendasMes=VENDAS_DATA.filter(v=>v.data_venda?.startsWith(mesAtual));
   const totalRecebido=PAGAMENTOS_DATA.filter(p=>p.recebido&&p.data_prevista?.startsWith(mesAtual)).reduce((s,p)=>s+(p.valor||0),0);
-  const totalPendente=PAGAMENTOS_DATA.filter(p=>!p.recebido).reduce((s,p)=>s+(p.valor||0),0);
+  const totalPendente=PAGAMENTOS_DATA.filter(p=>!p.recebido&&(p.data_prevista||'').startsWith(mesAtual)).reduce((s,p)=>s+(p.valor||0),0);
   const pgRecMes=PAGAMENTOS_DATA.filter(p=>p.recebido&&(p.data_prevista||'').startsWith(mesAtual));
   let comTotal=0;
   pgRecMes.forEach(pg=>{
@@ -7176,7 +7176,7 @@ function renderResumoVendas(){
   if(g('v-kpi-recebido'))g('v-kpi-recebido').textContent=fmt(totalRecebido);
   if(g('v-kpi-pendente'))g('v-kpi-pendente').textContent=fmt(totalPendente);
   if(g('v-kpi-comissoes'))g('v-kpi-comissoes').textContent=fmt(comTotal);
-  const pendentes=PAGAMENTOS_DATA.filter(p=>!p.recebido).sort((a,b)=>(a.data_prevista||'').localeCompare(b.data_prevista||'')).slice(0,8);
+  const pendentes=PAGAMENTOS_DATA.filter(p=>!p.recebido&&(p.data_prevista||'').startsWith(mesAtual)).sort((a,b)=>(a.data_prevista||'').localeCompare(b.data_prevista||'')).slice(0,8);
   const tbody=document.getElementById('v-tbody-pendentes');
   if(!tbody)return;
   if(!pendentes.length){tbody.innerHTML='<tr><td colspan="5" class="empty">Nenhuma parcela pendente</td></tr>';return;}
