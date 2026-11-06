@@ -7030,7 +7030,7 @@ function exportarVendasPDF(){
 
   const vendas=mes?VENDAS_DATA.filter(v=>v.data_venda?.startsWith(mes)):VENDAS_DATA;
   const pgRec=PAGAMENTOS_DATA.filter(p=>p.recebido&&(mes?p.data_prevista?.startsWith(mes):true));
-  const pgPend=PAGAMENTOS_DATA.filter(p=>!p.recebido);
+  const pgPend=PAGAMENTOS_DATA.filter(p=>!p.recebido&&(mes?p.data_prevista?.startsWith(mes):true));
 
   const totalVendas=vendas.length;
   const valorTotal=vendas.reduce((s,v)=>s+(v.valor_total||0),0);
