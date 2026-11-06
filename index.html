@@ -1240,7 +1240,7 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
     <div><h2>Vendas & Comissões</h2><p>Registre vendas, acompanhe parcelas e calcule comissões automaticamente</p></div>
     <div style="display:flex;gap:8px;align-items:center;">
       <select id="v-mes-global" onchange="mudarMesGlobal(this.value)" style="font-size:13px;padding:6px 10px;border:1px solid #d1d5db;border-radius:8px;background:#fff;color:#374151;cursor:pointer;"></select>
-      <input type="month" id="v-export-mes" style="padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;color:#374151;background:#fff;">
+      <input type="month" id="v-export-mes" onchange="mudarMesGlobal(this.value)" style="padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;color:#374151;background:#fff;">
       <button class="btn" onclick="exportarVendasPDF()" style="display:flex;align-items:center;gap:6px;background:#fff;color:#374151;border:1px solid #d1d5db;">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Exportar resumo (PDF)
       </button>
@@ -7135,7 +7135,7 @@ function popularSelectMeses(){
   ['v-filtro-mes','p-filtro-mes','v-mes-global'].forEach(id=>{const el=document.getElementById(id);if(el){el.innerHTML=opts;if(VENDAS_MES_COM)el.value=VENDAS_MES_COM;}});
 }
 
-function mudarMesGlobal(mes){VENDAS_MES_COM=mes;renderTabVendas(VENDAS_TAB);}
+function mudarMesGlobal(mes){VENDAS_MES_COM=mes;const exp=document.getElementById('v-export-mes');if(exp&&exp.value!==mes)exp.value=mes;renderTabVendas(VENDAS_TAB);}
 function mudarTabVendas(tab,btn){
   VENDAS_TAB=tab;
   document.querySelectorAll('#page-vendas .vtab').forEach(t=>t.classList.remove('active'));
