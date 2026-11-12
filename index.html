@@ -2044,17 +2044,17 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
 <!-- ═══════ MODAL INADIMPLÊNCIA ═══════ -->
 <div class="modal-bg" id="modal-inadimpl" onclick="fecharModalInadimpl()" style="display:none;">
   <div class="modal" style="max-width:700px;" onclick="event.stopPropagation()">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <div class="modal-hdr">
       <div>
-        <h3 style="color:#991b1b;margin:0;">Inadimpl&ecirc;ncia — Detalhamento</h3>
-        <div style="font-size:12px;color:#9ca3af;margin-top:3px;">Parcelas vencidas e n&atilde;o pagas</div>
+        <h4 style="color:#991b1b;">Inadimpl&ecirc;ncia &mdash; Detalhamento</h4>
+        <div style="font-size:12px;color:#9ca3af;margin-top:3px;font-weight:400;">Parcelas vencidas e n&atilde;o pagas</div>
       </div>
-      <button onclick="fecharModalInadimpl()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#9ca3af;line-height:1;">×</button>
+      <button class="modal-close" onclick="fecharModalInadimpl()">&#x2715;</button>
     </div>
-    <div id="modal-inadimpl-body" style="max-height:60vh;overflow-y:auto;"></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid #f3f4f6;">
+    <div class="modal-body" id="modal-inadimpl-body" style="max-height:55vh;"></div>
+    <div class="modal-footer" style="justify-content:space-between;">
       <div style="font-size:13px;font-weight:700;color:#374151;">Total inadimplente: <span id="modal-inadimpl-total" style="color:#ef4444;">—</span></div>
-      <button onclick="fecharModalInadimpl()" class="btn" style="padding:8px 18px;">Fechar</button>
+      <button onclick="fecharModalInadimpl()" class="btn bs" style="padding:8px 18px;">Fechar</button>
     </div>
   </div>
 </div>
