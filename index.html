@@ -1296,6 +1296,7 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
       <div class="kpi azul"><div class="kl">Total Recebido (mês)</div><div class="kv" id="v-kpi-recebido">—</div></div>
       <div class="kpi amarelo"><div class="kl">Pendente a Receber</div><div class="kv" id="v-kpi-pendente">—</div></div>
       <div class="kpi cinza"><div class="kl">Comissões a Pagar</div><div class="kv" id="v-kpi-comissoes">—</div></div>
+      <div class="kpi" style="border-left:3px solid #ef4444;background:#fef2f2;"><div class="kl" style="color:#991b1b;">Inadimpl&ecirc;ncia Acumulada</div><div class="kv" id="v-kpi-inadimpl" style="color:#ef4444;">—</div><div style="font-size:10px;color:#b91c1c;margin-top:2px;" id="v-kpi-inadimpl-qtd"></div></div>
     </div>
 
     <div class="card">
@@ -1304,6 +1305,22 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
         <table>
           <thead><tr><th>Aluno</th><th>Descrição</th><th>Valor</th><th>Data Prevista</th><th>Ação</th></tr></thead>
           <tbody id="v-tbody-pendentes"><tr><td colspan="5" class="empty">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="border-left:3px solid #ef4444;margin-top:16px;" id="card-inadimpl">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+        <div>
+          <h3 style="margin:0;color:#991b1b;">Inadimpl&ecirc;ncia</h3>
+          <div style="font-size:11px;color:#9ca3af;margin-top:2px;">Parcelas vencidas e n&atilde;o pagas — todos os meses</div>
+        </div>
+        <span id="v-inadimpl-total-badge" style="display:none;background:#fef2f2;color:#991b1b;border:1px solid #fecaca;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;"></span>
+      </div>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Aluno</th><th style="text-align:center;">Parcelas</th><th style="text-align:right;">Total Devido</th><th>Vencida desde</th><th>Detalhes</th></tr></thead>
+          <tbody id="v-tbody-inadimpl"><tr><td colspan="5" class="empty">Carregando...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -7228,13 +7245,52 @@ function renderResumoVendas(){
   if(g('v-kpi-comissoes'))g('v-kpi-comissoes').textContent=fmt(comTotal);
   const pendentes=PAGAMENTOS_DATA.filter(p=>!p.recebido&&(p.data_prevista||'').startsWith(mesAtual)).sort((a,b)=>(a.data_prevista||'').localeCompare(b.data_prevista||'')).slice(0,8);
   const tbody=document.getElementById('v-tbody-pendentes');
-  if(!tbody)return;
-  if(!pendentes.length){tbody.innerHTML='<tr><td colspan="5" class="empty">Nenhuma parcela pendente</td></tr>';return;}
-  tbody.innerHTML=pendentes.map(p=>{
-    const aluno=VENDAS_DATA.find(v=>v.id===p.venda_id)?.aluno_nome||'—';
-    const vencido=new Date(p.data_prevista)<new Date()?'color:#ef4444;font-weight:600;':'';
-    return`<tr><td>${aluno}</td><td>${p.descricao||'—'}</td><td>${fmt(p.valor)}</td><td style="${vencido}">${fmtDataV(p.data_prevista)}</td><td><button class="btn-marcar" onclick="marcarPagamentoRecebido('${p.id}')">✓ Recebido</button></td></tr>`;
-  }).join('');
+  if(tbody){
+    if(!pendentes.length){tbody.innerHTML='<tr><td colspan="5" class="empty">Nenhuma parcela pendente</td></tr>';}
+    else{tbody.innerHTML=pendentes.map(p=>{
+      const aluno=VENDAS_DATA.find(v=>v.id===p.venda_id)?.aluno_nome||'—';
+      const vencido=new Date(p.data_prevista)<new Date()?'color:#ef4444;font-weight:600;':'';
+      return`<tr><td>${aluno}</td><td>${p.descricao||'—'}</td><td>${fmt(p.valor)}</td><td style="${vencido}">${fmtDataV(p.data_prevista)}</td><td><button class="btn-marcar" onclick="marcarPagamentoRecebido('${p.id}')">✓ Recebido</button></td></tr>`;
+    }).join('');}
+  }
+
+  // ── Inadimplência: parcelas vencidas não pagas (todos os meses) ──
+  const hoje2=new Date();hoje2.setHours(0,0,0,0);
+  const vencidas=PAGAMENTOS_DATA.filter(p=>!p.recebido&&p.data_prevista&&new Date(p.data_prevista+'T00:00:00')<hoje2);
+  const totalInadimpl=vencidas.reduce((s,p)=>s+(p.valor||0),0);
+  if(g('v-kpi-inadimpl'))g('v-kpi-inadimpl').textContent=fmt(totalInadimpl);
+  if(g('v-kpi-inadimpl-qtd'))g('v-kpi-inadimpl-qtd').textContent=vencidas.length>0?`${vencidas.length} parcela${vencidas.length>1?'s':''} em atraso`:'';
+  const badge=g('v-inadimpl-total-badge');
+  if(badge){badge.textContent=fmt(totalInadimpl);badge.style.display=vencidas.length?'inline-block':'none';}
+  const tbodyInad=g('v-tbody-inadimpl');
+  if(tbodyInad){
+    if(!vencidas.length){tbodyInad.innerHTML='<tr><td colspan="5" class="empty" style="color:#15803d;">Nenhuma inadimplência registrada ✓</td></tr>';}
+    else{
+      // Agrupar por aluno
+      const porAluno={};
+      vencidas.forEach(p=>{
+        const venda=VENDAS_DATA.find(v=>v.id===p.venda_id);
+        const nome=venda?.aluno_nome||'Desconhecido';
+        if(!porAluno[nome])porAluno[nome]={parcelas:[],total:0,maisAntiga:p.data_prevista};
+        porAluno[nome].parcelas.push(p);
+        porAluno[nome].total+=(p.valor||0);
+        if(p.data_prevista<porAluno[nome].maisAntiga)porAluno[nome].maisAntiga=p.data_prevista;
+      });
+      const diasAtraso=d=>{const diff=hoje2-new Date(d+'T00:00:00');return Math.round(diff/86400000);};
+      tbodyInad.innerHTML=Object.entries(porAluno).sort((a,b)=>b[1].total-a[1].total).map(([nome,info])=>{
+        const dias=diasAtraso(info.maisAntiga);
+        const corDias=dias>60?'color:#991b1b;font-weight:700;':dias>30?'color:#c2410c;font-weight:600;':'color:#92400e;';
+        const detalhes=info.parcelas.map(p=>`${fmtDataV(p.data_prevista)}: ${fmt(p.valor)}`).join(' | ');
+        return`<tr>
+          <td style="font-weight:600;">${nome}</td>
+          <td style="text-align:center;"><span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;">${info.parcelas.length}x</span></td>
+          <td style="text-align:right;font-weight:700;color:#ef4444;">${fmt(info.total)}</td>
+          <td style="${corDias}">${fmtDataV(info.maisAntiga)} <span style="font-size:10px;">(${dias}d)</span></td>
+          <td style="font-size:11px;color:#6b7280;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${detalhes}">${detalhes}</td>
+        </tr>`;
+      }).join('');
+    }
+  }
 }
 
 function renderListaVendas(){
