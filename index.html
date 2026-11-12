@@ -1296,7 +1296,7 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
       <div class="kpi azul"><div class="kl">Total Recebido (mês)</div><div class="kv" id="v-kpi-recebido">—</div></div>
       <div class="kpi amarelo"><div class="kl">Pendente a Receber</div><div class="kv" id="v-kpi-pendente">—</div></div>
       <div class="kpi cinza"><div class="kl">Comissões a Pagar</div><div class="kv" id="v-kpi-comissoes">—</div></div>
-      <div class="kpi" style="border-left:3px solid #ef4444;background:#fef2f2;"><div class="kl" style="color:#991b1b;">Inadimpl&ecirc;ncia Acumulada</div><div class="kv" id="v-kpi-inadimpl" style="color:#ef4444;">—</div><div style="font-size:10px;color:#b91c1c;margin-top:2px;" id="v-kpi-inadimpl-qtd"></div></div>
+      <div class="kpi" style="border-left:3px solid #ef4444;background:#fef2f2;cursor:pointer;" onclick="abrirModalInadimpl()" title="Clique para ver detalhes"><div class="kl" style="color:#991b1b;">Inadimpl&ecirc;ncia Acumulada <span style="font-size:9px;opacity:.7;">&#128269;</span></div><div class="kv" id="v-kpi-inadimpl" style="color:#ef4444;">—</div><div style="font-size:10px;color:#b91c1c;margin-top:2px;" id="v-kpi-inadimpl-qtd"></div></div>
     </div>
 
     <div class="card">
@@ -2032,6 +2032,24 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
       <button class="btn" id="btn-del-aluno" onclick="excluirAluno()" style="display:none;color:#ef4444;border:1px solid #fca5a5;padding:7px 14px;font-size:13px;border-radius:6px;cursor:pointer;background:none;margin-right:auto;">Excluir</button>
       <button class="btn bs" onclick="fecharModalAluno()">Cancelar</button>
       <button class="btn bp" onclick="salvarAluno()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL INADIMPLÊNCIA ═══════ -->
+<div class="modal-bg" id="modal-inadimpl" onclick="fecharModalInadimpl()" style="display:none;">
+  <div class="modal" style="max-width:700px;" onclick="event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div>
+        <h3 style="color:#991b1b;margin:0;">Inadimpl&ecirc;ncia — Detalhamento</h3>
+        <div style="font-size:12px;color:#9ca3af;margin-top:3px;">Parcelas vencidas e n&atilde;o pagas</div>
+      </div>
+      <button onclick="fecharModalInadimpl()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#9ca3af;line-height:1;">×</button>
+    </div>
+    <div id="modal-inadimpl-body" style="max-height:60vh;overflow-y:auto;"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid #f3f4f6;">
+      <div style="font-size:13px;font-weight:700;color:#374151;">Total inadimplente: <span id="modal-inadimpl-total" style="color:#ef4444;">—</span></div>
+      <button onclick="fecharModalInadimpl()" class="btn" style="padding:8px 18px;">Fechar</button>
     </div>
   </div>
 </div>
@@ -7291,6 +7309,60 @@ function renderResumoVendas(){
       }).join('');
     }
   }
+}
+
+function abrirModalInadimpl(){
+  const modal=document.getElementById('modal-inadimpl');
+  if(!modal)return;
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  const vencidas=PAGAMENTOS_DATA.filter(p=>!p.recebido&&p.data_prevista&&new Date(p.data_prevista+'T00:00:00')<hoje);
+  const total=vencidas.reduce((s,p)=>s+(p.valor||0),0);
+  document.getElementById('modal-inadimpl-total').textContent=fmt(total);
+  const body=document.getElementById('modal-inadimpl-body');
+  if(!vencidas.length){
+    body.innerHTML='<div style="text-align:center;padding:32px;color:#15803d;font-size:14px;font-weight:600;">Nenhuma inadimplência registrada ✓</div>';
+    modal.style.display='flex';return;
+  }
+  const porAluno={};
+  vencidas.forEach(p=>{
+    const venda=VENDAS_DATA.find(v=>v.id===p.venda_id);
+    const nome=venda?.aluno_nome||'Desconhecido';
+    if(!porAluno[nome])porAluno[nome]={parcelas:[],total:0};
+    porAluno[nome].parcelas.push(p);
+    porAluno[nome].total+=(p.valor||0);
+  });
+  const diasAtraso=d=>{const diff=hoje-new Date(d+'T00:00:00');return Math.round(diff/86400000);};
+  body.innerHTML=Object.entries(porAluno).sort((a,b)=>b[1].total-a[1].total).map(([nome,info])=>`
+    <div style="border:1px solid #fecaca;border-radius:10px;padding:14px;margin-bottom:12px;background:#fff;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="font-size:14px;font-weight:700;color:#991b1b;">${nome}</div>
+        <div style="font-size:14px;font-weight:800;color:#ef4444;">${fmt(info.total)}</div>
+      </div>
+      <table style="width:100%;font-size:12px;border-collapse:collapse;">
+        <thead><tr style="background:#fef2f2;">
+          <th style="padding:5px 8px;text-align:left;color:#6b7280;font-weight:600;">Descrição</th>
+          <th style="padding:5px 8px;text-align:right;color:#6b7280;font-weight:600;">Valor</th>
+          <th style="padding:5px 8px;text-align:center;color:#6b7280;font-weight:600;">Vencimento</th>
+          <th style="padding:5px 8px;text-align:center;color:#6b7280;font-weight:600;">Atraso</th>
+          <th style="padding:5px 8px;"></th>
+        </tr></thead>
+        <tbody>${info.parcelas.sort((a,b)=>(a.data_prevista||'').localeCompare(b.data_prevista||'')).map(p=>{
+          const d=diasAtraso(p.data_prevista);
+          const cor=d>60?'#991b1b':d>30?'#c2410c':'#92400e';
+          return`<tr style="border-top:1px solid #fee2e2;">
+            <td style="padding:6px 8px;color:#374151;">${p.descricao||'Parcela'}</td>
+            <td style="padding:6px 8px;text-align:right;font-weight:600;color:#374151;">${fmt(p.valor)}</td>
+            <td style="padding:6px 8px;text-align:center;color:${cor};font-weight:600;">${fmtDataV(p.data_prevista)}</td>
+            <td style="padding:6px 8px;text-align:center;color:${cor};font-weight:700;">${d}d</td>
+            <td style="padding:6px 8px;"><button class="btn-marcar" style="font-size:11px;padding:3px 8px;" onclick="marcarPagamentoRecebido('${p.id}');fecharModalInadimpl();renderResumoVendas();">✓ Recebido</button></td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>`).join('');
+  modal.style.display='flex';
+}
+function fecharModalInadimpl(){
+  const m=document.getElementById('modal-inadimpl');if(m)m.style.display='none';
 }
 
 function renderListaVendas(){
