@@ -5123,8 +5123,8 @@ function renderizarEquipe(){
           </div>
         </div>
         ${canEdit?`<div style="display:flex;gap:6px;flex-shrink:0;">
-          <button onclick="abrirEditarRole('${c.email}','${c.nome}','${c.role}')" style="padding:6px 10px;border:1px solid #e5e7eb;background:#fff;border-radius:6px;cursor:pointer;font-size:12px;color:#374151;">Editar</button>
-          <button onclick="desativarColab('${c.email}')" style="padding:6px 10px;border:1px solid #fecaca;background:#fff;border-radius:6px;cursor:pointer;font-size:12px;color:#ef4444;">Remover</button>
+          <button onclick="abrirEditarRole(this.dataset.e,this.dataset.n,this.dataset.r)" data-e="${esc(c.email)}" data-n="${esc(c.nome)}" data-r="${esc(c.role)}" style="padding:6px 10px;border:1px solid #e5e7eb;background:#fff;border-radius:6px;cursor:pointer;font-size:12px;color:#374151;">Editar</button>
+          <button onclick="desativarColab(this.dataset.e)" data-e="${esc(c.email)}" style="padding:6px 10px;border:1px solid #fecaca;background:#fff;border-radius:6px;cursor:pointer;font-size:12px;color:#ef4444;">Remover</button>
         </div>`:''}
       </div>
       <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px;">Páginas com acesso (${pagLabels.length})</div>
