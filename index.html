@@ -1302,6 +1302,7 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
       <div class="kpi amarelo"><div class="kl">Pendente a Receber</div><div class="kv" id="v-kpi-pendente">—</div></div>
       <div class="kpi cinza"><div class="kl">Comissões a Pagar</div><div class="kv" id="v-kpi-comissoes">—</div></div>
       <div class="kpi" style="border-left:3px solid #ef4444;background:#fef2f2;cursor:pointer;" onclick="abrirModalInadimpl()" title="Clique para ver detalhes"><div class="kl" style="color:#991b1b;">Inadimpl&ecirc;ncia Acumulada <span style="font-size:9px;opacity:.7;">&#128269;</span></div><div class="kv" id="v-kpi-inadimpl" style="color:#ef4444;">—</div><div style="font-size:10px;color:#b91c1c;margin-top:2px;" id="v-kpi-inadimpl-qtd"></div></div>
+      <div class="kpi" style="border-left:3px solid #7c3aed;background:#faf5ff;"><div class="kl" style="color:#5b21b6;">Upsell (m&ecirc;s)</div><div class="kv" id="v-kpi-upsell" style="color:#7c3aed;">—</div><div style="font-size:10px;color:#6d28d9;margin-top:2px;" id="v-kpi-upsell-qtd"></div></div>
     </div>
 
     <div class="card">
@@ -2114,6 +2115,7 @@ body[data-readonly] [data-write],body[data-readonly] .btn-marcar{display:none!im
             <option value="captacao_fria">Captação fria (abordagem ativa)</option>
             <option value="retomado">Lead retomado</option>
             <option value="organico">Orgânico (veio por conta)</option>
+            <option value="upsell">Upsell (cliente atual)</option>
           </select>
         </div>
         <div>
@@ -7142,9 +7144,10 @@ function exportarVendasPDF(){
     if(tot>0||com>0)comVend[ven.nome||ven.id]={recebido:tot,comissao:com};
   });
 
-  const origemLblPdf={'captacao_fria':'Captação fria','retomado':'Retomado','organico':'Orgânico'};
+  const origemLblPdf={'captacao_fria':'Captação fria','retomado':'Retomado','organico':'Orgânico','upsell':'Upsell'};
   const vCaptacao=vendas.filter(v=>v.origem==='captacao_fria'||v.origem==='retomado');
   const vOrganico=vendas.filter(v=>v.origem==='organico');
+  const vUpsell=vendas.filter(v=>v.origem==='upsell');
   const vSemOrigem=vendas.filter(v=>!v.origem);
   const valCaptacao=vCaptacao.reduce((s,v)=>s+(v.valor_total||0),0);
   const valOrganico=vOrganico.reduce((s,v)=>s+(v.valor_total||0),0);
@@ -7193,11 +7196,12 @@ function exportarVendasPDF(){
     <div style="${kpiStyle}"><div style="font-size:11px;color:#6b7280;text-transform:uppercase;">Comissões</div><div style="font-size:18px;font-weight:700;color:#2563eb;">${fmt2(comTotal)}</div></div>
   </div>
   <h2>Vendas do Período (${totalVendas})</h2>
-  <h2>Captação vs Orgânico</h2>
+  <h2>Origem dos Leads</h2>
   <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
     <div style="${kpiStyle}"><div style="font-size:11px;color:#6b7280;text-transform:uppercase;">Captação (fria + retomado)</div><div style="font-size:18px;font-weight:700;color:#1d4ed8;">${vCaptacao.length} vendas · ${fmt2(valCaptacao)}</div></div>
     <div style="${kpiStyle}"><div style="font-size:11px;color:#6b7280;text-transform:uppercase;">Orgânico</div><div style="font-size:18px;font-weight:700;color:#15803d;">${vOrganico.length} vendas · ${fmt2(valOrganico)}</div></div>
-    ${vSemOrigem.length?`<div style="${kpiStyle}"><div style="font-size:11px;color:#6b7280;text-transform:uppercase;">Sem origem (antigas)</div><div style="font-size:18px;font-weight:700;color:#9ca3af;">${vSemOrigem.length} vendas</div></div>`:''}
+    ${vUpsell.length?`<div style="${kpiStyle}"><div style="font-size:11px;color:#6b7280;text-transform:uppercase;">Upsell (cliente atual)</div><div style="font-size:18px;font-weight:700;color:#7c3aed;">${vUpsell.length} venda${vUpsell.length>1?'s':''} · ${fmt2(vUpsell.reduce((s,v)=>s+(v.valor_total||0),0))}</div></div>`:''}
+    ${vSemOrigem.length?`<div style="${kpiStyle}"><div style="font-size:11px;color:#6b7280;text-transform:uppercase;">Sem origem</div><div style="font-size:18px;font-weight:700;color:#9ca3af;">${vSemOrigem.length} vendas</div></div>`:''}
   </div>
   ${vendas.length?`<h2>Vendas do Período (${totalVendas})</h2><table><thead><tr><th>Aluno</th><th>Data</th><th>Valor</th><th>Tipo</th><th>Vendedora</th><th>Influencer</th><th>Origem</th><th>Status</th></tr></thead><tbody>${linhasVendas}</tbody></table>`:'<p style="color:#9ca3af;">Nenhuma venda no período.</p>'}
   ${Object.keys(comVend).length?`<h2>Comissões por Vendedora</h2><p style="font-size:11px;color:#6b7280;margin-bottom:6px;">* Inclui pagamentos de parcelas de meses anteriores</p><table><thead><tr><th>Vendedora</th><th>Valor Recebido</th><th>Comissão</th></tr></thead><tbody>${linhasCom}</tbody></table>`:''}
@@ -7283,6 +7287,10 @@ function renderResumoVendas(){
   const totalInadimpl=vencidas.reduce((s,p)=>s+(p.valor||0),0);
   if(g('v-kpi-inadimpl'))g('v-kpi-inadimpl').textContent=fmt(totalInadimpl);
   if(g('v-kpi-inadimpl-qtd'))g('v-kpi-inadimpl-qtd').textContent=vencidas.length>0?`${vencidas.length} parcela${vencidas.length>1?'s':''} em atraso`:'';
+  const upsellMes=vendasMes.filter(v=>v.origem==='upsell');
+  const totalUpsell=upsellMes.reduce((s,v)=>s+(v.valor_total||0),0);
+  if(g('v-kpi-upsell'))g('v-kpi-upsell').textContent=upsellMes.length?fmt(totalUpsell):'—';
+  if(g('v-kpi-upsell-qtd'))g('v-kpi-upsell-qtd').textContent=upsellMes.length?`${upsellMes.length} venda${upsellMes.length>1?'s':''} no mês`:'';
   const badge=g('v-inadimpl-total-badge');
   if(badge){badge.textContent=fmt(totalInadimpl);badge.style.display=vencidas.length?'inline-block':'none';}
   const tbodyInad=g('v-tbody-inadimpl');
@@ -7392,7 +7400,7 @@ function renderListaVendas(){
   if(!tbody)return;
   if(!dados.length){tbody.innerHTML='<tr><td colspan="10" class="empty">Nenhuma venda encontrada</td></tr>';return;}
   const tipoLabel=t=>({avista:'À Vista',credito:'Cartão',sinal_parcelas:'Sinal+Parc.',parcelado_pix:'Parc.Pix'})[t]||t;
-  const origemLabel={'captacao_fria':'Captação fria','retomado':'Retomado','organico':'Orgânico'};
+  const origemLabel={'captacao_fria':'Captação fria','retomado':'Retomado','organico':'Orgânico','upsell':'Upsell'};
   const totalFiltrado=dados.reduce((s,v)=>s+(v.valor_total||0),0);
   const nfBreakdown=pgtos=>{
     const pix=pgtos.filter(p=>p.recebido&&(p.forma_pagamento_nf||'pix')==='pix').reduce((s,p)=>s+(p.valor||0),0);
