@@ -6550,6 +6550,7 @@ function renderRenovacoes(){
   const renov = CN_ALUNOS_TODOS
     .filter(a => {
       if(!a.fimCtrt) return false;
+      if((a.plano||'').toLowerCase().includes('influencer')) return false;
       const d = new Date(a.fimCtrt + 'T00:00:00');
       return d >= hoje && d <= limite;
     })
@@ -6564,18 +6565,21 @@ function renderRenovacoes(){
   // KPIs fixos (independente do filtro)
   const urgente = CN_ALUNOS_TODOS.filter(a => {
     if(!a.fimCtrt) return false;
+    if((a.plano||'').toLowerCase().includes('influencer')) return false;
     const d = new Date(a.fimCtrt + 'T00:00:00');
     const dr = Math.round((d - hoje) / 86400000);
     return dr >= 0 && dr <= 15;
   }).length;
   const atencao = CN_ALUNOS_TODOS.filter(a => {
     if(!a.fimCtrt) return false;
+    if((a.plano||'').toLowerCase().includes('influencer')) return false;
     const d = new Date(a.fimCtrt + 'T00:00:00');
     const dr = Math.round((d - hoje) / 86400000);
     return dr >= 16 && dr <= 30;
   }).length;
   const breve = CN_ALUNOS_TODOS.filter(a => {
     if(!a.fimCtrt) return false;
+    if((a.plano||'').toLowerCase().includes('influencer')) return false;
     const d = new Date(a.fimCtrt + 'T00:00:00');
     const dr = Math.round((d - hoje) / 86400000);
     return dr >= 31 && dr <= 60;
@@ -6636,6 +6640,7 @@ function renderPrevisaoRenovacoes(mesFiltro){
 
   CN_ALUNOS_TODOS.forEach(a => {
     if(!a.fimCtrt) return;
+    if((a.plano||'').toLowerCase().includes('influencer')) return;
     const mesKey = a.fimCtrt.slice(0,7);
     const m = meses.find(m => m.key === mesKey);
     if(m) m.alunos.push(a);
